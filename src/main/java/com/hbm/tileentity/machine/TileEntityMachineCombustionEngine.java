@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.handler.CompatHandler;
@@ -113,7 +114,7 @@ public class TileEntityMachineCombustionEngine extends TileEntityMachinePollutin
 			NBTTagCompound data = new NBTTagCompound();
 			data.setLong("power", Math.min(power, maxPower));
 
-			this.power = Library.chargeItemsFromTE(slots, 3, power, power);
+			this.power = VoltageCheckedCharging.chargeItemsFromTE(this, slots, 3, power, power);
 
 			for(DirPos pos : getConPos()) {
 				this.tryProvide(worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());

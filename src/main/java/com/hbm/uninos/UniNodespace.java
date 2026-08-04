@@ -3,6 +3,8 @@ package com.hbm.uninos;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -79,17 +81,18 @@ public class UniNodespace {
 
 	private static void updateNetworks() {
 
-		for(NodeNet net : activeNodeNets) net.resetTrackers(); //reset has to be done before everything else
-		for(NodeNet net : activeNodeNets) net.update();
-		
+		List<NodeNet> snapshot = new ArrayList<NodeNet>(activeNodeNets);
+		for(NodeNet net : snapshot) if(net.isValid()) net.resetTrackers(); // reset before every update
+		for(NodeNet net : snapshot) if(net.isValid()) net.update();
+
 		if(reapTimer <= 0) {
 			activeNodeNets.forEach((net) -> { net.links.removeIf((link) -> { return ((GenNode) link).expired; }); });
 			activeNodeNets.removeIf((net) -> { return net.links.size() <= 0; }); // reap empty networks
 		}
 	}
-	
+
 	private static void updateReapTimer() {
-		if(reapTimer <= 0) reapTimer = 5 * 60 * 20; // 5 minutes is more than plenty 
+		if(reapTimer <= 0) reapTimer = 5 * 60 * 20; // 5 minutes is more than plenty
 		else reapTimer--;
 	}
 

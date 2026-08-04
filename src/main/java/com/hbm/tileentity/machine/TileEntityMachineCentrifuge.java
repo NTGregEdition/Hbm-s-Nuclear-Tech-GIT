@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -187,7 +188,7 @@ public class TileEntityMachineCentrifuge extends TileEntityMachineBase implement
 
 			for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) this.trySubscribe(worldObj, xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ, dir);
 
-			power = Library.chargeTEFromItems(slots, 1, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 1, power, maxPower);
 
 			int consumption = baseConsumption;
 			int speed = 1;

@@ -1,9 +1,8 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
+import api.hbm.energymk2.IBatteryItem;
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonWriter;
 import com.hbm.inventory.container.ContainerForceField;
@@ -15,9 +14,6 @@ import com.hbm.packet.toclient.TEFFPacket;
 import com.hbm.tileentity.IConfigurableMachine;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.TileEntityLoadedBase;
-
-import api.hbm.energymk2.IBatteryItem;
-import api.hbm.energymk2.IEnergyReceiverMK2;
 import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -33,6 +29,10 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TileEntityForceField extends TileEntityLoadedBase implements ISidedInventory, IEnergyReceiverMK2, IGUIProvider, IConfigurableMachine {
 
@@ -253,7 +253,7 @@ public class TileEntityForceField extends TileEntityLoadedBase implements ISided
 			}
 		}
 		nbt.setTag("items", list);
-		
+
 		if (customName != null) {
 			nbt.setString("name", customName);
 		}
@@ -307,7 +307,7 @@ public class TileEntityForceField extends TileEntityLoadedBase implements ISided
 
 			this.powerCons = baseCon + rStack * radCon + hStack * shCon;
 
-			power = Library.chargeTEFromItems(slots, 0, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, maxPower);
 
 			if(blink > 0) {
 				blink--;

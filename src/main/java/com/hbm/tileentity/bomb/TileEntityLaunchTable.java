@@ -1,4 +1,5 @@
 package com.hbm.tileentity.bomb;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.List;
 
@@ -189,7 +190,7 @@ public class TileEntityLaunchTable extends TileEntityLoadedBase implements ISide
 			tanks[0].loadTank(2, 6, slots);
 			tanks[1].loadTank(3, 7, slots);
 
-			power = Library.chargeTEFromItems(slots, 5, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 5, power, maxPower);
 
 			if(slots[4] != null && slots[4].getItem() == ModItems.rocket_fuel && solid + 250 <= maxSolid) {
 
@@ -545,7 +546,7 @@ public class TileEntityLaunchTable extends TileEntityLoadedBase implements ISide
 			}
 		}
 		nbt.setTag("items", list);
-		
+
 		if (customName != null) {
 			nbt.setString("name", customName);
 		}

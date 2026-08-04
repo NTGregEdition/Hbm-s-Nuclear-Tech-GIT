@@ -76,6 +76,14 @@ public class AssemblyMachineRecipes extends GenericRecipes<GenericRecipe> {
 		this.register(new GenericRecipe("ass.plateweaponsteel").setup(60, 100).outputItems(new ItemStack(ModItems.plate_weaponsteel, 1)).inputItems(new OreDictStack(WEAPONSTEEL.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
 		this.register(new GenericRecipe("ass.platesaturnite").setup(60, 100).outputItems(new ItemStack(ModItems.plate_saturnite, 1)).inputItems(new OreDictStack(BIGMT.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
 		this.register(new GenericRecipe("ass.platedura").setup(60, 100).outputItems(new ItemStack(ModItems.plate_dura_steel, 1)).inputItems(new OreDictStack(DURA.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
+		this.register(new GenericRecipe("ass.platetungsten").setup(60, 100).outputItems(new ItemStack(ModItems.plate_tungsten, 1)).inputItems(new OreDictStack(W.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
+		this.register(new GenericRecipe("ass.plateferro").setup(60, 100).outputItems(new ItemStack(ModItems.plate_ferrouranium, 1)).inputItems(new OreDictStack(FERRO.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
+		this.register(new GenericRecipe("ass.platestar").setup(60, 100).outputItems(new ItemStack(ModItems.plate_starmetal, 1)).inputItems(new OreDictStack(STAR.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
+		this.register(new GenericRecipe("ass.platetcalloy").setup(60, 100).outputItems(new ItemStack(ModItems.plate_tcalloy, 1)).inputItems(new OreDictStack(TCALLOY.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
+		this.register(new GenericRecipe("ass.platec_desh").setup(60, 100).outputItems(new ItemStack(ModItems.plate_c_desh, 1)).inputItems(new OreDictStack(DESH.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
+		this.register(new GenericRecipe("ass.platec_dnt").setup(60, 100).outputItems(new ItemStack(ModItems.plate_c_dineutronium, 1)).inputItems(new OreDictStack(DNT.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
+		this.register(new GenericRecipe("ass.platecn989").setup(60, 100).outputItems(new ItemStack(ModItems.plate_cn989, 1)).inputItems(new OreDictStack(CN989.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
+
 		this.register(new GenericRecipe("ass.platemixed").setup(50, 100).outputItems(new ItemStack(ModItems.plate_mixed, 4))
 				.inputItems(new OreDictStack(ALLOY.plate(), 2), new ComparableStack(ModItems.neutron_reflector, 1), new OreDictStack(BIGMT.plate(), 1)));
 		this.register(new GenericRecipe("ass.dalekanium").setup(200, 100).outputItems(new ItemStack(ModItems.plate_dalekanium, 1))
@@ -569,7 +577,7 @@ public class AssemblyMachineRecipes extends GenericRecipes<GenericRecipe> {
 
 		this.register(new GenericRecipe("ass.htrf4neo").setup(1_200, 100).outputItems(new ItemStack(ModBlocks.machine_htrf4neo, 1))
 				.inputItems(new OreDictStack(ANY_RESISTANTALLOY.plateWelded(), 16), new OreDictStack(CU.plateWelded(), 64), new OreDictStack(SBD.wireDense(), 64), new OreDictStack(STAINLESS.plateWelded(), 16), new ComparableStack(ModItems.circuit, 2, EnumCircuitType.BISMOID), new ComparableStack(ModItems.circuit, 4, EnumCircuitType.GASCHIP)));
-		
+
 		// watz
 		this.register(new GenericRecipe("ass.watzrod").setup(200, 100).outputItems(new ItemStack(ModBlocks.watz_element, 3))
 				.inputItems(new OreDictStack(STEEL.plateCast(), 2), new OreDictStack(ZR.ingot(), 2), new OreDictStack(BIGMT.ingot(), 2), new OreDictStack(ANY_HARDPLASTIC.ingot(), 4))

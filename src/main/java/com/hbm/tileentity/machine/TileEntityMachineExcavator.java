@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -127,7 +128,7 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 
 			if(chuteTimer > 0) chuteTimer--;
 
-			this.power = Library.chargeTEFromItems(slots, 0, this.getPower(), this.getMaxPower());
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, this.getPower(), this.getMaxPower());
 			this.operational = false;
 			int radiusLevel = upgradeManager.getLevel(UpgradeType.EFFECT);
 

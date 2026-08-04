@@ -20,16 +20,16 @@ import net.minecraft.util.IIcon;
 import net.minecraft.util.StatCollector;
 
 public class ItemBlockBase extends ItemBlock {
-	
+
 	public ItemBlockBase(Block block) {
 		super(block);
-		
+
 		if(block instanceof IBlockMulti) {
 			this.setMaxDamage(0);
 			this.setHasSubtypes(true);
 		}
 	}
-	
+
 	@Override
 	public int getMetadata(int meta) {
 		if(field_150939_a instanceof IBlockMulti)
@@ -37,10 +37,10 @@ public class ItemBlockBase extends ItemBlock {
 		else
 			return super.getMetadata(meta);
 	}
-	
+
 	@Override
 	public String getUnlocalizedName(ItemStack stack) {
-		
+
 		if(field_150939_a instanceof IBlockMulti) {
 			return ((IBlockMulti) field_150939_a).getUnlocalizedName(stack);
 		} else if(field_150939_a instanceof BlockMetalFence) {
@@ -60,14 +60,14 @@ public class ItemBlockBase extends ItemBlock {
 		}
 		return ("" + StatCollector.translateToLocal(this.getUnlocalizedNameInefficiently(stack) + ".name")).trim();
 	}
-	
+
 	@Override
 	public void addInformation(ItemStack stack, EntityPlayer player, List list, boolean bool) {
-		
+
 		if(field_150939_a instanceof ITooltipProvider) {
 			((ITooltipProvider) field_150939_a).addInformation(stack, player, list, bool);
 		}
-		
+
 		if(field_150939_a instanceof IPersistentInfoProvider && stack.hasTagCompound() && stack.getTagCompound().hasKey(IPersistentNBT.NBT_PERSISTENT_KEY)) {
 			NBTTagCompound data = stack.getTagCompound().getCompoundTag(IPersistentNBT.NBT_PERSISTENT_KEY);
 			((IPersistentInfoProvider) field_150939_a).addInformation(stack, data, player, list, bool);
@@ -81,11 +81,11 @@ public class ItemBlockBase extends ItemBlock {
 
 	@Override
 	public EnumRarity getRarity(ItemStack stack) {
-		
+
 		if(field_150939_a instanceof ITooltipProvider) {
 			return ((ITooltipProvider) field_150939_a).getRarity(stack);
 		}
-		
+
 		return EnumRarity.common;
 	}
 

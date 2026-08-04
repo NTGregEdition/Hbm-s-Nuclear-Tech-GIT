@@ -57,6 +57,7 @@ public class RenderBobble extends TileEntitySpecialRenderer {
 	public static final ResourceLocation bobble_mrkimkimora = new ResourceLocation(RefStrings.MODID, "textures/models/trinkets/MrKimkimora.png");
 	public static final ResourceLocation bobble_abel = new ResourceLocation(RefStrings.MODID, "textures/models/trinkets/abel.png");
 	public static final ResourceLocation bobble_abel_glow = new ResourceLocation(RefStrings.MODID, "textures/models/trinkets/abel_glow.png");
+	public static final ResourceLocation bobble_arystan_x = new ResourceLocation(RefStrings.MODID, "textures/models/trinkets/arystan_x.png");
 
 	private long time;
 
@@ -118,6 +119,7 @@ public class RenderBobble extends TileEntitySpecialRenderer {
 		case MELLOW:	bindTexture(bobble_mellow); break;
 		case MRKIMKIMORA:bindTexture(bobble_mrkimkimora); break;
 		case ABEL:		bindTexture(bobble_abel); break;
+		case ARYSTAN_X:	bindTexture(bobble_arystan_x); break;
 		default:		bindTexture(ResourceManager.universal);
 		}
 

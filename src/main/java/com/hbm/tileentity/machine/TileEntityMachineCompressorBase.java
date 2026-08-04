@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +70,7 @@ public abstract class TileEntityMachineCompressorBase extends TileEntityMachineB
 				this.updateConnections();
 			}
 
-			this.power = Library.chargeTEFromItems(slots, 1, power, maxPower);
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 1, power, maxPower);
 			this.tanks[0].setType(0, slots);
 			this.setupTanks();
 

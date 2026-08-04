@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine.albion;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import com.hbm.handler.CompatHandler;
 import com.hbm.inventory.container.ContainerPARFC;
@@ -75,7 +76,7 @@ public class TileEntityPARFC extends TileEntityCooledBase implements IGUIProvide
 	public void updateEntity() {
 
 		if(!worldObj.isRemote) {
-			this.power = Library.chargeTEFromItems(slots, 0, power, this.getMaxPower());
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, this.getMaxPower());
 		}
 
 		super.updateEntity();

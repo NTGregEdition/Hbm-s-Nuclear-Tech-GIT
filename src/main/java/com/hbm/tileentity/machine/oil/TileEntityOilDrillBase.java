@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine.oil;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -115,7 +116,7 @@ public abstract class TileEntityOilDrillBase extends TileEntityMachineBase imple
 					this.power = this.getMaxPower();
 			}
 
-			power = Library.chargeTEFromItems(slots, 0, power, this.getMaxPower());
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, this.getMaxPower());
 
 			for (DirPos pos : getConPos()) {
 				if (tanks[0].getFill() > 0)

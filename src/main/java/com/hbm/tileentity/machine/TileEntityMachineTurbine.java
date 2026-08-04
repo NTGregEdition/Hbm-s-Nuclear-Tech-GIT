@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.io.IOException;
 
@@ -281,8 +282,8 @@ public class TileEntityMachineTurbine extends TileEntityLoadedBase implements IS
 
 			tanks[0].setType(0, 1, slots);
 			tanks[0].loadTank(2,  3, slots);
-			power = Library.chargeItemsFromTE(slots, 4, power, maxPower);
-			
+			power = VoltageCheckedCharging.chargeItemsFromTE(this, slots, 4, power, maxPower);
+
 			this.power *= 0.95;
 
 			FluidType in = tanks[0].getTankType();

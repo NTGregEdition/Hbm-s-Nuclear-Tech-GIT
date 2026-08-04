@@ -247,7 +247,7 @@ public class TileMappings {
 
 		put(TileEntityCargoElevator.class, "tileentity_cargo_elevator");
 		put(TileEntityDoorGeneric.class, "tileentity_ntm_door");
-		
+
 		put(TileEntityCharger.class, "tileentity_ntm_charger");
 		put(TileEntityRefueler.class, "tileentity_ntm_refueler");
 
@@ -353,6 +353,7 @@ public class TileMappings {
 		put(TileEntityMachineStrandCaster.class, "tileentity_strand_caster");
 
 		put(TileEntityMachineAutocrafter.class, "tileentity_autocrafter");
+		put(TileEntityCraftingStation.class, "tileentity_crafting_station");
 		put(TileEntityMachineFunnel.class, "tileentity_funnel");
 		put(TileEntityDiFurnaceRTG.class, "tileentity_rtg_difurnace");
 		put(TileEntityMachineRadiolysis.class, "tileentity_radiolysis");
@@ -486,6 +487,8 @@ public class TileMappings {
 
 	private static void putNetwork() {
 		put(TileEntityCableBaseNT.class, "tileentity_cable", "tileentity_wirecoated");
+		put(TileEntityVoltageCable.class, "tileentity_voltage_cable");
+		put(TileEntityVoltageTransformer.class, "tileentity_voltage_transformer");
 		put(TileEntityCablePaintable.class, "tileentity_cable_paintable");
 		put(TileEntityCableGauge.class, "tileentity_cable_gauge");
 		put(TileEntityCableSwitch.class, "tileentity_cable_switch");

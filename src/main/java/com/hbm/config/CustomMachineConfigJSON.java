@@ -27,6 +27,8 @@ import com.hbm.items.machine.ItemCircuit.EnumCircuitType;
 import com.hbm.main.CraftingManager;
 import com.hbm.main.MainRegistry;
 
+import api.hbm.energymk2.VoltageTier;
+
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -76,6 +78,7 @@ public class CustomMachineConfigJSON {
 			writer.name("recipeSpeedMult").value(1.0D);
 			writer.name("recipeConsumptionMult").value(1.0D);
 			writer.name("maxPower").value(10_000L);
+			writer.name("voltage").value(VoltageTier.DEFAULT);
 			writer.name("maxHeat").value(0);
 
 			writer.name("recipeShape").beginArray();
@@ -175,6 +178,7 @@ public class CustomMachineConfigJSON {
 				configuration.recipeSpeedMult = machineObject.get("recipeSpeedMult").getAsDouble();
 				configuration.recipeConsumptionMult = machineObject.get("recipeConsumptionMult").getAsDouble();
 				configuration.maxPower = machineObject.get("maxPower").getAsLong();
+				if(machineObject.has("voltage")) configuration.voltage = machineObject.get("voltage").getAsLong();
 				if(machineObject.has("maxHeat")) configuration.maxHeat = machineObject.get("maxHeat").getAsInt();
 
 				if(machineObject.has("recipeShape") && machineObject.has("recipeParts")) {
@@ -266,6 +270,7 @@ public class CustomMachineConfigJSON {
 		public double recipeSpeedMult = 1D;
 		public double recipeConsumptionMult = 1D;
 		public long maxPower;
+		public long voltage = VoltageTier.DEFAULT;
 		public int maxHeat;
 
 

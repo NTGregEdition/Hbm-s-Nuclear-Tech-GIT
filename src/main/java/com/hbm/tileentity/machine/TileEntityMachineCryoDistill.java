@@ -1,5 +1,8 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluid.IFluidStandardTransceiver;
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.inventory.FluidStack;
 import com.hbm.inventory.container.ContainerMachineCryoDistill;
@@ -8,15 +11,11 @@ import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.fluid.tank.FluidTank;
 import com.hbm.inventory.gui.GUIMachineCryoDistill;
 import com.hbm.inventory.recipes.CryoRecipes;
-import com.hbm.lib.Library;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.IPersistentNBT;
 import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.util.Tuple.Quartet;
 import com.hbm.util.fauxpointtwelve.DirPos;
-
-import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.fluid.IFluidStandardTransceiver;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
@@ -54,7 +53,7 @@ public class TileEntityMachineCryoDistill extends TileEntityMachineBase implemen
 	public void updateEntity() {
 
 		if(!worldObj.isRemote) {
-			power = Library.chargeTEFromItems(slots, 0, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, maxPower);
 			tanks[0].setType(7, slots);
 
 			DirPos[] con = getConPos();

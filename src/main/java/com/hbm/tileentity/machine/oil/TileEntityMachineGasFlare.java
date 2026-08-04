@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine.oil;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.HashMap;
 import java.util.List;
@@ -185,7 +186,7 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 				}
 			}
 
-			power = Library.chargeItemsFromTE(slots, 0, power, maxPower);
+			power = VoltageCheckedCharging.chargeItemsFromTE(this, slots, 0, power, maxPower);
 
 			this.networkPackNT(50);
 
@@ -230,7 +231,7 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 					}
 
 					MainRegistry.proxy.effectNT(data);
-					
+
 					/*NBTTagCompound smokeData = new NBTTagCompound();
 					smokeData.setString("type", "tower");
 					smokeData.setFloat("lift", 2F);

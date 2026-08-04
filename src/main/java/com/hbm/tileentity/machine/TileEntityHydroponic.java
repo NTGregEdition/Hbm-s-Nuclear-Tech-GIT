@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.List;
 
@@ -100,7 +101,7 @@ public class TileEntityHydroponic extends TileEntityMachineBase implements IGUIP
 				}
 			}
 
-			power = Library.chargeTEFromItems(slots, 2, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 2, power, maxPower);
 
 			BlockDummyable.safeRem = true;
 			{

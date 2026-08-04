@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import com.hbm.inventory.FluidStack;
 import com.hbm.inventory.container.ContainerRadiolysis;
@@ -103,7 +104,7 @@ public class TileEntityMachineRadiolysis extends TileEntityMachineBase implement
 	public void updateEntity() {
 
 		if(!worldObj.isRemote) {
-			power = Library.chargeItemsFromTE(slots, 14, power, maxPower);
+			power = VoltageCheckedCharging.chargeItemsFromTE(this, slots, 14, power, maxPower);
 
 			heat = RTGUtil.updateRTGs(slots, slot_rtg);
 			power += heat * 10;

@@ -1,4 +1,5 @@
 package com.hbm.tileentity.turret;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -316,7 +317,7 @@ public class TileEntityTurretArty extends TileEntityTurretBaseArtillery implemen
 				this.updateFiringTick();
 			}
 
-			this.power = Library.chargeTEFromItems(slots, 10, this.power, this.getMaxPower());
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 10, this.power, this.getMaxPower());
 
 			this.networkPackNT(250);
 
@@ -435,7 +436,7 @@ public class TileEntityTurretArty extends TileEntityTurretBaseArtillery implemen
 		Vec3 spawn = this.getCasingSpawnPos();
 		float yaw = (float) Math.toDegrees(rotationYaw);
 		float pitch = (float) -Math.toDegrees(this.rotationPitch);
-		
+
 		CasingCreator.composeEffect(worldObj,
 				spawn.xCoord, spawn.yCoord, spawn.zCoord,
 				yaw, pitch,
@@ -443,7 +444,7 @@ public class TileEntityTurretArty extends TileEntityTurretBaseArtillery implemen
 				0.01, worldObj.rand.nextFloat() * 20F - 10F, 0,
 				cachedCasingConfig.getName(),
 				true, 200, 1, 20);
-		
+
 		cachedCasingConfig = null;
 	}
 

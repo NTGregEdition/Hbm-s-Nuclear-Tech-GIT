@@ -241,7 +241,7 @@ public class ModEventHandlerClient {
 					/*List<String> text = new ArrayList();
 					text.add("Meta: " + world.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ));
 					ILookOverlay.printGeneric(event, "DEBUG", 0xffff00, 0x4040000, text);*/
-					
+
 					if(ClientConfig.SHOW_BLOCK_META_OVERLAY.get()) {
 						Block b = world.getBlock(mop.blockX, mop.blockY, mop.blockZ);
 						int i = world.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ);
@@ -660,6 +660,7 @@ public class ModEventHandlerClient {
 		if(player.getCurrentArmor(2) == null && !player.isPotionActive(Potion.invisibility)) {
 			if(player.getUniqueID().toString().equals(ShadyUtil.HbMinecraft) ||		player.getDisplayName().equals("HbMinecraft"))		RenderAccessoryUtility.renderWings(event, 2);
 			if(player.getUniqueID().toString().equals(ShadyUtil.the_NCR) ||			player.getDisplayName().equals("the_NCR"))			RenderAccessoryUtility.renderWings(event, 3);
+			if(player.getUniqueID().toString().equals(ShadyUtil.Arystan_X) ||			player.getDisplayName().equals("Arystan_X"))	RenderAccessoryUtility.renderWings(event, 4);
 			if(player.getUniqueID().toString().equals(ShadyUtil.Barnaby99_x) ||		player.getDisplayName().equals("pheo7"))			RenderAccessoryUtility.renderAxePack(event);
 			if(player.getUniqueID().toString().equals(ShadyUtil.LePeeperSauvage) ||	player.getDisplayName().equals("LePeeperSauvage"))	RenderAccessoryUtility.renderFaggot(event);
 		}
@@ -1032,14 +1033,14 @@ public class ModEventHandlerClient {
 			if(ArmorUtil.isWearingEmptyMask(mc.thePlayer)) {
 				MainRegistry.proxy.displayTooltip(EnumChatFormatting.RED + "Your mask has no filter!", ServerProxy.ID_FILTER);
 			}
-			
+
 			//prune other entities' muzzle flashes
 			if(mc.theWorld.getTotalWorldTime() % 30 == 0) {
 				long millis = System.currentTimeMillis();
 				//dead entities may have later insertion order than actively firing ones, so we be safe
 				ItemRenderWeaponBase.flashMap.values().removeIf(entry -> millis - entry.longValue() >= 150);
 			}
-			
+
 			CelestialBody body = CelestialBody.getBody(mc.theWorld);
 			CBT_Invasion invasion = body.getTrait(CBT_Invasion.class);
 

@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.HashMap;
 import java.util.List;
@@ -74,7 +75,7 @@ public class TileEntityMachineCrystallizer extends TileEntityMachineBase impleme
 
 			this.updateConnections();
 
-			power = Library.chargeTEFromItems(slots, 1, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 1, power, maxPower);
 			tank.setType(7, slots);
 			tank.loadTank(3, 4, slots);
 
@@ -116,7 +117,7 @@ public class TileEntityMachineCrystallizer extends TileEntityMachineBase impleme
 				if(worldObj.rand.nextInt(20) == 0 && MainRegistry.proxy.me().getDistance(xCoord + 0.5, yCoord + 6, zCoord + 0.5) < 50) {
 					worldObj.spawnParticle("cloud", xCoord + worldObj.rand.nextDouble(), yCoord + 6.5D, zCoord + worldObj.rand.nextDouble(), 0.0, 0.1, 0.0);
 				}
-				
+
 				if(MainRegistry.proxy.me().getDistance(xCoord , yCoord, zCoord) < 25) {
 					if(audio == null) {
 						audio = createAudioLoop();
@@ -127,7 +128,7 @@ public class TileEntityMachineCrystallizer extends TileEntityMachineBase impleme
 					audio.keepAlive();
 					audio.updateVolume(this.getVolume(1F));
 					audio.updatePitch(0.75F);
-					
+
 				} else {
 					if(audio != null) {
 						audio.stopSound();

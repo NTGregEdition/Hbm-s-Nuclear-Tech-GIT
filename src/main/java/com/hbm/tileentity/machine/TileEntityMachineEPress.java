@@ -1,8 +1,8 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
-import java.util.HashMap;
-import java.util.List;
-
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.tile.IInfoProviderEC;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.generic.BlockPlushie.PlushieType;
 import com.hbm.blocks.generic.BlockPlushie.TileEntityPlushie;
@@ -16,16 +16,12 @@ import com.hbm.inventory.gui.GUIMachineEPress;
 import com.hbm.inventory.recipes.PressRecipes;
 import com.hbm.items.machine.ItemMachineUpgrade.UpgradeType;
 import com.hbm.items.machine.ItemStamp;
-import com.hbm.lib.Library;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.IUpgradeInfoProvider;
 import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.util.BufferUtil;
 import com.hbm.util.CompatEnergyControl;
 import com.hbm.util.i18n.I18nUtil;
-
-import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.tile.IInfoProviderEC;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
@@ -39,6 +35,9 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import java.util.HashMap;
+import java.util.List;
 
 public class TileEntityMachineEPress extends TileEntityMachineBase implements IEnergyReceiverMK2, IGUIProvider, IUpgradeInfoProvider, IInfoProviderEC {
 
@@ -78,7 +77,7 @@ public class TileEntityMachineEPress extends TileEntityMachineBase implements IE
 			}
 
 			this.updateConnections();
-			power = Library.chargeTEFromItems(slots, 0, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, maxPower);
 
 			boolean canProcess = this.canProcess();
 

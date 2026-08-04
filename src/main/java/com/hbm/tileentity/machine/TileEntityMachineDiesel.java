@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -141,7 +142,7 @@ public class TileEntityMachineDiesel extends TileEntityMachinePolluting implemen
 				powerCap = maxPower;
 
 			// Battery Item
-			power = Library.chargeItemsFromTE(slots, 2, power, powerCap);
+			power = VoltageCheckedCharging.chargeItemsFromTE(this, slots, 2, power, powerCap);
 
 			generate();
 

@@ -1,20 +1,14 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
-import static com.hbm.inventory.OreDictManager.KEY_COBBLESTONE;
-import static com.hbm.inventory.OreDictManager.KEY_SAND;
-import static com.hbm.inventory.OreDictManager.KEY_STONE;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluid.IFluidStandardSender;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.generic.BlockOreFluid;
-import com.hbm.dim.SolarSystem;
-import com.hbm.inventory.UpgradeManagerNT;
 import com.hbm.inventory.RecipesCommon.AStack;
 import com.hbm.inventory.RecipesCommon.ComparableStack;
 import com.hbm.inventory.RecipesCommon.OreDictStack;
+import com.hbm.inventory.UpgradeManagerNT;
 import com.hbm.inventory.container.ContainerMiningLaser;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.fluid.tank.FluidTank;
@@ -35,9 +29,6 @@ import com.hbm.util.InventoryUtil;
 import com.hbm.util.fauxpointtwelve.BlockPos;
 import com.hbm.util.fauxpointtwelve.DirPos;
 import com.hbm.util.i18n.I18nUtil;
-
-import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.fluid.IFluidStandardSender;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
@@ -59,6 +50,12 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+
+import static com.hbm.inventory.OreDictManager.*;
 
 public class TileEntityMachineMiningLaser extends TileEntityMachineBase implements IEnergyReceiverMK2, IFluidStandardSender, IGUIProvider, IUpgradeInfoProvider {
 
@@ -128,7 +125,7 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 				this.sendFluid(tank, worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
 			}
 
-			power = Library.chargeTEFromItems(slots, 0, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, maxPower);
 
 			//reset progress if the position changes
 			if(lastTargetX != targetX ||

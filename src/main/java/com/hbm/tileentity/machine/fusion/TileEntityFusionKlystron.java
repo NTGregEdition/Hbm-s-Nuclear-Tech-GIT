@@ -1,14 +1,14 @@
 package com.hbm.tileentity.machine.fusion;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
-import java.util.Map.Entry;
-
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluidmk2.IFluidStandardReceiverMK2;
 import com.hbm.handler.CompatHandler;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.inventory.container.ContainerFusionKlystron;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.fluid.tank.FluidTank;
 import com.hbm.inventory.gui.GUIFusionKlystron;
-import com.hbm.lib.Library;
 import com.hbm.main.MainRegistry;
 import com.hbm.main.NTMSounds;
 import com.hbm.sound.AudioWrapper;
@@ -20,9 +20,6 @@ import com.hbm.uninos.networkproviders.KlystronNetwork;
 import com.hbm.uninos.networkproviders.KlystronNetworkProvider;
 import com.hbm.util.fauxpointtwelve.BlockPos;
 import com.hbm.util.fauxpointtwelve.DirPos;
-
-import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.fluidmk2.IFluidStandardReceiverMK2;
 import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -40,6 +37,8 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import java.util.Map.Entry;
 
 @Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
 public class TileEntityFusionKlystron extends TileEntityMachineBase implements IEnergyReceiverMK2, IFluidStandardReceiverMK2, IControlReceiver, IGUIProvider, SimpleComponent, CompatHandler.OCComponent {
@@ -79,7 +78,7 @@ public class TileEntityFusionKlystron extends TileEntityMachineBase implements I
 
 			this.maxPower = Math.max(1_000_000L, this.outputTarget * 100L);
 
-			this.power = Library.chargeTEFromItems(slots, 0, power, maxPower);
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, maxPower);
 
 			for(DirPos pos : getConPos()) {
 				this.trySubscribe(worldObj, pos);
@@ -147,10 +146,10 @@ public class TileEntityFusionKlystron extends TileEntityMachineBase implements I
 			}
 		}
 	}
-	
+
 	/** Ensures the k-node exists, is loaded, and the klystron is a provider in the k-net. Returns a new klystron node if none existed, or the previous one. */
 	public static GenNode handleKNode(GenNode klystronNode, TileEntity that) {
-		
+
 		World worldObj = that.getWorldObj();
 		int xCoord = that.xCoord;
 		int yCoord = that.yCoord;
@@ -170,10 +169,10 @@ public class TileEntityFusionKlystron extends TileEntityMachineBase implements I
 		}
 
 		if(klystronNode.net != null) klystronNode.net.addProvider(that);
-		
+
 		return klystronNode;
 	}
-	
+
 	/** Provides klystron energy to the k-net of the supplied k-node, returns true is a connection is established */
 	public static boolean provideKyU(GenNode klystronNode, long output) {
 		boolean connected = false;
@@ -194,7 +193,7 @@ public class TileEntityFusionKlystron extends TileEntityMachineBase implements I
 				}
 			}
 		}
-		
+
 		return connected;
 	}
 

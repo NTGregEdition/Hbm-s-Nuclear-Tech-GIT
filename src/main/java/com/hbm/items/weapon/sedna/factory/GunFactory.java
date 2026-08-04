@@ -26,11 +26,11 @@ public class GunFactory {
 
 	public static BulletConfig ammo_debug;
 	public static BulletConfig ammo_debug_shot;
-	
+
 	public static SpentCasing CASING44 = new SpentCasing(CasingType.STRAIGHT).setScale(1.5F, 1.0F, 1.5F).setColor(SpentCasing.COLOR_CASE_44);
 
 	public static void init() {
-		
+
 		/// AMMO ITEMS ///
 		ModItems.ammo_debug = new Item().setUnlocalizedName("ammo_debug").setTextureName(RefStrings.MODID + ":ammo_45");
 		ModItems.ammo_standard = new ItemEnumMulti(EnumAmmo.class, true, true).setUnlocalizedName("ammo_standard").setCreativeTab(MainRegistry.weaponTab).setTextureName(RefStrings.MODID + ":ammo_standard");
@@ -58,7 +58,7 @@ public class GunFactory {
 				.decider(LAMBDA_DEBUG_DECIDER)
 				.anim(Lego.LAMBDA_DEBUG_ANIMS)
 				).setUnlocalizedName("gun_debug");
-		
+
 		XFactoryBlackPowder.init();
 		XFactory357.init();
 		XFactory44.init();
@@ -83,7 +83,7 @@ public class GunFactory {
 		XFactoryTool.init();
 		XFactoryDrill.init();
 		XFactoryPA.init();
-		
+
 		ModItems.weapon_mod_test = new ItemEnumMulti(EnumModTest.class, true, true).setUnlocalizedName("weapon_mod_test").setMaxStackSize(1);
 		ModItems.weapon_mod_generic = new ItemEnumMulti(EnumModGeneric.class, true, true).setUnlocalizedName("weapon_mod_generic").setMaxStackSize(1).setCreativeTab(MainRegistry.weaponTab);
 		ModItems.weapon_mod_special = new ItemEnumMulti(EnumModSpecial.class, true, true).setUnlocalizedName("weapon_mod_special").setMaxStackSize(1).setCreativeTab(MainRegistry.weaponTab);
@@ -92,7 +92,7 @@ public class GunFactory {
 		/// PROXY BULLSHIT ///
 		MainRegistry.proxy.registerGunCfg();
 	}
-	
+
 	public static BiConsumer<ItemStack, LambdaContext> LAMBDA_DEBUG_DECIDER = (stack, ctx) -> {
 		int index = ctx.configIndex;
 		GunState lastState = ItemGunBaseNT.getState(stack, index);
@@ -103,7 +103,7 @@ public class GunFactory {
 		GunStateDecider.deciderAutoRefire(stack, ctx, lastState, 0, index, () -> { return ItemGunBaseNT.getPrimary(stack, index) && ItemGunBaseNT.getMode(stack, ctx.configIndex) == 0; });
 		GunStateDecider.deciderAutoRefire(stack, ctx, lastState, 1, index, () -> { return ItemGunBaseNT.getSecondary(stack, index) && ItemGunBaseNT.getMode(stack, ctx.configIndex) == 0; });
 	};
-	
+
 	public static enum EnumAmmo implements IOrderedEnum {
 		STONE, STONE_AP, STONE_IRON, STONE_SHOT,
 		M357_BP, M357_SP, M357_FMJ, M357_JHP, M357_AP, M357_EXPRESS,
@@ -128,10 +128,10 @@ public class GunFactory {
 		P45_SP, P45_FMJ, P45_JHP, P45_AP, P45_DU,
 		CT_HOOK, CT_MORTAR, CT_MORTAR_CHARGE,
 		NUKE_BALEFIRE, BMG50_SM,
-		
+
 		//ONLY ADD NEW ENTRIES AT THE BOTTOM TO AVOID SHIFTING!
 		;
-		
+
 		/** used for creative tab order */
 		public static EnumAmmo[] order = new EnumAmmo[] {
 			STONE, STONE_AP, STONE_IRON, STONE_SHOT,
@@ -156,23 +156,23 @@ public class GunFactory {
 			NUKE_STANDARD, NUKE_DEMO, NUKE_HIGH, NUKE_TOTS, NUKE_HIVE, NUKE_BALEFIRE,
 			CT_HOOK, CT_MORTAR, CT_MORTAR_CHARGE,
 		};
-		
+
 		public Enum[] getOrder() {
 			return order;
 		}
 	}
-	
+
 	public static enum EnumAmmoSecret {
-		FOLLY_SM, FOLLY_NUKE,
+		FOLLY_SM, FOLLY_NUKE, FOLLY_DIGAMMA,
 		M44_EQUESTRIAN, G12_EQUESTRIAN, BMG50_EQUESTRIAN,
 		P35_800, BMG50_BLACK, P35_800_BL
 	}
-	
+
 	public static enum EnumModTest {
 		FIRERATE, DAMAGE, MULTI,
 		OVERRIDE_2_5, OVERRIDE_5, OVERRIDE_7_5, OVERRIDE_10, OVERRIDE_12_5, OVERRIDE_15, OVERRIDE_20;
 	}
-	
+
 	public static enum EnumModGeneric {
 		IRON_DAMAGE, IRON_DURA,
 		STEEL_DAMAGE, STEEL_DURA,
@@ -184,7 +184,7 @@ public class GunFactory {
 		BIGMT_DAMAGE, BIGMT_DURA,
 		BRONZE_DAMAGE, BRONZE_DURA,
 	}
-	
+
 	public static enum EnumModSpecial {
 		SILENCER, SCOPE, SAW, GREASEGUN, SLOWDOWN,
 		SPEEDUP, CHOKE, SPEEDLOADER,
@@ -196,7 +196,7 @@ public class GunFactory {
 		ENGINE_DIESEL, ENGINE_AVIATION, ENGINE_ELECTRIC, ENGINE_TURBO,
 		MAGNET, SIFTER, CANISTERS
 	}
-	
+
 	public static enum EnumModCaliber {
 		P9, P45, P22, M357, M44, R556, R762, BMG50,
 	}

@@ -198,7 +198,7 @@ public class ModEventHandler {
 		if(!event.player.worldObj.isRemote) {
 
 			if(GeneralConfig.enableMOTD) {
-				event.player.addChatMessage(new ChatComponentText("Loaded world with JamesH2 & Mellow's NTM: Space " + RefStrings.VERSION + " for Minecraft 1.7.10!"));
+				event.player.addChatMessage(new ChatComponentText("Loaded world with NTM: GregEdition " + RefStrings.VERSION + " for Minecraft 1.7.10!"));
 
 				if(HTTPHandler.newVersion) {
 					event.player.addChatMessage(
@@ -376,6 +376,11 @@ public class ModEventHandler {
 			event.entity.dropItem(ModItems.book_of_, 1);
 		}
 
+		if(event.entity.getUniqueID().toString().equals(ShadyUtil.Arystan_X) || event.entity.getCommandSenderName().equals("Arystan_X")) {
+			ItemStack hbmBobblehead = new ItemStack(com.hbm.blocks.ModBlocks.bobblehead, 1, 29);
+			event.entity.entityDropItem(hbmBobblehead, 0.0F);
+		}
+
 		if(event.entity.getUniqueID().toString().equals(ShadyUtil.MellowRPG8)) {
 			event.entity.entityDropItem(new ItemStack(ModBlocks.block_meteor, 1 + rand.nextInt(10)), 0.0F);
 		}
@@ -416,7 +421,7 @@ public class ModEventHandler {
 					 && !(((EntityDamageSource)event.source).getEntity() instanceof FakePlayer)) {
 
 				Random rng = event.entityLiving.getRNG();
-				
+
 				if(event.entityLiving instanceof EntitySpider && rng.nextInt(500) == 0) {
 					event.entityLiving.dropItem(ModItems.spider_milk, 1);
 				}
@@ -442,7 +447,7 @@ public class ModEventHandler {
 				if(event.entityLiving instanceof EntityVillager && event.entityLiving.getRNG().nextInt(1) == 0) {
 					event.entityLiving.dropItem(ModItems.flesh, 5);
 				}
-				
+
 				if(event.entityLiving instanceof EntityZombie) {
 					if(rng.nextInt(200) == 0) event.entityLiving.dropItem(ModItems.ingot_copper, 1);
 					if(rng.nextInt(200) == 0) event.entityLiving.dropItem(ModItems.ingot_aluminium, 1);
@@ -549,7 +554,7 @@ public class ModEventHandler {
 
 	private static ItemStack getSkelegun(float soot, Random rand) {
 		if(!MobConfig.enableMobWeapons) return null;
-		
+
 		soot -= MobConfig.mobWeaponSootReduction;
 		if(rand.nextDouble() > Math.log(soot) * 0.25) return null;
 
@@ -761,7 +766,7 @@ public class ModEventHandler {
 		if(event.entityLiving instanceof EntityPlayerMP && prevArmor != null && event.entityLiving.getHeldItem() != null
 				&& (prevArmor[0] == null || prevArmor[0].getItem() != event.entityLiving.getHeldItem().getItem())
 				&& event.entityLiving.getHeldItem().getItem() instanceof IEquipReceiver) {
-			
+
 			((IEquipReceiver)event.entityLiving.getHeldItem().getItem()).onEquip((EntityPlayer) event.entityLiving, event.entityLiving.getHeldItem());
 		}
 
@@ -1130,7 +1135,7 @@ public class ModEventHandler {
 		EntityLivingBase e = event.entityLiving;
 
 		float gravity = CelestialBody.getGravity(e);
-		
+
 
 		// Reduce fall damage on low gravity bodies
 		if(gravity < 0.3F) {
@@ -1197,7 +1202,7 @@ public class ModEventHandler {
 					}
 				}
 
-				boolean isBob = player.getUniqueID().toString().equals(ShadyUtil.HbMinecraft) || player.getDisplayName().equals("HbMinecraft");
+				boolean isBob = player.getUniqueID().toString().equals(ShadyUtil.HbMinecraft) || player.getDisplayName().equals("HbMinecraft") || player.getUniqueID().toString().equals(ShadyUtil.Arystan_X) || player.getDisplayName().equals("Arystan_X");
 				boolean isOther = player.getUniqueID().toString().equals(ShadyUtil.the_NCR) || player.getDisplayName().equals("the_NCR");
 
 				if(isBob || isOther) {
@@ -1529,7 +1534,7 @@ public class ModEventHandler {
 					List<CelestialBodyTrait> traits = new ArrayList<>(body.getTraits().values());
 					for (CelestialBodyTrait trait : traits) {
 						trait.update(false, body);
-					
+
 					}
 				}
 
@@ -1732,7 +1737,7 @@ public class ModEventHandler {
 		int y = event.y;
 		int z = event.z;
 		World world = event.world;
-		
+
 		if(GeneralConfig.enable528ExplosiveEnergistics && !world.isRemote && event.action == Action.RIGHT_CLICK_BLOCK) {
 			Block b = world.getBlock(x, y, z);
 			String name = Block.blockRegistry.getNameForObject(b);
@@ -1949,5 +1954,5 @@ public class ModEventHandler {
 		}
 	}
 
-	
+
 }

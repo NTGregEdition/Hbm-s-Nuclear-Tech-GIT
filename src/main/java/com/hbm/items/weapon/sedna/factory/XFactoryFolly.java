@@ -44,11 +44,59 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
 
+import com.hbm.entity.effect.EntityQuasar;
+import com.hbm.config.WeaponConfig;
+
 public class XFactoryFolly {
 
 	public static BulletConfig folly_sm;
 	public static BulletConfig folly_nuke;
+	public static BulletConfig folly_digamma;
+	public static Consumer<Entity> LAMBDA_DIGAMMA_UPDATE = (entity) -> {
+		if(entity.worldObj.isRemote) return;
+		EntityBulletBeamBase beam = (EntityBulletBeamBase) entity;
+		Vec3NT dir = new Vec3NT(beam.headingX, beam.headingY, beam.headingZ).normalizeSelf();
 
+		if(beam.ticksExisted < 50) {
+			double spacing = 10;
+			double dist = beam.ticksExisted * spacing;
+			if(dist > beam.beamLength) return;
+
+			NBTTagCompound data = new NBTTagCompound();
+			data.setString("type", "plasmablast");
+			data.setFloat("r", 1.0F);
+			data.setFloat("g", 0.05F);
+			data.setFloat("b", 0.05F);
+			data.setFloat("pitch", (float) beam.rotationPitch + 90);
+			data.setFloat("yaw", (float) -beam.rotationYaw);
+			data.setFloat("scale", 2F + beam.ticksExisted / (float)(beam.beamLength / spacing) * 3F);
+			PacketThreading.createAllAroundThreadedPacket(new AuxParticlePacketNT(data, beam.posX + dir.xCoord * dist, beam.posY + dir.yCoord * dist, beam.posZ + dir.zCoord * dist), new TargetPoint(beam.dimension, beam.posX, beam.posY, beam.posZ, 250));
+		}
+	};
+
+	public static BiConsumer<EntityBulletBeamBase, MovingObjectPosition> LAMBDA_DIGAMMA_IMPACT = (beam, mop) -> {
+		BulletConfig.LAMBDA_BEAM_HIT.accept(beam, mop);
+
+		NBTTagCompound flash = new NBTTagCompound();
+		flash.setString("type", "plasmablast");
+		flash.setFloat("r", 1.0F);
+		flash.setFloat("g", 0.1F);
+		flash.setFloat("b", 0.1F);
+		flash.setFloat("pitch", 90F);
+		flash.setFloat("yaw", 0F);
+		flash.setFloat("scale", 6F);
+		PacketThreading.createAllAroundThreadedPacket(new AuxParticlePacketNT(flash, mop.hitVec.xCoord, mop.hitVec.yCoord, mop.hitVec.zCoord), new TargetPoint(beam.dimension, mop.hitVec.xCoord, mop.hitVec.yCoord, mop.hitVec.zCoord, 250));
+
+		beam.worldObj.playSoundEffect(mop.hitVec.xCoord, mop.hitVec.yCoord, mop.hitVec.zCoord, "hbm:weapon.dFlash", 4.0F, 1.0F);
+
+		if(WeaponConfig.dropSing) {
+			EntityQuasar quasar = new EntityQuasar(beam.worldObj, 10F);
+			quasar.posX = mop.hitVec.xCoord;
+			quasar.posY = mop.hitVec.yCoord;
+			quasar.posZ = mop.hitVec.zCoord;
+			beam.worldObj.spawnEntityInWorld(quasar);
+		}
+	};
 	public static Consumer<Entity> LAMBDA_SM_UPDATE = (entity) -> {
 		if(entity.worldObj.isRemote) return;
 		EntityBulletBeamBase beam = (EntityBulletBeamBase) entity;
@@ -101,15 +149,18 @@ public class XFactoryFolly {
 	public static void init() {
 
 		folly_sm = new BulletConfig().setItem(EnumAmmoSecret.FOLLY_SM).setupDamageClass(DamageClass.SUBATOMIC).setBeam().setLife(100).setVel(2F).setGrav(0.015D).setRenderRotations(false).setSpectral(true).setDoesPenetrate(true)
-				.setOnUpdate(LAMBDA_SM_UPDATE);
+			.setOnUpdate(LAMBDA_SM_UPDATE);
 		folly_nuke = new BulletConfig().setItem(EnumAmmoSecret.FOLLY_NUKE).setChunkloading().setLife(600).setVel(4F).setGrav(0.015D)
-				.setOnImpact(LAMBDA_NUKE_IMPACT);
+			.setOnImpact(LAMBDA_NUKE_IMPACT);
+		folly_digamma = new BulletConfig().setItem(EnumAmmoSecret.FOLLY_DIGAMMA).setupDamageClass(DamageClass.SUBATOMIC).setChunkloading()
+			.setBeam().setLife(50).setRenderRotations(false)
+			.setOnUpdate(LAMBDA_DIGAMMA_UPDATE).setOnBeamImpact(LAMBDA_DIGAMMA_IMPACT);
 
 		ModItems.gun_folly = new ItemGunBaseNT(WeaponQuality.SECRET, new GunConfig()
 				.dura(0).draw(40).crosshair(Crosshair.NONE)
 				.rec(new Receiver(0)
 						.dmg(1_000F).delay(26).dryfire(false).reload(160).jam(0).sound(NTMSounds.GUN_PLEASE_REMOVE_MY_EARDRUMS_THANKS, 100.0F, 1.0F)
-						.mag(new MagazineSingleReload(0, 1).addConfigs(folly_sm, folly_nuke))
+					.mag(new MagazineSingleReload(0, 1).addConfigs(folly_sm, folly_nuke, folly_digamma))
 						.offset(0.75, -0.0625, -0.1875D).offsetScoped(0.75, -0.0625, -0.125D)
 						.canFire(LAMBDA_CAN_FIRE).fire(LAMBDA_FIRE).recoil(LAMBDA_RECOIL_FOLLY))
 				.setupStandardConfiguration().pt(LAMBDA_TOGGLE_AIM)

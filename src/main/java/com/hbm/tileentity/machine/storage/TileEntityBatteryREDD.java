@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine.storage;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.math.BigInteger;
 
@@ -49,10 +50,10 @@ public class TileEntityBatteryREDD extends TileEntityBatteryBase implements IPer
 
 		if(!worldObj.isRemote) {
 
-			long toAdd = Library.chargeTEFromItems(slots, 0, 0, this.getMaxPower());
+			long toAdd = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, 0, this.getMaxPower());
 			if(toAdd > 0) this.power = this.power.add(BigInteger.valueOf(toAdd));
 
-			long toRemove = this.getPower() - Library.chargeItemsFromTE(slots, 1, this.getPower(), this.getMaxPower());
+			long toRemove = this.getPower() - VoltageCheckedCharging.chargeItemsFromTE(this, slots, 1, this.getPower(), this.getMaxPower());
 			if(toRemove > 0)this.power = this.power.subtract(BigInteger.valueOf(toRemove));
 
 			// same implementation as for batteries, however retooled to use bigints because fuck
@@ -262,7 +263,7 @@ public class TileEntityBatteryREDD extends TileEntityBatteryBase implements IPer
 		}
 		throw new NoSuchMethodException();
   }
-  
+
 	@Override
 	public void writeNBT(NBTTagCompound nbt) {
 		NBTTagCompound data = new NBTTagCompound();

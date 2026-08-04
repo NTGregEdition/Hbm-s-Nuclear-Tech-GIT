@@ -18,7 +18,7 @@ public class ToolConfig {
 	public static boolean abilityCrystallizer = true;
 	public static boolean abilityMercury = true;
 	public static boolean abilityExplosion = true;
-	
+
 	public static void loadFromConfig(Configuration config) {
 
 		final String CATEGORY_TOOLS = CommonConfig.CATEGORY_TOOLS;

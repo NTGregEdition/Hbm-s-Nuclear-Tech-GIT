@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import com.hbm.handler.pollution.PollutionHandler;
 import com.hbm.handler.pollution.PollutionHandler.PollutionType;
@@ -35,7 +36,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 public class TileEntityMachineWoodBurner extends TileEntityMachineBase implements IFluidStandardReceiver, IControlReceiver, IEnergyProviderMK2, IGUIProvider, IInfoProviderEC, IFluidCopiable {
-	
+
 	public long power;
 	public static final long maxPower = 100_000;
 	public int burnTime;
@@ -43,9 +44,9 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 	public boolean liquidBurn = false;
 	public boolean isOn = false;
 	protected int powerGen = 0;
-	
+
 	public FluidTank tank;
-	
+
 	public static ModuleBurnTime burnModule = new ModuleBurnTime().setLogTimeMod(4).setWoodTimeMod(2);
 
 	public int ashLevelWood;
@@ -64,23 +65,23 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 
 	@Override
 	public void updateEntity() {
-		
+
 		if(!worldObj.isRemote) {
 			powerGen = 0;
-			
+
 			this.tank.setType(2, slots);
 			this.tank.loadTank(3, 4, slots);
-			this.power = Library.chargeItemsFromTE(slots, 5, power, maxPower);
-			
+			this.power = VoltageCheckedCharging.chargeItemsFromTE(this, slots, 5, power, maxPower);
+
 			for(DirPos pos : getConPos()) {
 				if(power > 0) this.tryProvide(worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
 				if(worldObj.getTotalWorldTime() % 20 == 0) this.trySubscribe(tank.getTankType(), worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
 			}
-			
+
 			if(!liquidBurn) {
-				
+
 				if(this.burnTime <= 0) {
-					
+
 					if(slots[0] != null) {
 						int burn = burnModule.getBurnTime(slots[0]);
 						if(burn > 0) {
@@ -92,7 +93,7 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 							while(processAsh(ashLevelWood, EnumAshType.WOOD, threshold)) ashLevelWood -= threshold;
 							while(processAsh(ashLevelCoal, EnumAshType.COAL, threshold)) ashLevelCoal -= threshold;
 							while(processAsh(ashLevelMisc, EnumAshType.MISC, threshold)) ashLevelMisc -= threshold;
-							
+
 							this.maxBurnTime = this.burnTime = burn;
 							ItemStack container = slots[0].getItem().getContainerItem(slots[0]);
 							this.decrStackSize(0, 1);
@@ -100,22 +101,22 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 							this.markChanged();
 						}
 					}
-					
+
 				} else if(this.power < maxPower && isOn && breatheAir(1)) {
 					this.burnTime--;
 					this.powerGen += 100;
 					if(worldObj.getTotalWorldTime() % 20 == 0) PollutionHandler.incrementPollution(worldObj, xCoord, yCoord, zCoord, PollutionType.SOOT, PollutionHandler.SOOT_PER_SECOND);
 				}
-				
+
 			} else {
-				
+
 				if(this.power < maxPower && tank.getFill() > 0 && isOn && breatheAir(1)) {
 					FT_Flammable trait = tank.getTankType().getTrait(FT_Flammable.class);
-					
+
 					if(trait != null) {
-						
+
 						int toBurn = Math.min(tank.getFill(), 2);
-						
+
 						if(toBurn > 0) {
 							this.powerGen += trait.getHeatEnergy() * toBurn / 2_000L;
 							this.tank.setFill(this.tank.getFill() - toBurn);
@@ -124,13 +125,13 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 					}
 				}
 			}
-			
+
 			this.power += this.powerGen;
 			if(this.power > maxPower) this.power = maxPower;
-			
+
 			this.networkPackNT(25);
 		} else {
-			
+
 			if(powerGen > 0) {
 				ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - 10);
 				ForgeDirection rot = dir.getRotation(ForgeDirection.UP);
@@ -138,7 +139,7 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 			}
 		}
 	}
-	
+
 	@Override
 	public void serialize(ByteBuf buf) {
 		super.serialize(buf);
@@ -148,10 +149,10 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 		buf.writeInt(maxBurnTime);
 		buf.writeBoolean(isOn);
 		buf.writeBoolean(liquidBurn);
-		
+
 		tank.serialize(buf);
 	}
-	
+
 	@Override
 	public void deserialize(ByteBuf buf) {
 		super.deserialize(buf);
@@ -161,10 +162,10 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 		maxBurnTime = buf.readInt();
 		isOn = buf.readBoolean();
 		liquidBurn = buf.readBoolean();
-		
+
 		tank.deserialize(buf);
 	}
-	
+
 	private DirPos[] getConPos() {
 		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - 10);
 		ForgeDirection rot = dir.getRotation(ForgeDirection.UP);
@@ -173,7 +174,7 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 				new DirPos(xCoord - dir.offsetX * 2 + rot.offsetX, yCoord, zCoord - dir.offsetZ * 2 + rot.offsetZ, dir.getOpposite())
 		};
 	}
-	
+
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
@@ -195,9 +196,9 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 		nbt.setBoolean("liquidBurn", liquidBurn);
 		tank.writeToNBT(nbt, "t");
 	}
-	
+
 	protected boolean processAsh(int level, EnumAshType type, int threshold) {
-		
+
 		if(level >= threshold) {
 			if(slots[1] == null) {
 				slots[1] = DictFrame.fromOne(ModItems.powder_ash, type);
@@ -207,7 +208,7 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 
@@ -243,7 +244,7 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 	public int[] getAccessibleSlotsFromSide(int meta) {
 		return new int[] { 0, 1 };
 	}
-	
+
 	@Override
 	public boolean isItemValidForSlot(int i, ItemStack itemStack) {
 		return i == 0 && burnModule.getBurnTime(itemStack) > 0;
@@ -274,7 +275,7 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 		ForgeDirection rot = ForgeDirection.getOrientation(this.getBlockMetadata() - 10);
 		return dir == rot.getOpposite();
 	}
-	
+
 	@Override
 	public boolean canConnect(FluidType type, ForgeDirection dir) {
 		ForgeDirection rot = ForgeDirection.getOrientation(this.getBlockMetadata() - 10);
@@ -290,12 +291,12 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 	public FluidTank[] getReceivingTanks() {
 		return new FluidTank[] {tank};
 	}
-	
+
 	AxisAlignedBB bb = null;
-	
+
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		
+
 		if(bb == null) {
 			bb = AxisAlignedBB.getBoundingBox(
 					xCoord - 1,
@@ -306,10 +307,10 @@ public class TileEntityMachineWoodBurner extends TileEntityMachineBase implement
 					zCoord + 2
 					);
 		}
-		
+
 		return bb;
 	}
-	
+
 	@Override
 	@SideOnly(Side.CLIENT)
 	public double getMaxRenderDistanceSquared() {

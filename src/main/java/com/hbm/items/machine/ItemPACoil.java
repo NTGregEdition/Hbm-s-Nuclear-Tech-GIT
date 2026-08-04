@@ -21,14 +21,15 @@ public class ItemPACoil extends ItemEnumMulti {
 		GOLD(0, 2_200, 0, 2_200, 15),
 		NIOBIUM(1_500, 8_400, 1_500, 8_400, 21),
 		BSCCO(7_500, 15_000, 7_500, 15_000, 27),
-		CHLOROPHYTE(14_500, 75_000, 14_500, 75_000, 51);
+		CHLOROPHYTE(14_500, 75_000, 14_500, 75_000, 51),
+		CHINESIUM(70_000, 250_000, 70_000, 250_000, 72);
 
 		public int quadMin;
 		public int quadMax;
 		public int diMin;
 		public int diMax;
 		public int diDistMin;
-		
+
 		private EnumCoilType(int quadMin, int quadMax, int diMin, int diMax, int diDistMin) {
 			this.quadMin = quadMin;
 			this.quadMax = quadMax;

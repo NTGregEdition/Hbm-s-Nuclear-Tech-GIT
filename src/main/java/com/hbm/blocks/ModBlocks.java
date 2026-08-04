@@ -21,6 +21,9 @@ import com.hbm.blocks.network.pneumatic.PneumoTubePaintableBlock;
 import com.hbm.blocks.rail.*;
 import com.hbm.blocks.test.*;
 import com.hbm.blocks.turret.*;
+import api.hbm.energymk2.CableProperties;
+import api.hbm.energymk2.TransformerProperties;
+import api.hbm.energymk2.VoltageTier;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.items.block.*;
 import com.hbm.items.bomb.ItemPrototypeBlock;
@@ -678,7 +681,7 @@ public class ModBlocks {
 	public static Block seal_hatch;
 
 	public static Block cargo_elevator;
-	
+
 	public static Block vault_door;
 	public static Block blast_door;
 	public static Block sliding_blast_door;
@@ -855,6 +858,13 @@ public class ModBlocks {
 	public static Block red_cable_paintable;
 	public static Block red_cable_gauge;
 	public static Block red_cable_box;
+	public static Block cable_voltage_lv;
+	public static Block cable_voltage_mv;
+	public static Block cable_voltage_hv;
+	public static Block transformer_lv_mv;
+	public static Block transformer_mv_lv;
+	public static Block transformer_mv_hv;
+	public static Block transformer_hv_mv;
 	public static Block red_connector;
 	public static Block red_connector_super;
 	public static Block red_pylon;
@@ -1177,6 +1187,7 @@ public class ModBlocks {
 	public static Block machine_storage_drum;
 
 	public static Block machine_autocrafter;
+	public static Block crafting_station;
 	public static Block machine_funnel;
 
 	public static Block anvil_iron;
@@ -2143,6 +2154,13 @@ public class ModBlocks {
 		red_cable_paintable = new BlockCablePaintable().setBlockName("red_cable_paintable").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 		red_cable_gauge = new BlockCableGauge().setBlockName("red_cable_gauge").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 		red_cable_box = new PowerCableBox(Material.iron).setBlockName("red_cable_box").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":fluid_duct_box");
+		cable_voltage_lv = new BlockVoltageCable(Material.iron, new CableProperties("lv", VoltageTier.LV, 128L, 1L)).setBlockName("cable_lv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":cable_neo");
+		cable_voltage_mv = new BlockVoltageCable(Material.iron, new CableProperties("mv", VoltageTier.MV, 512L, 2L)).setBlockName("cable_mv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":cable_neo");
+		cable_voltage_hv = new BlockVoltageCable(Material.iron, new CableProperties("hv", VoltageTier.HV, 2_048L, 4L)).setBlockName("cable_hv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":cable_neo");
+		transformer_lv_mv = new BlockVoltageTransformer(Material.iron, new TransformerProperties("lv_mv", VoltageTier.LV, VoltageTier.MV, 128L)).setBlockName("transformer_lv_mv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
+		transformer_mv_lv = new BlockVoltageTransformer(Material.iron, new TransformerProperties("mv_lv", VoltageTier.MV, VoltageTier.LV, 32L)).setBlockName("transformer_mv_lv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
+		transformer_mv_hv = new BlockVoltageTransformer(Material.iron, new TransformerProperties("mv_hv", VoltageTier.MV, VoltageTier.HV, 512L)).setBlockName("transformer_mv_hv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
+		transformer_hv_mv = new BlockVoltageTransformer(Material.iron, new TransformerProperties("hv_mv", VoltageTier.HV, VoltageTier.MV, 128L)).setBlockName("transformer_hv_mv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 		red_connector = new ConnectorRedWire(Material.iron).setBlockName("red_connector").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":red_connector");
 		red_connector_super = new ConnectorRedWireSuper(Material.iron).setBlockName("red_connector_super").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":red_connector");
 		red_pylon = new PylonRedWire(Material.iron).setBlockName("red_pylon").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":red_pylon");
@@ -2318,7 +2336,7 @@ public class ModBlocks {
 		seal_hatch = new BlockHatch(Material.iron).setBlockName("seal_hatch").setHardness(Float.POSITIVE_INFINITY).setResistance(Float.POSITIVE_INFINITY).setCreativeTab(null).setBlockTextureName(RefStrings.MODID + ":seal_hatch_3");
 
 		cargo_elevator = new BlockCargoElevator().setBlockName("cargo_elevator").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":block_steel");
-		
+
 		vault_door = new BlockDoorGeneric(Material.iron, DoorDecl.VAULT_DOOR).setBlockName("vault_door").setHardness(10.0F).setResistance(1_000.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":concrete");
 		blast_door = new BlastDoor(Material.iron).setBlockName("blast_door").setHardness(10.0F).setResistance(1_000.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":blast_door");
 
@@ -2552,6 +2570,7 @@ public class ModBlocks {
 		machine_electrolyser = new MachineElectrolyser().setBlockName("machine_electrolyser").setHardness(10.0F).setResistance(20.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":block_steel_machine");
 
 		machine_autocrafter = new MachineAutocrafter().setBlockName("machine_autocrafter").setHardness(10.0F).setResistance(20.0F).setCreativeTab(MainRegistry.machineTab);
+		crafting_station = new CraftingStation().setBlockName("crafting_station").setHardness(2.5F).setCreativeTab(MainRegistry.machineTab);
 		machine_funnel = new MachineFunnel().setBlockName("machine_funnel").setHardness(10.0F).setResistance(20.0F).setCreativeTab(MainRegistry.machineTab);
 
 		anvil_iron = new NTMAnvil(Material.iron, NTMAnvil.TIER_IRON).setBlockName("anvil_iron").setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":anvil_iron");
@@ -3432,7 +3451,7 @@ public class ModBlocks {
 
 		//Hooh
 		GameRegistry.registerBlock(cargo_elevator, cargo_elevator.getUnlocalizedName());
-		
+
 		//Vault Door
 		GameRegistry.registerBlock(vault_door, vault_door.getUnlocalizedName());
 		GameRegistry.registerBlock(blast_door, blast_door.getUnlocalizedName());
@@ -3471,6 +3490,7 @@ public class ModBlocks {
 
 		//Machines
 		register(machine_autocrafter);
+		register(crafting_station);
 		register(machine_funnel);
 		register(war_controller);
 
@@ -3619,6 +3639,13 @@ public class ModBlocks {
 		register(red_cable_paintable);
 		register(red_cable_gauge);
 		register(red_cable_box);
+		register(cable_voltage_lv);
+		register(cable_voltage_mv);
+		register(cable_voltage_hv);
+		register(transformer_lv_mv);
+		register(transformer_mv_lv);
+		register(transformer_mv_hv);
+		register(transformer_hv_mv);
 		register(red_wire_coated);
 		register(red_connector);
 		register(red_connector_super);

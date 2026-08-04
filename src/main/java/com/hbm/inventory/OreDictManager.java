@@ -100,8 +100,16 @@ public class OreDictManager {
 
 	public static final String KEY_TOOL_SCREWDRIVER = "ntmscrewdriver";
 	public static final String KEY_TOOL_HANDDRILL = "ntmhanddrill";
+	public static final String KEY_TOOL_MALLET = "ntmmallet";
+	public static final String KEY_TOOL_SAW = "ntmsaw";
+	public static final String KEY_TOOL_HAMMER = "ntmhammer";
+	public static final String KEY_TOOL_FILE = "ntmfile";
+	public static final String KEY_TOOL_WIRE_CUTTER = "ntmwire_cutter";
+	public static final String KEY_TOOL_C_WRENCH = "ntmwrench";
 	public static final String KEY_TOOL_CHEMISTRYSET = "ntmchemistryset";
 	public static final String KEY_TOOL_TORCH = "ntmtorch";
+
+	public static final String KEY_TOOL_MORTAR = "ntmmortar";
 
 	public static final String KEY_GLYPHID_MEAT = "glyphidMeat";
 	public static final String KEY_FLOUR = "foodFlour";
@@ -479,14 +487,14 @@ public class OreDictManager {
 		SEMTEX																.ingot(ingot_semtex)																												.block(block_semtex);
 		MAGTUNG																.ingot(ingot_magnetized_tungsten)									.dust(powder_magnetized_tungsten)								.block(block_magnetized_tungsten);
 		CMB																	.ingot(ingot_combine_steel)											.dust(powder_combine_steel)		.plate(plate_combine_steel)		.block(block_combine_steel);
-		DESH		.nugget(nugget_desh)									.ingot(ingot_desh)													.dust(powder_desh)												.block(block_desh);
+		DESH		.nugget(nugget_desh)									.ingot(ingot_desh)													.dust(powder_desh)				.plate(plate_c_desh)	        .block(block_desh);
 		STAR																.ingot(ingot_starmetal)																												.block(block_starmetal);
 		GUNMETAL															.ingot(ingot_gunmetal)																				.plate(plate_gunmetal);
 		WEAPONSTEEL															.ingot(ingot_weaponsteel)																			.plate(plate_weaponsteel);
 		BIGMT																.ingot(ingot_saturnite)																				.plate(plate_saturnite);
 		FERRO																.ingot(ingot_ferrouranium);
 		EUPH		.nugget(nugget_euphemium)								.ingot(ingot_euphemium)												.dust(powder_euphemium)											.block(block_euphemium);
-		DNT			.nugget(nugget_dineutronium)							.ingot(ingot_dineutronium)											.dust(powder_dineutronium)										.block(block_dineutronium);
+		DNT			.nugget(nugget_dineutronium)							.ingot(ingot_dineutronium)											.dust(powder_dineutronium)		.plate(plate_c_dineutronium)    	.block(block_dineutronium);
 		FIBER																.ingot(ingot_fiberglass)																											.block(block_fiberglass);
 		ASBESTOS	.asbestos(1F)											.ingot(ingot_asbestos)												.dust(powder_asbestos)											.block(block_asbestos)		.ore(ore_gneiss_asbestos, DictFrame.fromOne(ore_basalt, EnumBasaltOreType.ASBESTOS), DictFrame.fromOne(stone_resource, EnumStoneType.ASBESTOS)) .oreAll(ore_asbestos);
 		OSMIRIDIUM	.nugget(nugget_osmiridium)								.ingot(ingot_osmiridium)											.block(block_osmiridium);
@@ -496,6 +504,13 @@ public class OreDictManager {
 		HAFNIUM		.nugget(nugget_hafnium)									.ingot(ingot_hafnium);
 		IRIDIUM		.ingot(ingot_iridium);
 
+		W.ingot(ingot_tungsten).dust(powder_tungsten).plate(plate_tungsten).block(block_tungsten).ore(ore_tungsten, ore_nether_tungsten).oreNether(ore_nether_tungsten);
+
+		STAR.ingot(ingot_starmetal).plate(plate_starmetal).block(block_starmetal);
+
+		FERRO.ingot(ingot_ferrouranium).plate(plate_ferrouranium);
+
+		TCALLOY.ingot(ingot_tcalloy).dust(powder_tcalloy).plate(plate_tcalloy).block(block_tcalloy);
 
 		OSMIRIDIUM	.nugget(nugget_osmiridium)								.ingot(ingot_osmiridium);
 
@@ -610,10 +625,42 @@ public class OreDictManager {
 		OreDictionary.registerOre(KEY_TOOL_SCREWDRIVER, new ItemStack(screwdriver_desh, 1, OreDictionary.WILDCARD_VALUE));
 		OreDictionary.registerOre(KEY_TOOL_HANDDRILL, new ItemStack(hand_drill, 1, OreDictionary.WILDCARD_VALUE));
 		OreDictionary.registerOre(KEY_TOOL_HANDDRILL, new ItemStack(hand_drill_desh, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_MALLET, new ItemStack(mallet, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_MALLET, new ItemStack(mallet_desh, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_SAW, new ItemStack(saw, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_SAW, new ItemStack(saw_desh, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_HAMMER, new ItemStack(hammer, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_HAMMER, new ItemStack(hammer_desh, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_FILE, new ItemStack(file, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_FILE, new ItemStack(file_desh, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_WIRE_CUTTER, new ItemStack(wire_cutter, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_WIRE_CUTTER, new ItemStack(wire_cutter_desh, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_C_WRENCH, new ItemStack(c_wrench, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_C_WRENCH, new ItemStack(c_wrench_desh, 1, OreDictionary.WILDCARD_VALUE));
+
+		OreDictionary.registerOre(KEY_TOOL_SCREWDRIVER, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_SCREWDRIVER, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_HANDDRILL, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_HANDDRILL, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_MALLET, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_MALLET, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_SAW, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_SAW, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_HAMMER, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_HAMMER, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_FILE, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_FILE, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_WIRE_CUTTER, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_WIRE_CUTTER, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_C_WRENCH, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
+		OreDictionary.registerOre(KEY_TOOL_C_WRENCH, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
+
 		OreDictionary.registerOre(KEY_TOOL_CHEMISTRYSET, new ItemStack(chemistry_set, 1, OreDictionary.WILDCARD_VALUE));
 		OreDictionary.registerOre(KEY_TOOL_CHEMISTRYSET, new ItemStack(chemistry_set_boron, 1, OreDictionary.WILDCARD_VALUE));
 		OreDictionary.registerOre(KEY_TOOL_TORCH, new ItemStack(blowtorch, 1, OreDictionary.WILDCARD_VALUE));
 		OreDictionary.registerOre(KEY_TOOL_TORCH, new ItemStack(acetylene_torch, 1, OreDictionary.WILDCARD_VALUE));
+
+		OreDictionary.registerOre(KEY_TOOL_MORTAR, new ItemStack(mortar, 1, OreDictionary.WILDCARD_VALUE));
 
 		/*
 		 * GLYPHID M E A T
@@ -643,6 +690,19 @@ public class OreDictManager {
 			if(mat.autogen.contains(MaterialShapes.PIPE)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.PIPE.name() + name, new ItemStack(ModItems.pipe, 1, mat.id));
 			if(mat.autogen.contains(MaterialShapes.FRAGMENT)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.FRAGMENT.name() + name, new ItemStack(ModItems.bedrock_ore_fragment, 1, mat.id));
 			if(mat.autogen.contains(MaterialShapes.WIRE)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.WIRE.name() + name, new ItemStack(ModItems.wire_fine, 1, mat.id));
+
+			if(mat.autogen.contains(FOIL)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.FOIL.name() + name, new ItemStack(ModItems.foil, 1, mat.id));
+			if(mat.autogen.contains(C_ROD)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.C_ROD.name() + name, new ItemStack(ModItems.c_rod, 1, mat.id));
+			if(mat.autogen.contains(LONG_ROD)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.LONG_ROD.name() + name, new ItemStack(ModItems.long_rod, 1, mat.id));
+			if(mat.autogen.contains(GEAR)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.GEAR.name() + name, new ItemStack(ModItems.gear, 1, mat.id));
+			if(mat.autogen.contains(SMALL_GEAR)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.SMALL_GEAR.name() + name, new ItemStack(ModItems.small_gear, 1, mat.id));
+			if(mat.autogen.contains(C_BOLT)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.C_BOLT.name() + name, new ItemStack(ModItems.c_bolt, 1, mat.id));
+			if(mat.autogen.contains(SCREW)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.SCREW.name() + name, new ItemStack(ModItems.screw, 1, mat.id));
+			if(mat.autogen.contains(RING)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.RING.name() + name, new ItemStack(ModItems.ring, 1, mat.id));
+			if(mat.autogen.contains(SPRING)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.SPRING.name() + name, new ItemStack(ModItems.spring, 1, mat.id));
+			if(mat.autogen.contains(SMALL_SPRING)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.SMALL_SPRING.name() + name, new ItemStack(ModItems.small_spring, 1, mat.id));
+			if(mat.autogen.contains(ROTOR)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.ROTOR.name() + name, new ItemStack(ModItems.rotor, 1, mat.id));
+			if(mat.autogen.contains(FINE_WIRE)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.FINE_WIRE.name() + name, new ItemStack(ModItems.fine_wire, 1, mat.id));
 
 			if(mat.autogen.contains(MaterialShapes.LIGHTBARREL)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.LIGHTBARREL.name() + name, new ItemStack(ModItems.part_barrel_light, 1, mat.id));
 			if(mat.autogen.contains(MaterialShapes.HEAVYBARREL)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.HEAVYBARREL.name() + name, new ItemStack(ModItems.part_barrel_heavy, 1, mat.id));

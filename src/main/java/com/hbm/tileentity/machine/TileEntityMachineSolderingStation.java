@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.HashMap;
 import java.util.List;
@@ -83,7 +84,7 @@ public class TileEntityMachineSolderingStation extends TileEntityMachineBase imp
 
 		if(!worldObj.isRemote) {
 
-			this.power = Library.chargeTEFromItems(slots, 7, this.getPower(), this.getMaxPower());
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 7, this.getPower(), this.getMaxPower());
 			this.tank.setType(8, slots);
 
 			if(worldObj.getTotalWorldTime() % 20 == 0) {

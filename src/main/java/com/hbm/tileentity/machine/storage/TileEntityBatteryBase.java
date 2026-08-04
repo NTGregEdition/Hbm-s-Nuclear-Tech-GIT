@@ -103,6 +103,11 @@ public abstract class TileEntityBatteryBase extends TileEntityMachineBase implem
 	}
 
 	@Override
+	public BlockPos[] getVoltageConnectionPoints() {
+		return this.getPortPos();
+	}
+
+	@Override
 	public void invalidate() {
 		super.invalidate();
 

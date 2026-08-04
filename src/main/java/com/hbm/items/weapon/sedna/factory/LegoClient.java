@@ -36,83 +36,109 @@ public class LegoClient {
 	public static HUDComponentAmmoCounter HUD_COMPONENT_AMMO_MIRROR = new HUDComponentAmmoCounter(0).mirror();
 	public static HUDComponentAmmoCounter HUD_COMPONENT_AMMO_NOCOUNTER = new HUDComponentAmmoCounter(0).noCounter();
 	public static HUDComponentAmmoCounter HUD_COMPONENT_AMMO_SECOND = new HUDComponentAmmoCounter(1);
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_STANDARD_BULLET = (bullet, interp) -> {
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length <= 0) return;
 		renderBulletStandard(Tessellator.instance, 0xFFBF00, 0xFFFFFF, length, false);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_FLECHETTE_BULLET = (bullet, interp) -> {
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length <= 0) return;
 		renderBulletStandard(Tessellator.instance, 0x8C8C8C, 0xCACACA, length, false);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_AP_BULLET = (bullet, interp) -> {
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length <= 0) return;
 		renderBulletStandard(Tessellator.instance, 0xFF6A00, 0xFFE28D, length, false);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_FRAGMENTATION = (bullet, interp) -> {
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length <= 0) return;
 		renderBulletStandard(Tessellator.instance, 0xFF6A00, 0xFFE28D, length, true);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_EXPRESS_BULLET = (bullet, interp) -> {
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length <= 0) return;
 		renderBulletStandard(Tessellator.instance, 0x9E082E, 0xFF8A79, length, false);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_DU_BULLET = (bullet, interp) -> {
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length <= 0) return;
 		renderBulletStandard(Tessellator.instance, 0x5CCD41, 0xE9FF8D, length, false);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_HE_BULLET = (bullet, interp) -> {
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length <= 0) return;
 		renderBulletStandard(Tessellator.instance, 0xD8CA00, 0xFFF19D, length, true);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_SM_BULLET = (bullet, interp) -> {
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length <= 0) return;
 		renderBulletStandard(Tessellator.instance, 0x42A8DD, 0xFFFFFF, length, true);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_BLACK_BULLET = (bullet, interp) -> {
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length <= 0) return;
 		renderBulletStandard(Tessellator.instance, 0x000000, 0x7F006E, length, true);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_TRACER_BULLET = (bullet, interp) -> {
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length <= 0) return;
 		renderBulletStandard(Tessellator.instance, 0x9E082E, 0xFF8A79, length, true);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_LEGENDARY_BULLET = (bullet, interp) -> {
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length <= 0) return;
 		renderBulletStandard(Tessellator.instance, 0x7F006E, 0xFF7FED, length, true);
 	};
-	
+	public static BiConsumer<EntityBulletBeamBase, Float> RENDER_DIGAMMA = (bullet, interp) -> {
+
+		double age = MathHelper.clamp_double(1D - ((double) bullet.ticksExisted - 2 + interp) / (double) bullet.getBulletConfig().expires, 0, 1);
+		RenderArcFurnace.fullbright(true);
+
+		GL11.glPushMatrix();
+		renderFlareSprite(bullet, interp, 1F, 0.15F, 0.15F, (1 - age) * 7.5 + 1.5, 0.5F * (float) age, 0.75F * (float) age);
+		GL11.glPopMatrix();
+
+		GL11.glPushMatrix();
+		GL11.glRotatef(180 - bullet.rotationYaw, 0, 1F, 0);
+		GL11.glRotatef(-bullet.rotationPitch - 90, 1F, 0, 0);
+		Vec3 delta = Vec3.createVectorHelper(0, bullet.beamLength, 0);
+		GL11.glScaled(age / 2 + 0.5, 1, age / 2 + 0.5);
+
+		int outer = ((int)(0xFF * age) << 16) | ((int)(0x10 * age) << 8) | (int)(0x10 * age);
+		int inner = ((int)(0x10 * age) << 16);
+
+		BeamPronter.prontBeam(delta, EnumWaveType.RANDOM, EnumBeamType.SOLID, outer, inner, bullet.ticksExisted / 3, (int)(bullet.beamLength / 2 + 1), 2F, 8, 0.39F);
+		BeamPronter.prontBeam(delta, EnumWaveType.RANDOM, EnumBeamType.SOLID, outer, inner, bullet.ticksExisted / 2, (int)(bullet.beamLength / 2 + 1), 2F, 8, 0.39F);
+		BeamPronter.prontBeam(delta, EnumWaveType.RANDOM, EnumBeamType.SOLID, outer, inner, bullet.ticksExisted / 1, (int)(bullet.beamLength / 2 + 1), 2F, 8, 0.39F);
+		BeamPronter.prontBeam(delta, EnumWaveType.RANDOM, EnumBeamType.SOLID, outer, inner, bullet.ticksExisted, (int)(bullet.beamLength / 2 + 1), 2F, 8, 0.39F);
+		GL11.glPopMatrix();
+
+		RenderArcFurnace.fullbright(false);
+	};
+
 	public static void renderBulletStandard(Tessellator tess, int dark, int light, double length, boolean fullbright) { renderBulletStandard(tess, dark, light, length, 0.03125D, 0.03125D * 0.25D, fullbright); }
-	
+
 	public static void renderBulletStandard(Tessellator tess, int dark, int light, double length, double widthF, double widthB, boolean fullbright) {
-		
+
 		GL11.glDisable(GL11.GL_TEXTURE_2D);
 		GL11.glDisable(GL11.GL_CULL_FACE);
 		GL11.glDisable(GL11.GL_LIGHTING);
 		GL11.glShadeModel(GL11.GL_SMOOTH);
 		GL11.glColor4f(1F, 1F, 1F, 1F);
-		
+
 		tess.startDrawingQuads();
 		if(fullbright) tess.setBrightness(240);
 		tess.setNormal(0F, 1F, 0F);
@@ -139,7 +165,7 @@ public class LegoClient {
 		tess.addVertex(0, widthF, widthF); tess.addVertex(0, widthF, -widthF);
 		tess.addVertex(0, -widthF, -widthF); tess.addVertex(0, -widthF, widthF);
 		tess.draw();
-		
+
 		GL11.glShadeModel(GL11.GL_FLAT);
 		GL11.glEnable(GL11.GL_LIGHTING);
 		GL11.glEnable(GL11.GL_CULL_FACE);
@@ -152,17 +178,17 @@ public class LegoClient {
 
 	private static final ResourceLocation flare = new ResourceLocation(RefStrings.MODID + ":textures/particle/flare.png");
 	public static void renderFlare(Entity bullet, float interp, float r, float g, float b) {
-		
+
 		if(bullet.ticksExisted < 2) return;
 		RenderArcFurnace.fullbright(true);
-		
+
 		double scale = Math.min(5, (bullet.ticksExisted + interp - 2) * 0.5) * (0.8 + bullet.worldObj.rand.nextDouble() * 0.4);
 		renderFlareSprite(bullet, interp, r, g, b, scale, 0.5F, 0.75F);
-		
+
 		RenderArcFurnace.fullbright(false);
 	}
 	public static void renderFlareSprite(Entity bullet, float interp, float r, float g, float b, double scale, float outerAlpha, float innerAlpha) {
-		
+
 		GL11.glPushMatrix();
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
@@ -193,7 +219,7 @@ public class LegoClient {
 		tess.addVertexWithUV((double) (posX + f1 * scale - f3 * scale), (double) (posY - f5 * scale), (double) (posZ + f2 * scale - f4 * scale), 0, 1);
 
 		scale *= 0.5D;
-		
+
 		tess.setColorRGBA_F(1F, 1F, 1F, innerAlpha);
 		tess.addVertexWithUV((double) (posX - f1 * scale - f3 * scale), (double) (posY - f5 * scale), (double) (posZ - f2 * scale - f4 * scale), 1, 1);
 		tess.addVertexWithUV((double) (posX - f1 * scale + f3 * scale), (double) (posY + f5 * scale), (double) (posZ - f2 * scale + f4 * scale), 1, 0);
@@ -209,7 +235,7 @@ public class LegoClient {
 		GL11.glDisable(GL11.GL_BLEND);
 		GL11.glPopMatrix();
 	}
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_GRENADE = (bullet, interp) -> {
 		GL11.glScalef(0.25F, 0.25F, 0.25F);
 		GL11.glRotated(90, 0, 0, 1);
@@ -218,7 +244,7 @@ public class LegoClient {
 		ResourceManager.projectiles.renderPart("Grenade");
 		GL11.glShadeModel(GL11.GL_FLAT);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_BIG_NUKE = (bullet, interp) -> {
 		GL11.glScalef(0.5F, 0.5F, 0.5F);
 		GL11.glRotated(90, 0, 0, 1);
@@ -227,7 +253,7 @@ public class LegoClient {
 		ResourceManager.projectiles.renderPart("MissileMIRV");
 		GL11.glShadeModel(GL11.GL_FLAT);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_RPZB = (bullet, interp) -> {
 
 		GL11.glPushMatrix();
@@ -239,12 +265,12 @@ public class LegoClient {
 		ResourceManager.panzerschreck.renderPart("Rocket");
 		GL11.glShadeModel(GL11.GL_FLAT);
 		GL11.glPopMatrix();
-		
+
 		GL11.glTranslatef(0.375F, 0, 0);
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length > 0) renderBulletStandard(Tessellator.instance, 0x808080, 0xFFF2A7, length * 2, true);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_QD = (bullet, interp) -> {
 
 		GL11.glPushMatrix();
@@ -254,12 +280,12 @@ public class LegoClient {
 		ResourceManager.projectiles.renderPart("Rocket");
 		GL11.glShadeModel(GL11.GL_FLAT);
 		GL11.glPopMatrix();
-		
+
 		GL11.glTranslatef(0.375F, 0, 0);
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length > 0) renderBulletStandard(Tessellator.instance, 0x808080, 0xFFF2A7, length * 2, true);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_ML = (bullet, interp) -> {
 
 		GL11.glPushMatrix();
@@ -271,12 +297,12 @@ public class LegoClient {
 		ResourceManager.missile_launcher.renderPart("Missile");
 		GL11.glShadeModel(GL11.GL_FLAT);
 		GL11.glPopMatrix();
-		
+
 		GL11.glTranslatef(0.375F, 0, 0);
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length > 0) renderBulletStandard(Tessellator.instance, 0x808080, 0xFFF2A7, length * 2, true);
 	};
-	
+
 	public static BiConsumer<EntityBulletBeamBase, Float> RENDER_LIGHTNING = (bullet, interp) -> {
 
 		RenderArcFurnace.fullbright(true);
@@ -295,7 +321,7 @@ public class LegoClient {
 		GL11.glPopMatrix();
 		RenderArcFurnace.fullbright(false);
 	};
-	
+
 	public static BiConsumer<EntityBulletBeamBase, Float> RENDER_LIGHTNING_SUB = (bullet, interp) -> {
 
 		RenderArcFurnace.fullbright(true);
@@ -314,16 +340,16 @@ public class LegoClient {
 		GL11.glPopMatrix();
 		RenderArcFurnace.fullbright(false);
 	};
-	
+
 	public static BiConsumer<EntityBulletBeamBase, Float> RENDER_TAU = (bullet, interp) -> {
 
 		RenderArcFurnace.fullbright(true);
 		double age = MathHelper.clamp_double(1D - ((double) bullet.ticksExisted - 2 + interp) / (double) bullet.getBulletConfig().expires, 0, 1);
-		
+
 		GL11.glPushMatrix();
 		GL11.glRotatef(180 - bullet.rotationYaw, 0, 1F, 0);
 		GL11.glRotatef(-bullet.rotationPitch - 90, 1F, 0, 0);
-		
+
 		GL11.glPushMatrix();
 		Vec3 delta = Vec3.createVectorHelper(0, bullet.beamLength, 0);
 		GL11.glScaled(age / 2 + 0.5, 1, age / 2 + 0.5);
@@ -336,20 +362,20 @@ public class LegoClient {
 		GL11.glTranslated(0, bullet.beamLength, 0);
 		GL11.glRotatef(-90, 0, 0, 1);
 		renderBulletStandard(Tessellator.instance, 0xFFBF00, 0xFFFFFF, bullet.beamLength, true);
-		
+
 		GL11.glPopMatrix();
 		RenderArcFurnace.fullbright(false);
 	};
-	
+
 	public static BiConsumer<EntityBulletBeamBase, Float> RENDER_TAU_CHARGE = (bullet, interp) -> {
 
 		RenderArcFurnace.fullbright(true);
 		double age = MathHelper.clamp_double(1D - ((double) bullet.ticksExisted - 2 + interp) / (double) bullet.getBulletConfig().expires, 0, 1);
-		
+
 		GL11.glPushMatrix();
 		GL11.glRotatef(180 - bullet.rotationYaw, 0, 1F, 0);
 		GL11.glRotatef(-bullet.rotationPitch - 90, 1F, 0, 0);
-		
+
 		GL11.glPushMatrix();
 		Vec3 delta = Vec3.createVectorHelper(0, bullet.beamLength, 0);
 		GL11.glScaled(age / 2 + 0.5, 1, age / 2 + 0.5);
@@ -362,16 +388,16 @@ public class LegoClient {
 		GL11.glTranslated(0, bullet.beamLength, 0);
 		GL11.glRotatef(-90, 0, 0, 1);
 		renderBulletStandard(Tessellator.instance, 0xFFF0A0, 0xFFFFFF, bullet.beamLength, true);
-		
+
 		GL11.glPopMatrix();
 		RenderArcFurnace.fullbright(false);
 	};
-	
+
 	public static BiConsumer<EntityBulletBeamBase, Float> RENDER_CRACKLE = (bullet, interp) -> {
 
 		RenderArcFurnace.fullbright(true);
 		double age = MathHelper.clamp_double(1D - ((double) bullet.ticksExisted - 2 + interp) / (double) bullet.getBulletConfig().expires, 0, 1);
-		
+
 		GL11.glPushMatrix();
 		GL11.glRotatef(180 - bullet.rotationYaw, 0, 1F, 0);
 		GL11.glRotatef(-bullet.rotationPitch - 90, 1F, 0, 0);
@@ -381,16 +407,16 @@ public class LegoClient {
 		GL11.glTranslated(0, bullet.beamLength, 0);
 		GL11.glRotatef(-90, 0, 0, 1);
 		renderBulletStandard(Tessellator.instance, 0xE3D692, 0xffffff, bullet.beamLength, true);
-		
+
 		GL11.glPopMatrix();
 		RenderArcFurnace.fullbright(false);
 	};
-	
+
 	public static BiConsumer<EntityBulletBeamBase, Float> RENDER_BLACK_LIGHTNING = (bullet, interp) -> {
 
 		RenderArcFurnace.fullbright(true);
 		double age = MathHelper.clamp_double(1D - ((double) bullet.ticksExisted - 2 + interp) / (double) bullet.getBulletConfig().expires, 0, 1);
-		
+
 		GL11.glPushMatrix();
 		GL11.glRotatef(180 - bullet.rotationYaw, 0, 1F, 0);
 		GL11.glRotatef(-bullet.rotationPitch - 90, 1F, 0, 0);
@@ -400,16 +426,16 @@ public class LegoClient {
 		GL11.glTranslated(0, bullet.beamLength, 0);
 		GL11.glRotatef(-90, 0, 0, 1);
 		renderBulletStandard(Tessellator.instance, 0x4C3093, 0x000000, bullet.beamLength, true);
-		
+
 		GL11.glPopMatrix();
 		RenderArcFurnace.fullbright(false);
 	};
-	
+
 	public static BiConsumer<EntityBulletBeamBase, Float> RENDER_NI4NI_BOLT = (bullet, interp) -> {
 
 		RenderArcFurnace.fullbright(true);
 		double age = MathHelper.clamp_double(1D - ((double) bullet.ticksExisted - 2 + interp) / (double) bullet.getBulletConfig().expires, 0, 1);
-		
+
 		GL11.glPushMatrix();
 		GL11.glRotatef(180 - bullet.rotationYaw, 0, 1F, 0);
 		GL11.glRotatef(-bullet.rotationPitch - 90, 1F, 0, 0);
@@ -419,7 +445,7 @@ public class LegoClient {
 		GL11.glTranslated(0, bullet.beamLength, 0);
 		GL11.glRotatef(-90, 0, 0, 1);
 		renderBulletStandard(Tessellator.instance, 0xAAD2E5, 0xffffff, bullet.beamLength, true);
-		
+
 		GL11.glPopMatrix();
 		RenderArcFurnace.fullbright(false);
 	};
@@ -439,7 +465,7 @@ public class LegoClient {
 	public static BiConsumer<EntityBulletBeamBase, Float> RENDER_LASER_WHITE = (bullet, interp) -> {
 		renderStandardLaser(bullet, interp, 0x15, 0x15, 0x15);
 	};
-	
+
 	public static void renderStandardLaser(EntityBulletBeamBase bullet, float interp, int r, int g, int b) {
 
 		RenderArcFurnace.fullbright(true);
@@ -454,16 +480,16 @@ public class LegoClient {
 		GL11.glPopMatrix();
 		RenderArcFurnace.fullbright(false);
 	}
-	
+
 	public static BiConsumer<EntityBulletBeamBase, Float> RENDER_FOLLY = (bullet, interp) -> {
 
 		double age = MathHelper.clamp_double(1D - ((double) bullet.ticksExisted - 2 + interp) / (double) bullet.getBulletConfig().expires, 0, 1);
 		RenderArcFurnace.fullbright(true);
-		
+
 		GL11.glPushMatrix();
 		renderFlareSprite(bullet, interp, 1F, 1F, 1F, (4 - age) * 7.5 + 1.5, 0.5F * (float) age, 0.75F * (float) age);
 		GL11.glPopMatrix();
-		
+
 		GL11.glPushMatrix();
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
 		GL11.glAlphaFunc(GL11.GL_GREATER, 0);
@@ -476,10 +502,10 @@ public class LegoClient {
 		GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
 		GL11.glDisable(GL11.GL_BLEND);
 		GL11.glPopMatrix();
-		
+
 		RenderArcFurnace.fullbright(false);
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_NUKE = (bullet, interp) -> {
 
 		GL11.glPushMatrix();
@@ -492,7 +518,7 @@ public class LegoClient {
 		GL11.glShadeModel(GL11.GL_FLAT);
 		GL11.glPopMatrix();
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_BOMB = (bullet, interp) -> {
 
 		GL11.glPushMatrix();
@@ -505,7 +531,7 @@ public class LegoClient {
 		GL11.glShadeModel(GL11.GL_FLAT);
 		GL11.glPopMatrix();
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_NUKE_BALEFIRE = (bullet, interp) -> {
 
 		GL11.glPushMatrix();
@@ -517,7 +543,7 @@ public class LegoClient {
 		GL11.glShadeModel(GL11.GL_FLAT);
 		GL11.glPopMatrix();
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_HIVE = (bullet, interp) -> {
 
 		GL11.glPushMatrix();
@@ -530,14 +556,14 @@ public class LegoClient {
 		GL11.glShadeModel(GL11.GL_FLAT);
 		GL11.glPopMatrix();
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_CT_HOOK = (bullet, interp) -> {
 
 		GL11.glPushMatrix();
-		
+
 		GL11.glRotatef(bullet.prevRotationYaw + (bullet.rotationYaw - bullet.prevRotationYaw) * interp - 90.0F, 0.0F, 1.0F, 0.0F);
 		GL11.glRotatef(bullet.prevRotationPitch + (bullet.rotationPitch - bullet.prevRotationPitch) * interp + 180, 0.0F, 0.0F, 1.0F);
-		
+
 		GL11.glScalef(0.125F, 0.125F, 0.125F);
 		GL11.glRotated(90, 0, -1, 0);
 		GL11.glRotated(180, 0, 0, 1);
@@ -547,7 +573,7 @@ public class LegoClient {
 		ResourceManager.charge_thrower.renderPart("Hook");
 		GL11.glShadeModel(GL11.GL_FLAT);
 		GL11.glPopMatrix();
-		
+
 		if(bullet.getThrower() instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer) bullet.getThrower();
 			if(player.getHeldItem() != null && player.getHeldItem().getItem() == ModItems.gun_charge_thrower && ItemGunChargeThrower.getLastHook(player.getHeldItem()) == bullet.getEntityId()) {
@@ -555,25 +581,25 @@ public class LegoClient {
 			}
 		}
 	};
-	
+
 	public static void renderWire(EntityBulletBaseMK4 bullet, float interp) {
 		Minecraft.getMinecraft().getTextureManager().bindTexture(ResourceManager.wire_greyscale_tex);
 
 		double bx = bullet.prevPosX + (bullet.posX - bullet.prevPosX) * interp;
 		double by = bullet.prevPosY + (bullet.posY - bullet.prevPosY) * interp;
 		double bz = bullet.prevPosZ + (bullet.posZ - bullet.prevPosZ) * interp;
-		
+
 		Entity thrower = bullet.getThrower();
 		double x = thrower.prevPosX + (thrower.posX - thrower.prevPosX) * interp;
 		double y = thrower.prevPosY + (thrower.posY - thrower.prevPosY) * interp;
 		double z = thrower.prevPosZ + (thrower.posZ - thrower.prevPosZ) * interp;
 		double eyaw = thrower.prevRotationYaw + (thrower.rotationYaw - thrower.prevRotationYaw) * interp;
 		double epitch = thrower.prevRotationPitch + (thrower.rotationPitch - thrower.prevRotationPitch) * interp;
-		
+
 		Vec3 offset = Vec3.createVectorHelper(0.125D, 0.25, -0.75);
 		offset.rotateAroundX((float) -epitch / 180F * (float) Math.PI);
 		offset.rotateAroundY((float) -eyaw / 180F * (float) Math.PI);
-		
+
 		Vec3 target = Vec3.createVectorHelper(x - offset.xCoord, y + thrower.getEyeHeight() - offset.yCoord, z - offset.zCoord);
 
 		GL11.glDisable(GL11.GL_LIGHTING);
@@ -583,10 +609,10 @@ public class LegoClient {
 		double deltaY = target.yCoord - by;
 		double deltaZ = target.zCoord - bz;
 		Vec3 delta = Vec3.createVectorHelper(deltaX, deltaY, deltaZ);
-		
+
 		Tessellator tess = Tessellator.instance;
 		tess.startDrawingQuads();
-		
+
 		int count = 10;
 		double hang = Math.min(delta.lengthVector() / 15D, 0.5D);
 
@@ -602,7 +628,7 @@ public class LegoClient {
 		double iY = Math.sin(newPitch) * girth;
 		double jZ = Math.cos(newYaw) * girth;
 		double jX = Math.sin(newYaw) * girth;
-		
+
 		for(float j = 0; j < count; j++) {
 
 			float k = j + 1;
@@ -630,12 +656,12 @@ public class LegoClient {
 					(deltaZ * k / count),
 					iX, iY, iZ, jX, jZ);
 		}
-		
+
 		tess.draw();
 		GL11.glEnable(GL11.GL_LIGHTING);
 		GL11.glEnable(GL11.GL_CULL_FACE);
 	}
-	
+
 	public static void drawLineSegment(Tessellator tessellator, double x, double y, double z, double a, double b, double c, double iX, double iY, double iZ, double jX, double jZ) {
 
 		double deltaX = a - x;
@@ -673,7 +699,7 @@ public class LegoClient {
 		GL11.glShadeModel(GL11.GL_FLAT);
 		GL11.glPopMatrix();
 	};
-	
+
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_CT_MORTAR_CHARGE = (bullet, interp) -> {
 
 		GL11.glPushMatrix();

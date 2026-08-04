@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.generic.BlockBobble;
@@ -278,7 +279,7 @@ public class TileEntityMachineShredder extends TileEntityLoadedBase implements I
 				flag1 = true;
 			}
 
-			power = Library.chargeTEFromItems(slots, 29, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 29, power, maxPower);
 
 			networkPackNT(50);
 		}

@@ -1,8 +1,8 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
-import java.util.HashMap;
-import java.util.List;
-
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluidmk2.IFluidStandardTransceiverMK2;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.inventory.UpgradeManagerNT;
@@ -26,9 +26,6 @@ import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.util.BobMathUtil;
 import com.hbm.util.fauxpointtwelve.DirPos;
 import com.hbm.util.i18n.I18nUtil;
-
-import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.fluidmk2.IFluidStandardTransceiverMK2;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
@@ -40,15 +37,18 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
+import java.util.HashMap;
+import java.util.List;
+
 public class TileEntityMachineChemicalPlant extends TileEntityMachineBase implements IEnergyReceiverMK2, IFluidStandardTransceiverMK2, IUpgradeInfoProvider, IControlReceiver, IGUIProvider {
 
 	public FluidTank[] inputTanks;
 	public FluidTank[] outputTanks;
-	
+
 	public long power;
 	public long maxPower = 100_000;
 	public boolean didProcess = false;
-	
+
 	public boolean frame = false;
 	public int anim;
 	public int prevAnim;
@@ -59,14 +59,14 @@ public class TileEntityMachineChemicalPlant extends TileEntityMachineBase implem
 
 	public TileEntityMachineChemicalPlant() {
 		super(22);
-		
+
 		this.inputTanks = new FluidTank[3];
 		this.outputTanks = new FluidTank[3];
 		for(int i = 0; i < 3; i++) {
 			this.inputTanks[i] = new FluidTank(Fluids.NONE, 24_000);
 			this.outputTanks[i] = new FluidTank(Fluids.NONE, 24_000);
 		}
-		
+
 		this.chemplantModule = new ModuleMachineChemplant(0, this, slots)
 				.itemInput(4, 5, 6)
 				.itemOutput(7, 8, 9)
@@ -81,18 +81,18 @@ public class TileEntityMachineChemicalPlant extends TileEntityMachineBase implem
 
 	@Override
 	public void updateEntity() {
-		
+
 		if(maxPower <= 0) this.maxPower = 1_000_000;
-		
+
 		if(!worldObj.isRemote) {
-			
+
 			GenericRecipe recipe = ChemicalPlantRecipes.INSTANCE.recipeNameMap.get(chemplantModule.recipe);
 			if(recipe != null) {
 				this.maxPower = recipe.power * 100;
 			}
 			this.maxPower = BobMathUtil.max(this.power, this.maxPower, 100_000);
-			
-			this.power = Library.chargeTEFromItems(slots, 0, power, maxPower);
+
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, maxPower);
 			upgradeManager.checkSlots(slots, 2, 3);
 
 			inputTanks[0].loadTank(10, 13, slots);
@@ -102,7 +102,7 @@ public class TileEntityMachineChemicalPlant extends TileEntityMachineBase implem
 			outputTanks[0].unloadTank(16, 19, slots);
 			outputTanks[1].unloadTank(17, 20, slots);
 			outputTanks[2].unloadTank(18, 21, slots);
-			
+
 			for(DirPos pos : getConPos()) {
 				this.trySubscribe(worldObj, pos);
 				for(FluidTank tank : inputTanks) if(tank.getTankType() != Fluids.NONE) this.trySubscribe(tank.getTankType(), worldObj, pos);
@@ -118,27 +118,27 @@ public class TileEntityMachineChemicalPlant extends TileEntityMachineBase implem
 			pow -= Math.min(upgradeManager.getLevel(UpgradeType.POWER), 3) * 0.25D;
 			pow += Math.min(upgradeManager.getLevel(UpgradeType.SPEED), 3) * 1D;
 			pow += Math.min(upgradeManager.getLevel(UpgradeType.OVERDRIVE), 3) * 10D / 3D;
-			
+
 			this.chemplantModule.update(speed, pow, true, slots[1]);
 			this.didProcess = this.chemplantModule.didProcess;
 			if(this.chemplantModule.markDirty) this.markDirty();
-			
+
 			if(didProcess) {
 				if(slots[0] != null && slots[0].getItem() == ModItems.meteorite_sword_machined)
 					slots[0] = new ItemStack(ModItems.meteorite_sword_treated);
 			}
-			
+
 			this.networkPackNT(100);
-			
+
 		} else {
-			
+
 			this.prevAnim = this.anim;
 			if(this.didProcess) this.anim++;
-			
+
 			if(worldObj.getTotalWorldTime() % 20 == 0) {
 				frame = !worldObj.getBlock(xCoord, yCoord + 3, zCoord).isAir(worldObj, xCoord, yCoord + 3, zCoord);
 			}
-			
+
 			if(this.didProcess && MainRegistry.proxy.me().getDistance(xCoord , yCoord, zCoord) < 30) {
 				if(audio == null) {
 					audio = createAudioLoop();
@@ -148,7 +148,7 @@ public class TileEntityMachineChemicalPlant extends TileEntityMachineBase implem
 				}
 				audio.keepAlive();
 				audio.updateVolume(this.getVolume(1F));
-				
+
 			} else {
 				if(audio != null) {
 					audio.stopSound();
@@ -170,7 +170,7 @@ public class TileEntityMachineChemicalPlant extends TileEntityMachineBase implem
 		super.invalidate();
 		if(audio != null) { audio.stopSound(); audio = null; }
 	}
-	
+
 	public DirPos[] getConPos() {
 		return new DirPos[] {
 				new DirPos(xCoord + 2, yCoord, zCoord - 1, Library.POS_X),
@@ -209,11 +209,11 @@ public class TileEntityMachineChemicalPlant extends TileEntityMachineBase implem
 		this.didProcess = buf.readBoolean();
 		this.chemplantModule.deserialize(buf);
 	}
-	
+
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
-		
+
 		for(int i = 0; i < 3; i++) {
 			this.inputTanks[i].readFromNBT(nbt, "i" + i);
 			this.outputTanks[i].readFromNBT(nbt, "o" + i);
@@ -223,11 +223,11 @@ public class TileEntityMachineChemicalPlant extends TileEntityMachineBase implem
 		this.maxPower = nbt.getLong("maxPower");
 		this.chemplantModule.readFromNBT(nbt);
 	}
-	
+
 	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
-		
+
 		for(int i = 0; i < 3; i++) {
 			this.inputTanks[i].writeToNBT(nbt, "i" + i);
 			this.outputTanks[i].writeToNBT(nbt, "o" + i);
@@ -283,21 +283,21 @@ public class TileEntityMachineChemicalPlant extends TileEntityMachineBase implem
 			}
 		}
 	}
-	
+
 	AxisAlignedBB bb = null;
-	
+
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
 		if(bb == null) bb = AxisAlignedBB.getBoundingBox(xCoord - 1, yCoord, zCoord - 1, xCoord + 2, yCoord + 3, zCoord + 2);
 		return bb;
 	}
-	
+
 	@Override
 	@SideOnly(Side.CLIENT)
 	public double getMaxRenderDistanceSquared() {
 		return 65536.0D;
 	}
-	
+
 	@Override
 	public boolean canProvideInfo(UpgradeType type, int level, boolean extendedInfo) {
 		return type == UpgradeType.SPEED || type == UpgradeType.POWER || type == UpgradeType.OVERDRIVE;

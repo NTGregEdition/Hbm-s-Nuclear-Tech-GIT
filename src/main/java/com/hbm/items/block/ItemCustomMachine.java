@@ -6,6 +6,8 @@ import com.hbm.config.CustomMachineConfigJSON;
 import com.hbm.config.CustomMachineConfigJSON.MachineConfiguration;
 import com.hbm.main.MainRegistry;
 
+import api.hbm.energymk2.VoltageTier;
+
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -13,6 +15,8 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 
 public class ItemCustomMachine extends ItemBlock {
 
@@ -21,10 +25,10 @@ public class ItemCustomMachine extends ItemBlock {
 		this.setMaxDamage(0);
 		this.setHasSubtypes(true);
 	}
-	
+
 	@SideOnly(Side.CLIENT)
 	public void getSubItems(Item item, CreativeTabs tab, List list) {
-		
+
 		for(int i = 0; i < CustomMachineConfigJSON.niceList.size(); i++) {
 			ItemStack stack = new ItemStack(item, 1, i + 100);
 			list.add(stack);
@@ -33,18 +37,28 @@ public class ItemCustomMachine extends ItemBlock {
 
 	@Override
 	public String getItemStackDisplayName(ItemStack stack) {
-		
+
 		int id = stack.getItemDamage() - 100;
-		
+
 		if(id >= 0 && id < CustomMachineConfigJSON.customMachines.size()) {
 			MachineConfiguration conf = CustomMachineConfigJSON.niceList.get(id);
-			
+
 			if(conf != null) {
 				String localized = conf.localization.get(MainRegistry.proxy.getLanguageCode());
 				return localized != null ? localized : conf.localizedName;
 			}
 		}
-		
+
 		return "INVALID MACHINE CONTROLLER";
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void addInformation(ItemStack stack, net.minecraft.entity.player.EntityPlayer player, List list, boolean advanced) {
+		int id = stack.getItemDamage() - 100;
+		if(id >= 0 && id < CustomMachineConfigJSON.niceList.size()) {
+			MachineConfiguration conf = CustomMachineConfigJSON.niceList.get(id);
+			list.add(EnumChatFormatting.AQUA + StatCollector.translateToLocal("hbm.voltage.generic") + ": " + VoltageTier.format(conf.voltage));
+		}
 	}
 }

@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.inventory.container.ContainerMachineGasCent;
@@ -179,7 +180,7 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
 
 			updateConnections();
 
-			power = Library.chargeTEFromItems(slots, 4, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 4, power, maxPower);
 			setTankType(5);
 
 			if(GasCentrifugeRecipes.fluidConversions.containsValue(inputTank.getTankType())) {

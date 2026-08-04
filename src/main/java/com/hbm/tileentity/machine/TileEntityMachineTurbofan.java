@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.HashMap;
 import java.util.List;
@@ -195,7 +196,7 @@ public class TileEntityMachineTurbofan extends TileEntityMachinePolluting implem
 				}
 			}
 
-			power = Library.chargeItemsFromTE(slots, 3, power, power);
+			power = VoltageCheckedCharging.chargeItemsFromTE(this, slots, 3, power, power);
 
 			for(DirPos pos : getConPos()) {
 				this.tryProvide(worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());

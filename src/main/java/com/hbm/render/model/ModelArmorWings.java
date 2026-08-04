@@ -167,6 +167,8 @@ public class ModelArmorWings extends ModelArmorBase {
 			return ResourceManager.wings_bob;
 		if(this.type == 3)
 			return ResourceManager.wings_black;
+		if(this.type == 4)
+			return ResourceManager.wings_white;
 
 		return ResourceManager.wings_murk;
 	}

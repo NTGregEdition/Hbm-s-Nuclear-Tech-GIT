@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,7 @@ import com.hbm.util.fauxpointtwelve.DirPos;
 
 import api.hbm.energymk2.IEnergyProviderMK2;
 import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.energymk2.VoltageTier;
 import api.hbm.fluid.IFluidStandardTransceiver;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -112,7 +114,7 @@ public class TileEntityCustomMachine extends TileEntityMachinePolluting implemen
 				return;
 			}
 
-			this.power = Library.chargeTEFromItems(slots, 0, power, this.config.maxPower);
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, this.config.maxPower);
 
 			if (this.inputTanks.length > 0) this.inputTanks[0].setType(1, slots);
 			if (this.inputTanks.length > 1) this.inputTanks[1].setType(2, slots);
@@ -576,6 +578,11 @@ public class TileEntityCustomMachine extends TileEntityMachinePolluting implemen
 	@Override
 	public long getMaxPower() {
 		return this.config != null ? this.config.maxPower : 1;
+	}
+
+	@Override
+	public long getVoltage() {
+		return this.config != null ? this.config.voltage : VoltageTier.DEFAULT;
 	}
 
 	@Override

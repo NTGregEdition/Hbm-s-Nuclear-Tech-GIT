@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine.fusion;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.Map.Entry;
 
@@ -136,7 +137,7 @@ public class TileEntityFusionTorus extends TileEntityCooledBase implements IGUIP
 				if(tanks[3].getFill() > 0) this.tryProvide(tanks[3], worldObj, pos);
 			}
 
-			this.power = Library.chargeTEFromItems(slots, 0, power, this.getMaxPower());
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, this.getMaxPower());
 
 			// keeping track of PLASMA receivers because those need to share the combined output
 			int receiverCount = 0;

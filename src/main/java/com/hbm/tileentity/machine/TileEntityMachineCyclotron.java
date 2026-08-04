@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.HashMap;
 import java.util.List;
@@ -75,7 +76,7 @@ public class TileEntityMachineCyclotron extends TileEntityMachineBase implements
 
 			this.updateConnections();
 
-			this.power = Library.chargeTEFromItems(slots, 9, power, maxPower);
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 9, power, maxPower);
 
 			upgradeManager.checkSlots(this, slots, 10, 11);
 

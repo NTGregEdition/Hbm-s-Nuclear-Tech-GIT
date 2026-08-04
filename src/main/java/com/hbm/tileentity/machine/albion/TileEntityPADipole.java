@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine.albion;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import com.hbm.handler.CompatHandler.OCComponent;
 import com.hbm.interfaces.IControlReceiver;
@@ -127,7 +128,7 @@ public class TileEntityPADipole extends TileEntityCooledBase implements IGUIProv
 	public void updateEntity() {
 
 		if(!worldObj.isRemote) {
-			this.power = Library.chargeTEFromItems(slots, 0, power, this.getMaxPower());
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, this.getMaxPower());
 		}
 
 		super.updateEntity();

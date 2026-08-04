@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import com.hbm.explosion.vanillant.ExplosionVNT;
 import com.hbm.explosion.vanillant.standard.EntityProcessorCrossSmooth;
@@ -35,7 +36,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 @Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
 public class TileEntityMicrowave extends TileEntityMachineBase implements IEnergyReceiverMK2, IGUIProvider, SimpleComponent, CompatHandler.OCComponent, ICopiable {
-	
+
 	public long power;
 	public static final long maxPower = 50000;
 	public static final int consumption = 50;
@@ -55,15 +56,15 @@ public class TileEntityMicrowave extends TileEntityMachineBase implements IEnerg
 
 	@Override
 	public void updateEntity() {
-		
+
 		if(!worldObj.isRemote) {
 
 			for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) this.trySubscribe(worldObj, xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ, dir);
-			
-			this.power = Library.chargeTEFromItems(slots, 2, power, maxPower);
-			
+
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 2, power, maxPower);
+
 			if(canProcess()) {
-				
+
 				if(speed >= maxSpeed) {
 					worldObj.func_147480_a(xCoord, yCoord, zCoord, false);
 					ExplosionVNT vnt = new ExplosionVNT(worldObj, xCoord + 0.5, yCoord + 0.5, zCoord + 0.5, 5);
@@ -73,12 +74,12 @@ public class TileEntityMicrowave extends TileEntityMachineBase implements IEnerg
 					vnt.explode();
 					return;
 				}
-				
+
 				if(time >= maxTime) {
 					process();
 					time = 0;
 				}
-				
+
 				if(canProcess()) {
 					power -= consumption;
 					time += speed * 2;
@@ -104,56 +105,56 @@ public class TileEntityMicrowave extends TileEntityMachineBase implements IEnerg
 		time = buf.readInt();
 		speed = buf.readInt();
 	}
-	
+
 	public void handleButtonPacket(int value, int meta) {
-		
+
 		if(value == 0)
 			speed++;
-		
+
 		if(value == 1)
 			speed--;
-		
+
 		if(speed < 0)
 			speed = 0;
-		
+
 		if(speed > maxSpeed)
 			speed = maxSpeed;
 	}
-	
+
 	private void process() {
-		
+
 		ItemStack stack = FurnaceRecipes.smelting().getSmeltingResult(slots[0]).copy();
-		
+
 		if(slots[1] == null) {
 			slots[1] = stack;
 		} else {
 			slots[1].stackSize += stack.stackSize;
 		}
-		
+
 		this.decrStackSize(0, 1);
-		
+
 		this.markDirty();
 	}
-	
+
 	private boolean canProcess() {
-		
+
 		if(speed  == 0)
 			return false;
-		
+
 		if(power < consumption)
 			return false;
-		
+
 		if(slots[0] != null && FurnaceRecipes.smelting().getSmeltingResult(slots[0]) != null) {
-			
+
 			ItemStack stack = FurnaceRecipes.smelting().getSmeltingResult(slots[0]);
-			
+
 			if(!(slots[0].getItem() instanceof ItemFood) && !(stack.getItem() instanceof ItemFood)) return false;
 			if(slots[1] == null) return true;
 			if(!stack.isItemEqual(slots[1])) return false;
-			
+
 			return stack.stackSize + slots[1].stackSize <= stack.getMaxStackSize();
 		}
-		
+
 		return false;
 	}
 
@@ -176,24 +177,24 @@ public class TileEntityMicrowave extends TileEntityMachineBase implements IEnerg
 	public int[] getAccessibleSlotsFromSide(int side) {
 		return side == 0 ? new int[] { 1 } : new int[] { 0 };
 	}
-	
+
 	public long getPowerScaled(int i) {
 		return (power * i) / maxPower;
 	}
-	
+
 	public int getProgressScaled(int i) {
 		return (time * i) / maxTime;
 	}
-	
+
 	public int getSpeedScaled(int i) {
 		return (speed * i) / maxSpeed;
 	}
-	
+
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
 		return TileEntity.INFINITE_EXTENT_AABB;
 	}
-	
+
 	@Override
 	@SideOnly(Side.CLIENT)
 	public double getMaxRenderDistanceSquared()
@@ -215,15 +216,15 @@ public class TileEntityMicrowave extends TileEntityMachineBase implements IEnerg
 	public long getMaxPower() {
 		return maxPower;
 	}
-	
+
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
-		
+
 		power = nbt.getLong("power");
 		speed = nbt.getInteger("speed");
 	}
-	
+
 	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);

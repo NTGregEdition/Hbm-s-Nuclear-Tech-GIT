@@ -32,7 +32,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
 public class BlockCustomMachine extends BlockContainer {
-	
+
 	@SideOnly(Side.CLIENT)
 	private IIcon iconFront;
 
@@ -44,32 +44,32 @@ public class BlockCustomMachine extends BlockContainer {
 	public TileEntity createNewTileEntity(World world, int meta) {
 		return new TileEntityCustomMachine();
 	}
-	
+
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void registerBlockIcons(IIconRegister iconRegister) {
 		this.iconFront = iconRegister.registerIcon(RefStrings.MODID + ":cm_terminal_front");
 		this.blockIcon = iconRegister.registerIcon(RefStrings.MODID + ":cm_terminal_side");
 	}
-	
+
 	@Override
 	@SideOnly(Side.CLIENT)
 	public IIcon getIcon(int side, int metadata) {
 		if(metadata >= 100) return side == 3 ? this.iconFront : this.blockIcon;
 		return metadata == 0 && side == 3 ? this.iconFront : (side == metadata ? this.iconFront : this.blockIcon);
 	}
-	
+
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
-		
+
 		if(world.isRemote) {
 			return true;
 		} else if(!player.isSneaking()) {
-			
+
 			TileEntityCustomMachine tile = (TileEntityCustomMachine) world.getTileEntity(x, y, z);
-			
+
 			if(tile != null) {
-				
+
 				if(tile.checkStructure()) {
 					FMLNetworkHandler.openGui(player, MainRegistry.instance, 0, world, x, y, z);
 				} else if(player.getHeldItem() != null && player.getHeldItem().getItem() == ModItems.wand_s) {
@@ -78,7 +78,7 @@ public class BlockCustomMachine extends BlockContainer {
 			}
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -90,16 +90,16 @@ public class BlockCustomMachine extends BlockContainer {
 		if(i == 1) world.setBlockMetadataWithNotify(x, y, z, 5, 2);
 		if(i == 2) world.setBlockMetadataWithNotify(x, y, z, 3, 2);
 		if(i == 3) world.setBlockMetadataWithNotify(x, y, z, 4, 2);
-		
+
 		TileEntityCustomMachine tile = (TileEntityCustomMachine) world.getTileEntity(x, y, z);
-		
+
 		if(tile != null) {
 			int id = stack.getItemDamage() - 100;
-			
+
 			if(id >= 0 && id < CustomMachineConfigJSON.customMachines.size()) {
-				
+
 				MachineConfiguration config = CustomMachineConfigJSON.niceList.get(id);
-				
+
 				if(config != null) {
 					tile.machineType = config.unlocalizedName;
 					tile.init();
@@ -111,51 +111,51 @@ public class BlockCustomMachine extends BlockContainer {
 
 	@Override
 	public void onBlockHarvested(World world, int x, int y, int z, int meta, EntityPlayer player) {
-		
+
 		if(!player.capabilities.isCreativeMode) {
 			harvesters.set(player);
 			this.dropBlockAsItem(world, x, y, z, meta, 0);
 			harvesters.set(null);
 		}
 	}
-	
+
 	@Override
 	public void harvestBlock(World world, EntityPlayer player, int x, int y, int z, int meta) {
 		player.addStat(StatList.mineBlockStatArray[getIdFromBlock(this)], 1);
 		player.addExhaustion(0.025F);
 	}
-	
+
 	@Override
 	public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
-		
+
 		ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
 		Item item = getItemDropped(metadata, world.rand, fortune);
 		if(item != null) {
 
 			TileEntityCustomMachine tile = (TileEntityCustomMachine) world.getTileEntity(x, y, z);
-			
+
 			if(tile != null) {
 				ItemStack stack = new ItemStack(item, 1, CustomMachineConfigJSON.niceList.indexOf(tile.config) + 100);
 				ret.add(stack);
 			}
 		}
-		
+
 		return ret;
 	}
-	
+
 	@Override
 	public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z) { //using the deprecated one to make NEI happy
-		
+
 		TileEntityCustomMachine tile = (TileEntityCustomMachine) world.getTileEntity(x, y, z);
-		
+
 		if(tile != null && tile.machineType != null && !tile.machineType.isEmpty()) {
 			ItemStack stack = new ItemStack(this, 1, CustomMachineConfigJSON.niceList.indexOf(tile.config) + 100);
 			return stack;
 		}
-		
+
 		return super.getPickBlock(target, world, x, y, z);
 	}
-	
+
 	@Override
 	public void breakBlock(World world, int x, int y, int z, Block block, int meta) {
 

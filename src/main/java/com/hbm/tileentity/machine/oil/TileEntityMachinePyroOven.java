@@ -1,8 +1,8 @@
 package com.hbm.tileentity.machine.oil;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
-import java.util.HashMap;
-import java.util.List;
-
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluid.IFluidStandardTransceiver;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.handler.pollution.PollutionHandler;
 import com.hbm.handler.pollution.PollutionHandler.PollutionType;
@@ -25,9 +25,6 @@ import com.hbm.tileentity.TileEntityMachinePolluting;
 import com.hbm.util.BobMathUtil;
 import com.hbm.util.fauxpointtwelve.DirPos;
 import com.hbm.util.i18n.I18nUtil;
-
-import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.fluid.IFluidStandardTransceiver;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
@@ -39,6 +36,9 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import java.util.HashMap;
+import java.util.List;
 
 public class TileEntityMachinePyroOven extends TileEntityMachinePolluting implements IEnergyReceiverMK2, IFluidStandardTransceiver, IGUIProvider, IUpgradeInfoProvider, IFluidCopiable {
 
@@ -84,7 +84,7 @@ public class TileEntityMachinePyroOven extends TileEntityMachinePolluting implem
 
 		if(!worldObj.isRemote) {
 
-			this.power = Library.chargeTEFromItems(slots, 0, power, maxPower);
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, maxPower);
 			tanks[0].setType(3, slots);
 
 			for(DirPos pos : getConPos()) {

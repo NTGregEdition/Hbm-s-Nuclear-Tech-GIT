@@ -1,8 +1,8 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
-import java.util.HashMap;
-import java.util.List;
-
+import api.hbm.energymk2.IBatteryItem;
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.machine.MachineElectricFurnace;
 import com.hbm.handler.pollution.PollutionHandler;
@@ -11,14 +11,10 @@ import com.hbm.inventory.UpgradeManagerNT;
 import com.hbm.inventory.container.ContainerElectricFurnace;
 import com.hbm.inventory.gui.GUIMachineElectricFurnace;
 import com.hbm.items.machine.ItemMachineUpgrade.UpgradeType;
-import com.hbm.lib.Library;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.IUpgradeInfoProvider;
 import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.util.i18n.I18nUtil;
-
-import api.hbm.energymk2.IBatteryItem;
-import api.hbm.energymk2.IEnergyReceiverMK2;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
@@ -31,6 +27,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import java.util.HashMap;
+import java.util.List;
 
 public class TileEntityMachineElectricFurnace extends TileEntityMachineBase implements ISidedInventory, IEnergyReceiverMK2, IGUIProvider, IUpgradeInfoProvider {
 
@@ -175,7 +174,7 @@ public class TileEntityMachineElectricFurnace extends TileEntityMachineBase impl
 				cooldown--;
 			}
 
-			power = Library.chargeTEFromItems(slots, 0, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, maxPower);
 
 			if(worldObj.getTotalWorldTime() % 40 == 0) this.updateConnections();
 

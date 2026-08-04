@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.HashMap;
 import java.util.List;
@@ -77,7 +78,7 @@ public class TileEntityMachineArcWelder extends TileEntityMachineBase implements
 
 		if(!worldObj.isRemote) {
 
-			this.power = Library.chargeTEFromItems(slots, 4, this.getPower(), this.getMaxPower());
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 4, this.getPower(), this.getMaxPower());
 			this.tank.setType(5, slots);
 
 			if(worldObj.getTotalWorldTime() % 20 == 0) {

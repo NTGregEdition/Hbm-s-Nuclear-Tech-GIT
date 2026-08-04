@@ -166,6 +166,7 @@ public class ClientProxy extends ServerProxy {
 		registerClientEventHandler(new ModEventHandlerClient());
 		registerClientEventHandler(new ModEventHandlerRenderer());
 		registerClientEventHandler(new EventHandlerParticleEngine());
+		registerClientEventHandler(new DigammaApocalypseClient());
 		registerClientEventHandler(theInfoSystem);
 
 		registerTileEntitySpecialRenderer();

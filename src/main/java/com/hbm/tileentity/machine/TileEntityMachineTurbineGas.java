@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.HashMap;
 
@@ -150,7 +151,7 @@ public class TileEntityMachineTurbineGas extends TileEntityMachineBase implement
 			powerBeforeNet = Math.min(this.power, maxPower);
 
 			//do net/battery deductions first...
-			power = Library.chargeItemsFromTE(slots, 0, power, maxPower);
+			power = VoltageCheckedCharging.chargeItemsFromTE(this, slots, 0, power, maxPower);
 			this.tryProvide(worldObj, xCoord - dir.offsetZ * 5, yCoord + 1, zCoord + dir.offsetX * 5, rot); //sends out power
 
 			//...and then cap it. Prevents potential future cases where power would be limited due to the fuel being too strong and the buffer too small.
@@ -759,7 +760,7 @@ public class TileEntityMachineTurbineGas extends TileEntityMachineBase implement
 				PREFIX_FUNCTION + "setState" + NAME_SEPARATOR + "state"
 		};
 	}
-	
+
 	@Override
 	public String provideRORValue(String name) {
 		if((PREFIX_VALUE + "turbinepercent").equals(name))	return	"" + (int) (this.powerSliderPos * 100D / 60D);

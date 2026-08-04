@@ -1,4 +1,5 @@
 package com.hbm.tileentity.bomb;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,7 +106,7 @@ public class TileEntityLaunchPadRocket extends TileEntityMachineBase implements 
 			}
 
 			// Fills, note that the liquid input also takes solid fuel
-			power = Library.chargeTEFromItems(slots, 2, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 2, power, maxPower);
 			for(FluidTank tank : tanks) tank.loadTank(3, 4, slots);
 			if(slots[3] != null && slots[3].getItem() == ModItems.rocket_fuel && solidFuel.level < solidFuel.max) {
 				decrStackSize(3, 1);

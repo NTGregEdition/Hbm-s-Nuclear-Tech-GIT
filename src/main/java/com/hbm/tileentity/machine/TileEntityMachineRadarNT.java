@@ -1,10 +1,11 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
-
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.entity.IRadarDetectable;
+import api.hbm.entity.IRadarDetectableNT;
+import api.hbm.entity.IRadarDetectableNT.RadarScanParams;
+import api.hbm.entity.RadarEntry;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonWriter;
 import com.hbm.extprop.HbmLivingProps;
@@ -31,12 +32,6 @@ import com.hbm.util.Tuple.Triplet;
 import com.hbm.util.fauxpointtwelve.BlockPos;
 import com.hbm.util.fauxpointtwelve.DirPos;
 import com.hbm.world.WorldUtil;
-
-import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.entity.IRadarDetectable;
-import api.hbm.entity.IRadarDetectableNT;
-import api.hbm.entity.IRadarDetectableNT.RadarScanParams;
-import api.hbm.entity.RadarEntry;
 import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.common.network.internal.FMLNetworkHandler;
 import cpw.mods.fml.relauncher.Side;
@@ -58,6 +53,11 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * Now with SmЯt™ lag-free entity detection! (patent pending)
@@ -143,7 +143,7 @@ public class TileEntityMachineRadarNT extends TileEntityMachineBase implements I
 
 		if(!worldObj.isRemote) {
 
-			this.power = Library.chargeTEFromItems(slots, 9, power, maxPower);
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 9, power, maxPower);
 
 			if(worldObj.getTotalWorldTime() % 20 == 0) {
 				for(DirPos pos : getConPos()) {
@@ -151,7 +151,7 @@ public class TileEntityMachineRadarNT extends TileEntityMachineBase implements I
 				}
 			}
 
-			this.power = Library.chargeTEFromItems(slots, 0, power, maxPower);
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, maxPower);
 			this.jammed = false;
 			allocateTargets();
 

@@ -55,6 +55,10 @@ import net.minecraftforge.oredict.ShapelessOreRecipe;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Map.Entry;
+
 public class CraftingManager {
 
 	public static void mainRegistry() {
@@ -679,7 +683,7 @@ public class CraftingManager {
 		addShapelessAuto(new ItemStack(ModBlocks.pink_log), new Object[] { new ItemStack(ModItems.powder_wd2004, 10), KEY_LOG});
 
 		addRecipeAuto(new ItemStack(ModBlocks.cargo_elevator, 3), new Object[] { "GGG", "SPS", 'G', ModBlocks.steel_grate, 'S', STEEL.ingot(), 'P', new ItemStack(ModItems.part_generic, 1, EnumPartType.PISTON_HYDRAULIC.ordinal()) });
-		
+
 		addRecipeAuto(new ItemStack(ModItems.door_metal, 1), new Object[] { "II", "SS", "II", 'I', IRON.plate(), 'S', STEEL.plate() });
 		addRecipeAuto(new ItemStack(ModItems.door_office, 1), new Object[] { "II", "SS", "II", 'I', KEY_PLANKS, 'S', IRON.plate() });
 		addRecipeAuto(new ItemStack(ModItems.door_bunker, 1), new Object[] { "II", "SS", "II", 'I', STEEL.plate(), 'S', PB.plate() });
@@ -1037,6 +1041,239 @@ public class CraftingManager {
 
 		for(NTMMaterial mat : Mats.orderedList) {
 			if(mat.autogen.contains(MaterialShapes.BOLT)) for(String name : mat.names) addRecipeAuto(new ItemStack(ModItems.bolt, 16, mat.id), new Object[] { "#", "#", '#', MaterialShapes.INGOT.name() + name });
+		}
+
+		Map<NTMMaterial, Item> hammerPlates = new HashMap<>();
+		hammerPlates.put(Mats.MAT_IRON, ModItems.plate_iron);
+		hammerPlates.put(Mats.MAT_TITANIUM, ModItems.plate_titanium);
+		hammerPlates.put(Mats.MAT_COPPER, ModItems.plate_copper);
+		hammerPlates.put(Mats.MAT_ALUMINIUM, ModItems.plate_aluminium);
+		hammerPlates.put(Mats.MAT_LEAD, ModItems.plate_lead);
+		hammerPlates.put(Mats.MAT_STEEL, ModItems.plate_steel);
+		hammerPlates.put(Mats.MAT_SCHRABIDIUM, ModItems.plate_schrabidium);
+		hammerPlates.put(Mats.MAT_GOLD, ModItems.plate_gold);
+		hammerPlates.put(Mats.MAT_DURA, ModItems.plate_dura_steel);
+		hammerPlates.put(Mats.MAT_TUNGSTEN, ModItems.plate_tungsten);
+		hammerPlates.put(Mats.MAT_STAR, ModItems.plate_starmetal);
+		hammerPlates.put(Mats.MAT_FERRO, ModItems.plate_ferrouranium);
+		hammerPlates.put(Mats.MAT_TCALLOY, ModItems.plate_tcalloy);
+		hammerPlates.put(Mats.MAT_STAINLESS, ModItems.plate_stainless);
+		hammerPlates.put(Mats.MAT_ALLOY, ModItems.plate_advanced_alloy);
+		hammerPlates.put(Mats.MAT_NICKEL, ModItems.plate_nickel);
+		hammerPlates.put(Mats.MAT_CMB, ModItems.plate_combine_steel);
+		hammerPlates.put(Mats.MAT_GUNMETAL, ModItems.plate_gunmetal);
+		hammerPlates.put(Mats.MAT_WEAPONSTEEL, ModItems.plate_weaponsteel);
+		hammerPlates.put(Mats.MAT_SATURN, ModItems.plate_saturnite);
+		hammerPlates.put(Mats.MAT_DNT, ModItems.plate_c_dineutronium);
+		hammerPlates.put(Mats.MAT_DESH, ModItems.plate_c_desh);
+		hammerPlates.put(Mats.MAT_CN989, ModItems.plate_cn989);
+
+		for(Entry<NTMMaterial, Item> entry : hammerPlates.entrySet()) {
+			NTMMaterial mat = entry.getKey();
+			Item plate = entry.getValue();
+			for(String name : mat.names) {
+				addRecipeAuto(new ItemStack(plate, 1), new Object[] {
+					"X  ",
+					"Y  ",
+					"Y  ",
+					'X', "ntmhammer",
+					'Y', MaterialShapes.INGOT.name() + name
+				});
+			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			if(mat.autogen.contains(MaterialShapes.FOIL)) {
+				for(String name : mat.names) {
+					addRecipeAuto(new ItemStack(ModItems.foil, 2, mat.id), new Object[] {
+						"SP ",
+						"   ",
+						"   ",
+						'P', MaterialShapes.PLATE.name() + name,
+						'S', "ntmhammer"
+					});
+				}
+			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			if(mat.autogen.contains(MaterialShapes.C_ROD)) {
+				for(String name : mat.names) {
+					addRecipeAuto(new ItemStack(ModItems.c_rod, 1, mat.id), new Object[] {
+						"S  ",
+						" P ",
+						"   ",
+						'P', MaterialShapes.INGOT.name() + name,
+						'S', "ntmfile"
+					});
+				}
+			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			if(mat.autogen.contains(MaterialShapes.C_ROD)) {
+				for(String name : mat.names) {
+					addRecipeAuto(new ItemStack(ModItems.c_rod, 2, mat.id), new Object[] {
+						"S  ",
+						"P  ",
+						"   ",
+						'P', MaterialShapes.LONG_ROD.name() + name,
+						'S', "ntmsaw"
+					});
+				}
+			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			if(mat.autogen.contains(MaterialShapes.LONG_ROD)) {
+				for(String name : mat.names) {
+					addRecipeAuto(new ItemStack(ModItems.long_rod, 1, mat.id), new Object[] {
+						"PSP",
+						"   ",
+						"   ",
+						'P', MaterialShapes.C_ROD.name() + name,
+						'S', "ntmhammer"
+					});
+				}
+			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			if(mat.autogen.contains(MaterialShapes.GEAR)) {
+				for(String name : mat.names) {
+					addRecipeAuto(new ItemStack(ModItems.gear, 1, mat.id), new Object[] {
+						"OPO",
+						"PSP",
+						"OPO",
+						'P', MaterialShapes.PLATE.name() + name,
+						'O', MaterialShapes.C_ROD.name() + name,
+						'S', "ntmwrench"
+					});
+				}
+			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			if(mat.autogen.contains(MaterialShapes.SMALL_GEAR)) {
+				for(String name : mat.names) {
+					addRecipeAuto(new ItemStack(ModItems.small_gear, 1, mat.id), new Object[] {
+						" O ",
+						"SPD",
+						" O ",
+						'P', MaterialShapes.PLATE.name() + name,
+						'O', MaterialShapes.C_ROD.name() + name,
+						'S', "ntmhammer",
+						'D', "ntmwire_cutter"
+					});
+				}
+			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			if(mat.autogen.contains(MaterialShapes.C_BOLT)) {
+				for(String name : mat.names) {
+					addRecipeAuto(new ItemStack(ModItems.c_bolt, 2, mat.id), new Object[] {
+						"S  ",
+						" P ",
+						"   ",
+						'P', MaterialShapes.C_ROD.name() + name,
+						'S', "ntmsaw"
+					});
+				}
+			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			if(mat.autogen.contains(MaterialShapes.SCREW)) {
+				for(String name : mat.names) {
+					addRecipeAuto(new ItemStack(ModItems.screw, 1, mat.id), new Object[] {
+						"SP ",
+						"P  ",
+						"   ",
+						'P', MaterialShapes.C_BOLT.name() + name,
+						'S', "ntmfile"
+					});
+				}
+			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			if(mat.autogen.contains(MaterialShapes.RING)) {
+				for(String name : mat.names) {
+					addRecipeAuto(new ItemStack(ModItems.ring, 1, mat.id), new Object[] {
+						"S  ",
+						"DP ",
+						"   ",
+						'P', MaterialShapes.C_ROD.name() + name,
+						'S', "ntmhammer",
+						'D', "ntmfile"
+					});
+				}
+			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			if(mat.autogen.contains(MaterialShapes.SPRING)) {
+				for(String name : mat.names) {
+					addRecipeAuto(new ItemStack(ModItems.spring, 1, mat.id), new Object[] {
+						" D ",
+						"SPF",
+						" P ",
+						'P', MaterialShapes.LONG_ROD.name() + name,
+						'S', "ntmfile",
+						'D', "ntmsaw",
+						'F', "ntmwire_cutter"
+					});
+				}
+			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			if(mat.autogen.contains(MaterialShapes.SMALL_SPRING)) {
+				for(String name : mat.names) {
+					addRecipeAuto(new ItemStack(ModItems.small_spring, 1, mat.id), new Object[] {
+						" D ",
+						"SPF",
+						"   ",
+						'P', MaterialShapes.C_ROD.name() + name,
+						'S', "ntmfile",
+						'D', "ntmsaw",
+						'F', "ntmwire_cutter"
+					});
+				}
+			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			if(mat.autogen.contains(MaterialShapes.ROTOR)) {
+				for(String name : mat.names) {
+					addRecipeAuto(new ItemStack(ModItems.rotor, 1, mat.id), new Object[] {
+						"PSP",
+						"OID",
+						"PFP",
+						'P', MaterialShapes.PLATE.name() + name,
+						'O', MaterialShapes.SCREW.name() + name,
+						'I', MaterialShapes.RING.name() + name,
+						'S', "ntmhammer",
+						'D', "ntmfile",
+						'F', "ntmscrewdriver"
+					});
+				}
+			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			if(mat.autogen.contains(MaterialShapes.FINE_WIRE)) {
+				for(String name : mat.names) {
+					addRecipeAuto(new ItemStack(ModItems.fine_wire, 1, mat.id), new Object[] {
+						"PS ",
+						"   ",
+						"   ",
+						'P', MaterialShapes.FOIL.name() + name,
+						'S', "ntmwire_cutter"
+					});
+				}
+			}
 		}
 
 		if(!GeneralConfig.enable528) {

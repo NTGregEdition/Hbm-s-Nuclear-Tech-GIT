@@ -102,6 +102,8 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.event.FMLServerStoppedEvent;
+import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 
 @Mod(modid = RefStrings.MODID, name = RefStrings.NAME, version = RefStrings.VERSION)
 public class MainRegistry {
@@ -384,6 +386,7 @@ public class MainRegistry {
 	public static void load(FMLInitializationEvent event) {
 
 		RodRecipes.registerInit();
+		MinecraftForge.EVENT_BUS.register(new api.hbm.energymk2.VoltageTooltipHandler());
 
 		statLegendary = new StatBasic("stat.ntmLegendary", new ChatComponentTranslation("stat.ntmLegendary")).registerStat();
 		statMines = new StatBasic("stat.ntmMines", new ChatComponentTranslation("stat.ntmMines")).registerStat();
@@ -687,6 +690,10 @@ public class MainRegistry {
 		MinecraftForge.EVENT_BUS.register(impactHandler);
 		MinecraftForge.TERRAIN_GEN_BUS.register(impactHandler);
 
+		DigammaApocalypseHandler digammaHandler = new DigammaApocalypseHandler();
+		FMLCommonHandler.instance().bus().register(digammaHandler);
+		MinecraftForge.EVENT_BUS.register(digammaHandler);
+
 		PacketDispatcher.registerPackets();
 
 		ChunkRadiationManager radiationSystem = new ChunkRadiationManager();
@@ -736,6 +743,15 @@ public class MainRegistry {
 		event.registerServerCommand(new CommandCustomize());
 		event.registerServerCommand(new CommandReapNetworks());
 		ArcFurnaceRecipes.registerFurnaceSmeltables(); // because we have to wait for other mods to take their merry ass time to register recipes
+	}
+	@EventHandler
+	public void serverStopping(FMLServerStoppingEvent event) {
+		DigammaApocalypseHandler.onServerStopping();
+	}
+
+	@EventHandler
+	public void serverStopped(FMLServerStoppedEvent event) {
+		DigammaApocalypseHandler.onServerStopped();
 	}
 
 	@EventHandler
@@ -1684,7 +1700,7 @@ public class MainRegistry {
 		ignoreMappings.add("hbm:item.weapon_bat_nail");
 		ignoreMappings.add("hbm:item.weapon_golf_club");
 		ignoreMappings.add("hbm:item.weapon_pipe_rusty");
-		
+
 		/// REMAP ///
 		remapItems.put("hbm:item.gadget_explosive8", ModItems.early_explosive_lenses);
 		remapItems.put("hbm:item.man_explosive8", ModItems.explosive_lenses);

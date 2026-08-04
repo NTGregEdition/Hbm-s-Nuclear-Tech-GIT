@@ -14,6 +14,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import api.hbm.energymk2.BatteryVoltageRegistry;
+import api.hbm.energymk2.VoltageTier;
+
 public class TileEntityCharger extends TileEntityLoadedBase implements IEnergyReceiverMK2, IBufPacketReceiver {
 
 	private List<EntityPlayer> players = new ArrayList();
@@ -120,13 +123,24 @@ public class TileEntityCharger extends TileEntityLoadedBase implements IEnergyRe
 		if(this.usingTicks < delay || power == 0)
 			return power;
 
-		for(EntityPlayer player : players) {
+		long chargerVoltage = this.getReceiverVoltage();
 
+		for(EntityPlayer player : players) {
 			for(int i = 0; i < 5; i++) {
 
 				ItemStack stack = player.getEquipmentInSlot(i);
 
 				if(stack != null && stack.getItem() instanceof IBatteryItem) {
+
+					long itemVoltage = BatteryVoltageRegistry.getVoltage(stack, VoltageTier.DEFAULT);
+
+					if(!VoltageTier.isConfigured(itemVoltage)) {
+						continue;
+					}
+					if(VoltageTier.isConfigured(chargerVoltage) && itemVoltage != chargerVoltage) {
+						continue;
+					}
+
 					IBatteryItem battery = (IBatteryItem) stack.getItem();
 
 					long toCharge = Math.min(battery.getMaxCharge(stack) - battery.getCharge(stack), battery.getChargeRate(stack));

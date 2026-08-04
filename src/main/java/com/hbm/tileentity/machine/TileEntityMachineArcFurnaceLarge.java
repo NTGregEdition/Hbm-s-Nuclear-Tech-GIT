@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -110,7 +111,7 @@ public class TileEntityMachineArcFurnaceLarge extends TileEntityMachineBase impl
 
 		if(!worldObj.isRemote) {
 
-			this.power = Library.chargeTEFromItems(slots, 3, power, maxPower);
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 3, power, maxPower);
 			this.isProgressing = false;
 
 			for(DirPos pos : getConPos()) this.trySubscribe(worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());

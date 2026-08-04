@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.Random;
 
@@ -93,8 +94,8 @@ public class TileEntityMachineLargeTurbine extends TileEntityMachineBase impleme
 
 			tanks[0].setType(0, 1, slots);
 			tanks[0].loadTank(2, 3, slots);
-			power = Library.chargeItemsFromTE(slots, 4, power, maxPower);
-			
+			power = VoltageCheckedCharging.chargeItemsFromTE(this, slots, 4, power, maxPower);
+
 			this.power *= 0.95;
 
 			FluidType in = tanks[0].getTankType();
@@ -147,7 +148,7 @@ public class TileEntityMachineLargeTurbine extends TileEntityMachineBase impleme
 				audio.updateVolume(getVolume(0.4f * turbineSpeed));
 				audio.updatePitch(0.25F + 0.75F * turbineSpeed);
 				audio.keepAlive();
-				
+
 			} else {
 				this.fanAcceleration = Math.max(0F, Math.min(15F, this.fanAcceleration -= 0.1F));
 

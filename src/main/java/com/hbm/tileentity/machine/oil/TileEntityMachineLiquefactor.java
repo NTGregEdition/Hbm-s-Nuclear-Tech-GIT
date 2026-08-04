@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine.oil;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.HashMap;
 import java.util.List;
@@ -64,7 +65,7 @@ public class TileEntityMachineLiquefactor extends TileEntityMachineBase implemen
 	public void updateEntity() {
 
 		if(!worldObj.isRemote) {
-			this.power = Library.chargeTEFromItems(slots, 1, power, maxPower);
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 1, power, maxPower);
 
 			this.updateConnections();
 

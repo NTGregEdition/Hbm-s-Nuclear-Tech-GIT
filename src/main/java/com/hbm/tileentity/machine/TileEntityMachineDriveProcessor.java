@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import com.hbm.dim.CelestialBody;
 import com.hbm.interfaces.IControlReceiver;
@@ -47,7 +48,7 @@ public class TileEntityMachineDriveProcessor extends TileEntityMachineBase imple
 	public void updateEntity() {
 		if(!worldObj.isRemote) {
 
-			power = Library.chargeTEFromItems(slots, 3, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 3, power, maxPower);
 			for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS)
 				trySubscribe(worldObj, xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ, dir);
 

@@ -6,14 +6,14 @@ import java.util.List;
 import com.hbm.util.Compat;
 
 public class MaterialShapes {
-	
+
 	public static final List<MaterialShapes> allShapes = new ArrayList();
-	
+
 	public static final MaterialShapes ANY = new MaterialShapes(0, "any").noAutogen();
 	public static final MaterialShapes ONLY_ORE = new MaterialShapes(0, "ore").noAutogen();
 	public static final MaterialShapes ORE = new MaterialShapes(0, "ore", "oreNether").noAutogen();
 	public static final MaterialShapes ORENETHER = new MaterialShapes(0, "oreNether").noAutogen();
-	
+
 	public static final MaterialShapes QUANTUM = new MaterialShapes(1); // 1/72 of an ingot, allows the ingot to be divisible through 2, 4, 6, 8, 9, 12, 24 and 36
 	public static final MaterialShapes NUGGET = new MaterialShapes(8, "nugget", "tiny");
 	public static final MaterialShapes TINY = new MaterialShapes(8, "tiny").noAutogen();
@@ -32,6 +32,18 @@ public class MaterialShapes {
 	public static final MaterialShapes WELDEDPLATE = new MaterialShapes(INGOT.quantity * 6, "plateSextuple");
 	public static final MaterialShapes SHELL = new MaterialShapes(INGOT.quantity * 4, "shell");
 	public static final MaterialShapes PIPE = new MaterialShapes(INGOT.quantity * 3, "ntmpipe");
+	public static final MaterialShapes FOIL = new MaterialShapes(36, "foil");
+	public static final MaterialShapes C_ROD = new MaterialShapes(INGOT.quantity * 1, "c_rod");
+	public static final MaterialShapes LONG_ROD = new MaterialShapes(INGOT.quantity * 2, "long_rod");
+	public static final MaterialShapes GEAR = new MaterialShapes(INGOT.quantity * 4, "gear");
+	public static final MaterialShapes SMALL_GEAR = new MaterialShapes(INGOT.quantity * 2, "small_gear");
+	public static final MaterialShapes C_BOLT = new MaterialShapes(36, "c_bolt");
+	public static final MaterialShapes SCREW = new MaterialShapes(INGOT.quantity * 1, "screw");
+	public static final MaterialShapes RING = new MaterialShapes(INGOT.quantity * 1, "ring");
+	public static final MaterialShapes SPRING = new MaterialShapes(INGOT.quantity * 4, "spring");
+	public static final MaterialShapes SMALL_SPRING = new MaterialShapes(INGOT.quantity * 1, "small_spring");
+	public static final MaterialShapes ROTOR = new MaterialShapes(INGOT.quantity * 4, "rotor");
+	public static final MaterialShapes FINE_WIRE = new MaterialShapes(36,"fine_wire");
 	public static final MaterialShapes QUART = new MaterialShapes(162);
 	public static final MaterialShapes BLOCK = new MaterialShapes(INGOT.quantity * 9, "block");
 
@@ -42,7 +54,7 @@ public class MaterialShapes {
 	public static final MaterialShapes MECHANISM =		new MaterialShapes(INGOT.quantity * 4, "gunMechanism");
 	public static final MaterialShapes STOCK =			new MaterialShapes(INGOT.quantity * 4, "stock");
 	public static final MaterialShapes GRIP =			new MaterialShapes(INGOT.quantity * 2, "grip");
-	
+
 	public static void registerCompatShapes() {
 
 		if(Compat.isModLoaded(Compat.MOD_GT6)) {
@@ -63,32 +75,32 @@ public class MaterialShapes {
 			new MaterialShapes(INGOT.q(12, 9), "dustRefined").noAutogen();
 		}
 	}
-	
+
 	public boolean noAutogen = false;
 	private int quantity;
 	public final String[] prefixes;
-	
+
 	private MaterialShapes(int quantity, String... prefixes) {
 		this.quantity = quantity;
 		this.prefixes = prefixes;
-		
+
 		for(String prefix : prefixes) {
 			Mats.prefixByName.put(prefix, this);
 		}
-		
+
 		allShapes.add(this);
 	}
-	
+
 	/** Disables recipe autogen for special cases like compatibility prefixes (TINY, ORENETHER), technical prefixes (ANY) or prefixes that have to be handled manually (ORE) */
 	public MaterialShapes noAutogen() {
 		this.noAutogen = true;
 		return this;
 	}
-	
+
 	public int q(int amount) {
 		return this.quantity * amount;
 	}
-	
+
 	public int q(int unitsUsed, int itemsProduced) { //eg rails: INOGT.q(6, 16) since the recipe uses 6 iron ingots producing 16 individual rail blocks
 		return this.quantity * unitsUsed / itemsProduced;
 	}
@@ -96,7 +108,7 @@ public class MaterialShapes {
 	public String name() {
 		return (prefixes != null && prefixes.length > 0) ? prefixes[0] : "unknown";
 	}
-	
+
 	public String make(NTMMaterial mat) {
 		return this.name() + mat.names[0];
 	}

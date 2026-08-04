@@ -35,23 +35,23 @@ import net.minecraftforge.oredict.OreDictionary;
 public class PressRecipes extends SerializableRecipe {
 
 	public static HashMap<Pair<AStack, StampType>, ItemStack> recipes = new HashMap();
-	
+
 	public static ItemStack getOutput(ItemStack ingredient, ItemStack stamp) {
-		
+
 		if(ingredient == null || stamp == null)
 			return null;
-		
+
 		if(!(stamp.getItem() instanceof ItemStamp))
 			return null;
-		
+
 		StampType type = ((ItemStamp) stamp.getItem()).getStampType(stamp.getItem(), stamp.getItemDamage());
-		
+
 		for(Entry<Pair<AStack, StampType>, ItemStack> recipe : recipes.entrySet()) {
-			
+
 			if(recipe.getKey().getValue() == type && recipe.getKey().getKey().matchesRecipe(ingredient, true))
 				return recipe.getValue();
 		}
-		
+
 		return null;
 	}
 
@@ -87,6 +87,13 @@ public class PressRecipes extends SerializableRecipe {
 		makeRecipe(StampType.PLATE, new OreDictStack(WEAPONSTEEL.ingot()),	ModItems.plate_weaponsteel);
 		makeRecipe(StampType.PLATE, new OreDictStack(BIGMT.ingot()),		ModItems.plate_saturnite);
 		makeRecipe(StampType.PLATE, new OreDictStack(DURA.ingot()),			ModItems.plate_dura_steel);
+		makeRecipe(StampType.PLATE, new OreDictStack(CN989.ingot()),		ModItems.plate_cn989);
+		makeRecipe(StampType.PLATE, new OreDictStack(W.ingot()),			ModItems.plate_tungsten);
+		makeRecipe(StampType.PLATE, new OreDictStack(FERRO.ingot()),		ModItems.plate_ferrouranium);
+		makeRecipe(StampType.PLATE, new OreDictStack(STAR.ingot()),			ModItems.plate_starmetal);
+		makeRecipe(StampType.PLATE, new OreDictStack(TCALLOY.ingot()),		ModItems.plate_tcalloy);
+		makeRecipe(StampType.PLATE, new OreDictStack(DESH.ingot()),			ModItems.plate_c_desh);
+		makeRecipe(StampType.PLATE, new OreDictStack(DNT.ingot()),			ModItems.plate_c_dineutronium);
 
 		makeRecipe(StampType.C9, 	new OreDictStack(GUNMETAL.plate()),		DictFrame.fromOne(ModItems.casing, EnumCasingType.SMALL, 4));
 		makeRecipe(StampType.C50, 	new OreDictStack(GUNMETAL.plate()),		DictFrame.fromOne(ModItems.casing, EnumCasingType.LARGE, 2));
@@ -132,11 +139,11 @@ public class PressRecipes extends SerializableRecipe {
 	@Override
 	public void readRecipe(JsonElement recipe) {
 		JsonObject obj = (JsonObject) recipe;
-		
+
 		AStack input = this.readAStack(obj.get("input").getAsJsonArray());
 		StampType stamp = StampType.valueOf(obj.get("stamp").getAsString().toUpperCase());
 		ItemStack output = this.readItemStack(obj.get("output").getAsJsonArray());
-		
+
 		if(stamp != null) {
 			makeRecipe(stamp, input, output);
 		}
@@ -145,7 +152,7 @@ public class PressRecipes extends SerializableRecipe {
 	@Override
 	public void writeRecipe(Object recipe, JsonWriter writer) throws IOException {
 		Entry<Pair<AStack, StampType>, ItemStack> entry = (Entry<Pair<AStack, StampType>, ItemStack>) recipe;
-		
+
 		writer.name("input");
 		this.writeAStack(entry.getKey().getKey(), writer);
 		writer.name("stamp").value(entry.getKey().getValue().name().toLowerCase(Locale.US));

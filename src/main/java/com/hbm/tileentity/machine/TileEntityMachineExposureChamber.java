@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.HashMap;
 import java.util.List;
@@ -89,7 +90,7 @@ public class TileEntityMachineExposureChamber extends TileEntityMachineBase impl
 		if(!worldObj.isRemote) {
 
 			this.isOn = false;
-			this.power = Library.chargeTEFromItems(slots, 5, power, maxPower);
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 5, power, maxPower);
 
 			if(worldObj.getTotalWorldTime() % 20 == 0) {
 				for(DirPos pos : getConPos()) this.trySubscribe(worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());

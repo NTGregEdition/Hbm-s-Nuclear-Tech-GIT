@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.HashMap;
 import java.util.List;
@@ -80,7 +81,7 @@ public class TileEntityMachineVacuumCircuit extends TileEntityMachineBase implem
 			CBT_Atmosphere atmosphere = ChunkAtmosphereManager.proxy.getAtmosphere(worldObj, xCoord, yCoord, zCoord);
 			canOperate = atmosphere == null || atmosphere.getPressure() <= 0.001;
 
-			this.power = Library.chargeTEFromItems(slots, 5, this.getPower(), this.getMaxPower());
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 5, this.getPower(), this.getMaxPower());
 			this.updateConnections();
 			recipe = VacuumCircuitRecipes.getRecipe(new ItemStack[] {slots[0], slots[1], slots[2], slots[3]});
 			long intendedMaxPower;

@@ -1,5 +1,8 @@
 package com.hbm.tileentity.machine.oil;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluid.IFluidStandardTransceiver;
 import com.hbm.inventory.FluidStack;
 import com.hbm.inventory.container.ContainerMachineVacuumDistill;
 import com.hbm.inventory.fluid.FluidType;
@@ -16,9 +19,6 @@ import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.IPersistentNBT;
 import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.util.fauxpointtwelve.DirPos;
-
-import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.fluid.IFluidStandardTransceiver;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
@@ -30,19 +30,19 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 public class TileEntityMachineVacuumDistill extends TileEntityMachineBase implements IEnergyReceiverMK2, IFluidStandardTransceiver, IPersistentNBT, IGUIProvider, IFluidCopiable {
-	
+
 	public long power;
 	public static final long maxPower = 1_000_000;
-	
+
 	public FluidTank[] tanks;
-	
+
 	private AudioWrapper audio;
 	private int audioTime;
 	public boolean isOn;
 
 	public TileEntityMachineVacuumDistill() {
 		super(12);
-		
+
 		this.tanks = new FluidTank[5];
 		this.tanks[0] = new FluidTank(Fluids.OIL, 64_000).withPressure(2);
 		this.tanks[1] = new FluidTank(Fluids.HEAVYOIL_VACUUM, 24_000);
@@ -58,23 +58,23 @@ public class TileEntityMachineVacuumDistill extends TileEntityMachineBase implem
 
 	@Override
 	public void updateEntity() {
-		
+
 		if(!worldObj.isRemote) {
-			
+
 			this.isOn = false;
-			
+
 			this.updateConnections();
-			power = Library.chargeTEFromItems(slots, 0, power, maxPower);
+			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, maxPower);
 			tanks[0].setType(11, slots);
 			tanks[0].loadTank(1, 2, slots);
-			
+
 			refine();
 
 			tanks[1].unloadTank(3, 4, slots);
 			tanks[2].unloadTank(5, 6, slots);
 			tanks[3].unloadTank(7, 8, slots);
 			tanks[4].unloadTank(9, 10, slots);
-			
+
 			for(DirPos pos : getConPos()) {
 				for(int i = 1; i < 5; i++) {
 					if(tanks[i].getFill() > 0) {
@@ -86,13 +86,13 @@ public class TileEntityMachineVacuumDistill extends TileEntityMachineBase implem
 			this.networkPackNT(150);
 
 		} else {
-			
+
 			if(this.isOn) audioTime = 20;
-			
+
 			if(audioTime > 0) {
-				
+
 				audioTime--;
-				
+
 				if(audio == null) {
 					audio = createAudioLoop();
 					audio.startSound();
@@ -102,9 +102,9 @@ public class TileEntityMachineVacuumDistill extends TileEntityMachineBase implem
 
 				audio.updateVolume(getVolume(1F));
 				audio.keepAlive();
-				
+
 			} else {
-				
+
 				if(audio != null) {
 					audio.stopSound();
 					audio = null;
@@ -112,7 +112,7 @@ public class TileEntityMachineVacuumDistill extends TileEntityMachineBase implem
 			}
 		}
 	}
-	
+
 	@Override
 	public AudioWrapper createAudioLoop() {
 		return MainRegistry.proxy.getLoopedSound("hbm:block.boiler", xCoord, yCoord, zCoord, 0.25F, 15F, 1.0F, 20);
@@ -153,17 +153,17 @@ public class TileEntityMachineVacuumDistill extends TileEntityMachineBase implem
 		this.isOn = buf.readBoolean();
 		for(int i = 0; i < 5; i++) tanks[i].deserialize(buf);
 	}
-	
+
 	private void refine() {
 		VacuumRefineryRecipe refinery = VacuumRefineryRecipes.getVacuum(tanks[0].getTankType());
 		if(refinery == null) {
 			for(int i = 1; i < 5; i++) tanks[i].setTankType(Fluids.NONE);
 			return;
 		}
-		
+
 		FluidStack[] stacks = refinery.outputs;
 		for(int i = 0; i < stacks.length; i++) tanks[i + 1].setTankType(stacks[i].type);
-		
+
 		if(power < 10_000) return;
 		if(tanks[0].getFill() < 100) return;
 		for(int i = 0; i < stacks.length; i++) if(tanks[i + 1].getFill() + stacks[i].fill > tanks[i + 1].getMaxFill()) return;
@@ -171,17 +171,17 @@ public class TileEntityMachineVacuumDistill extends TileEntityMachineBase implem
 		this.isOn = true;
 		power -= 10_000;
 		tanks[0].setFill(tanks[0].getFill() - 100);
-		
+
 		for(int i = 0; i < stacks.length; i++) tanks[i + 1].setFill(tanks[i + 1].getFill() + stacks[i].fill);
 	}
-	
+
 	private void updateConnections() {
 		for(DirPos pos : getConPos()) {
 			this.trySubscribe(worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
 			this.trySubscribe(tanks[0].getTankType(), worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
 		}
 	}
-	
+
 	public DirPos[] getConPos() {
 		return new DirPos[] {
 				new DirPos(xCoord + 2, yCoord, zCoord + 1, Library.POS_X),
@@ -194,7 +194,7 @@ public class TileEntityMachineVacuumDistill extends TileEntityMachineBase implem
 				new DirPos(xCoord - 1, yCoord, zCoord - 2, Library.NEG_Z)
 		};
 	}
-	
+
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
@@ -206,11 +206,11 @@ public class TileEntityMachineVacuumDistill extends TileEntityMachineBase implem
 		tanks[3].readFromNBT(nbt, "light");
 		tanks[4].readFromNBT(nbt, "gas");
 	}
-	
+
 	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
-		
+
 		nbt.setLong("power", power);
 		tanks[0].writeToNBT(nbt, "input");
 		tanks[1].writeToNBT(nbt, "heavy");
@@ -218,12 +218,12 @@ public class TileEntityMachineVacuumDistill extends TileEntityMachineBase implem
 		tanks[3].writeToNBT(nbt, "light");
 		tanks[4].writeToNBT(nbt, "gas");
 	}
-	
+
 	AxisAlignedBB bb = null;
-	
+
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		
+
 		if(bb == null) {
 			bb = AxisAlignedBB.getBoundingBox(
 					xCoord - 1,
@@ -234,10 +234,10 @@ public class TileEntityMachineVacuumDistill extends TileEntityMachineBase implem
 					zCoord + 2
 					);
 		}
-		
+
 		return bb;
 	}
-	
+
 	@Override
 	@SideOnly(Side.CLIENT)
 	public double getMaxRenderDistanceSquared() {

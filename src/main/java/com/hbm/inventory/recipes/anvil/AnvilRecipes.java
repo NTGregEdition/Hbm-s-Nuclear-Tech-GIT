@@ -155,6 +155,13 @@ public class AnvilRecipes extends SerializableRecipe {
 		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(DURA.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_dura_steel))).setTier(3));
 		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(SA326.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_schrabidium))).setTier(3));
 		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(CMB.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_combine_steel))).setTier(3));
+		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(W.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_tungsten))).setTier(3));
+		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(FERRO.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_ferrouranium))).setTier(3));
+		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(STAR.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_starmetal))).setTier(3));
+		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(TCALLOY.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_tcalloy))).setTier(3));
+		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(DESH.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_c_desh))).setTier(3));
+		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(DNT.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_c_dineutronium))).setTier(3));
+		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(CN989.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_cn989))).setTier(3));
 
 		for(NTMMaterial mat : Mats.orderedList) {
 			if(mat.autogen.contains(MaterialShapes.WIRE) && OreDictionary.doesOreNameExist(MaterialShapes.INGOT.make(mat))) {
@@ -184,7 +191,7 @@ public class AnvilRecipes extends SerializableRecipe {
 		constructionRecipes.add(new AnvilConstructionRecipe(
 				new AStack[] {new ComparableStack(Blocks.stonebrick, 16), new ComparableStack(ModItems.ingot_firebrick, 16), new OreDictStack(IRON.ingot(), 8), new OreDictStack(CU.ingot(), 8)},
 				new AnvilOutput(new ItemStack(ModBlocks.machine_annihilator))).setTier(2));
-		
+
 		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(AL.ingot(), 1), new AnvilOutput(new ItemStack(ModBlocks.deco_aluminium, 4))).setTier(1).setOverlay(OverlayType.CONSTRUCTION));
 		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(BE.ingot(), 1), new AnvilOutput(new ItemStack(ModBlocks.deco_beryllium, 4))).setTier(1).setOverlay(OverlayType.CONSTRUCTION));
 		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(PB.ingot(), 1), new AnvilOutput(new ItemStack(ModBlocks.deco_lead, 4))).setTier(1).setOverlay(OverlayType.CONSTRUCTION));
@@ -620,7 +627,7 @@ public class AnvilRecipes extends SerializableRecipe {
 	}
 
 	public static void registerConstructionStamps() {
-		
+
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_stone_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_stone_plate))).setTier(1));
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_stone_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_stone_wire))).setTier(1));
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_stone_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_stone_circuit))).setTier(1));
@@ -632,21 +639,21 @@ public class AnvilRecipes extends SerializableRecipe {
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_steel_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_steel_plate))).setTier(2));
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_steel_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_steel_wire))).setTier(2));
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_steel_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_steel_circuit))).setTier(2));
-		
+
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_titanium_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_titanium_plate))).setTier(2));
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_titanium_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_titanium_wire))).setTier(2));
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_titanium_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_titanium_circuit))).setTier(2));
-		
+
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_obsidian_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_obsidian_plate))).setTier(2));
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_obsidian_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_obsidian_wire))).setTier(2));
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_obsidian_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_obsidian_circuit))).setTier(2));
-		
+
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_desh_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_desh_plate))).setTier(3));
 		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_desh_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_desh_wire))).setTier(3));
-		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_desh_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_desh_circuit))).setTier(3));	
-		
+		constructionRecipes.add(new AnvilConstructionRecipe(new ComparableStack(ModItems.stamp_desh_flat, 1),new AnvilOutput(new ItemStack(ModItems.stamp_desh_circuit))).setTier(3));
+
 	}
-	
+
 	public static void registerConstructionAmmo() {
 
 		constructionRecipes.add(new AnvilConstructionRecipe(new AStack[]{new ComparableStack(ModItems.stamp_iron_flat), new OreDictStack(GUNMETAL.ingot(), 2)}, new AnvilOutput(new ItemStack(ModItems.stamp_9))).setTier(2));
@@ -664,16 +671,21 @@ public class AnvilRecipes extends SerializableRecipe {
 		constructionRecipes.add(new AnvilConstructionRecipe(new AStack[]{new ComparableStack(ModItems.mold_base), new OreDictStack(STEEL.ingot(), 4)}, new AnvilOutput(new ItemStack(ModItems.mold, 1, 26))).setTier(2));
 		constructionRecipes.add(new AnvilConstructionRecipe(new AStack[]{new ComparableStack(ModItems.mold_base), new OreDictStack(STEEL.ingot(), 4)}, new AnvilOutput(new ItemStack(ModItems.mold, 1, 27))).setTier(2));
 		constructionRecipes.add(new AnvilConstructionRecipe(new AStack[]{new ComparableStack(ModItems.mold_base), new OreDictStack(STEEL.ingot(), 4)}, new AnvilOutput(new ItemStack(ModItems.mold, 1, 28))).setTier(2));
+
+		constructionRecipes.add(new AnvilConstructionRecipe(new AStack[]{new ComparableStack(ModItems.mold_base), new OreDictStack(IRON.ingot(), 2)}, new AnvilOutput(new ItemStack(ModItems.mold, 1, 29))).setTier(1));
+		constructionRecipes.add(new AnvilConstructionRecipe(new AStack[]{new ComparableStack(ModItems.mold_base), new OreDictStack(IRON.ingot(), 3)}, new AnvilOutput(new ItemStack(ModItems.mold, 1, 30))).setTier(1));
+		constructionRecipes.add(new AnvilConstructionRecipe(new AStack[]{new ComparableStack(ModItems.mold_base), new OreDictStack(IRON.ingot(), 3)}, new AnvilOutput(new ItemStack(ModItems.mold, 1, 31))).setTier(1));
+		constructionRecipes.add(new AnvilConstructionRecipe(new AStack[]{new ComparableStack(ModItems.mold_base), new OreDictStack(IRON.ingot(), 2)}, new AnvilOutput(new ItemStack(ModItems.mold, 1, 32))).setTier(1));
 	}
 
 	public static void registerConstructionSirens() {
 		for(int i = 1; i < 21; i++) {
 		constructionRecipes.add(new AnvilConstructionRecipe(new AStack[] {new OreDictStack(STEEL.plate()), new ComparableStack(ModItems.plate_polymer)}, new AnvilOutput(new ItemStack(ModItems.siren_track, 1, i))).setTier(2).setOverlay(OverlayType.CONSTRUCTION));
 		}
-		
-		
+
+
 	}
-	
+
 	public static void registerConstructionUpgrades() { }
 
 	public static void registerConstructionRecycling() {

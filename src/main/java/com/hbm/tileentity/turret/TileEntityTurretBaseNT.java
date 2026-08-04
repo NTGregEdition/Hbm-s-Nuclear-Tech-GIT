@@ -1,4 +1,5 @@
 package com.hbm.tileentity.turret;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -229,7 +230,7 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 				this.updateFiringTick();
 			}
 
-			this.power = Library.chargeTEFromItems(slots, 10, this.power, this.getMaxPower());
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 10, this.power, this.getMaxPower());
 
 			this.networkPackNT(250);
 
@@ -1101,7 +1102,7 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 			if(whitelist.contains(playerName)) this.removeName(whitelist.indexOf(playerName));
 			this.markChanged();
 		}
-		
+
 		return null;
 	}
 }

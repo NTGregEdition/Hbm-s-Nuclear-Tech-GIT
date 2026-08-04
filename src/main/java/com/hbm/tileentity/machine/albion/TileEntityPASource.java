@@ -1,4 +1,5 @@
 package com.hbm.tileentity.machine.albion;
+import api.hbm.energymk2.VoltageCheckedCharging;
 
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.handler.CompatHandler;
@@ -77,11 +78,11 @@ public class TileEntityPASource extends TileEntityCooledBase implements IGUIProv
 	public void updateEntity() {
 
 		if(!worldObj.isRemote) {
-			this.power = Library.chargeTEFromItems(slots, 0, power, this.getMaxPower());
+			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, this.getMaxPower());
 
 			int steps = 1;
 			if(this.particle != null) steps = 1 + MathHelper.clamp_int(this.particle.momentum / 1_000, 0, 9);
-			
+
 			for(int i = 0; i < steps; i++) {
 				if(particle != null) {
 					this.state = PAState.RUNNING;
