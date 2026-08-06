@@ -7297,6 +7297,13 @@ weapon.elecGun.glass_cannon.uv=Ultraviolet Light
 weapon.elecGun.glass_cannon.xray=X-rays
 weapon.elecGun.glass_cannon.gamma=Gamma rays
 
+item.crystal_tin.name=Tin Crystal
+item.ingot_tin.name=Tin Ingot
+item.nugget_tin.name=Tin Nugget
+item.powder_tin.name=Tin Powder
+tile.ore_tin.name=Tin Ore
+hbmmat.tin=Tin
+
 desc.gui.upgrade=§lAcceptable Upgrades:§r
 desc.gui.upgrade.afterburner= * §dAfterburner§r: Stacks to level 3
 desc.gui.upgrade.effectiveness= * §aEffectiveness§r: Stacks to level 3

@@ -120,6 +120,7 @@ public class ModItems {
 	public static Item ingot_cobalt;
 	public static Item ingot_gallium;
 	public static Item ingot_zinc;
+	public static Item ingot_tin;
 	public static Item ingot_gaas;
 	public static Item ingot_iridium;
 	public static Item sulfur;
@@ -227,6 +228,7 @@ public class ModItems {
 	public static Item nugget_zirconium;
 	public static Item nugget_nickel;
 	public static Item nugget_zinc;
+	public static Item nugget_tin;
 	public static Item nugget_gallium;
 	public static Item nugget_gaas;
 	public static Item nugget_mercury;
@@ -540,6 +542,7 @@ public class ModItems {
 	//but unforutnatley something went so chopped chin wrong
 	//now i cant do anything but sing this stupid song!!!!!!!!!!
 	public static Item crystal_zinc;
+	public static Item crystal_tin;
 
 	public static Item nickel_salts;
 
@@ -579,6 +582,7 @@ public class ModItems {
 	public static Item powder_gallium_tiny;
 	public static Item powder_gallium;
 	public static Item powder_zinc;
+	public static Item powder_tin;
 	public static Item powder_tungsten;
 	public static Item powder_uranium;
 	public static Item powder_plutonium;
@@ -2752,6 +2756,9 @@ public class ModItems {
 		nugget_zinc = new Item().setUnlocalizedName("nugget_zinc").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":nugget_zinc");
 		ingot_zinc = new Item().setUnlocalizedName("ingot_zinc").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":ingot_zinc");
 		powder_zinc = new Item().setUnlocalizedName("powder_zinc").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_zinc");
+		nugget_tin = new Item().setUnlocalizedName("nugget_tin").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":nugget_tin");
+		ingot_tin = new Item().setUnlocalizedName("ingot_tin").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":ingot_tin");
+		powder_tin = new Item().setUnlocalizedName("powder_tin").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_tin");
 		nugget_niobium = new Item().setUnlocalizedName("nugget_niobium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":nugget_niobium");
 		ingot_osmiridium = new ItemCustomLore().setRarity(EnumRarity.rare).setUnlocalizedName("ingot_osmiridium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":ingot_osmiridium");
 		nugget_osmiridium = new ItemCustomLore().setRarity(EnumRarity.rare).setUnlocalizedName("nugget_osmiridium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":nugget_osmiridium");
@@ -2816,6 +2823,7 @@ public class ModItems {
 		crystal_nickel = new Item().setUnlocalizedName("crystal_nickel").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":crystal_nickel");
 		crystal_niobium = new Item().setUnlocalizedName("crystal_niobium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":crystal_niobium");
 		crystal_zinc = new Item().setUnlocalizedName("crystal_zinc").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":crystal_zinc");
+		crystal_tin = new Item().setUnlocalizedName("crystal_tin").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":crystal_tin");
 
 		powder_lead = new Item().setUnlocalizedName("powder_lead").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_lead");
 		powder_tantalium = new ItemCustomLore().setUnlocalizedName("powder_tantalium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_tantalium");
@@ -5042,6 +5050,7 @@ public class ModItems {
 		GameRegistry.registerItem(billet_red_copper, billet_red_copper.getUnlocalizedName());
 		GameRegistry.registerItem(ingot_advanced_alloy, ingot_advanced_alloy.getUnlocalizedName());
 		GameRegistry.registerItem(ingot_zinc, ingot_zinc.getUnlocalizedName());
+		GameRegistry.registerItem(ingot_tin, ingot_tin.getUnlocalizedName());
 		GameRegistry.registerItem(ingot_tungsten, ingot_tungsten.getUnlocalizedName());
 		GameRegistry.registerItem(ingot_gallium, ingot_gallium.getUnlocalizedName());
 		GameRegistry.registerItem(ingot_gaas, ingot_gaas.getUnlocalizedName());
@@ -5261,6 +5270,7 @@ public class ModItems {
 		GameRegistry.registerItem(powder_nickel, powder_nickel.getUnlocalizedName());
 		GameRegistry.registerItem(powder_copper, powder_copper.getUnlocalizedName());
 		GameRegistry.registerItem(powder_zinc, powder_zinc.getUnlocalizedName());
+		GameRegistry.registerItem(powder_tin, powder_tin.getUnlocalizedName());
 		GameRegistry.registerItem(powder_gallium_tiny, powder_gallium_tiny.getUnlocalizedName());
 		GameRegistry.registerItem(powder_gallium, powder_gallium.getUnlocalizedName());
 		GameRegistry.registerItem(powder_red_copper, powder_red_copper.getUnlocalizedName());
@@ -5425,6 +5435,7 @@ public class ModItems {
 		GameRegistry.registerItem(crystal_nickel, crystal_nickel.getUnlocalizedName()); //l like nickel, i dont care, fuck off
 		GameRegistry.registerItem(crystal_niobium, crystal_niobium.getUnlocalizedName()); // the true path to enlightenment is ignoring the little green circle
 		GameRegistry.registerItem(crystal_zinc, crystal_zinc.getUnlocalizedName()); // the true path to enlightenment is ignoring the little green circle
+		GameRegistry.registerItem(crystal_tin, crystal_tin.getUnlocalizedName());
 
 		//Fragments
 		GameRegistry.registerItem(fragment_neodymium, fragment_neodymium.getUnlocalizedName());
@@ -5512,6 +5523,7 @@ public class ModItems {
 		GameRegistry.registerItem(nugget_nickel, nugget_nickel.getUnlocalizedName());
 		GameRegistry.registerItem(nugget_gaas, nugget_gaas.getUnlocalizedName());
 		GameRegistry.registerItem(nugget_zinc, nugget_zinc.getUnlocalizedName());
+		GameRegistry.registerItem(nugget_tin, nugget_tin.getUnlocalizedName());
 		GameRegistry.registerItem(nugget_gallium, nugget_gallium.getUnlocalizedName());
 		GameRegistry.registerItem(nugget_australium, nugget_australium.getUnlocalizedName());
 		GameRegistry.registerItem(nugget_australium_lesser, nugget_australium_lesser.getUnlocalizedName());

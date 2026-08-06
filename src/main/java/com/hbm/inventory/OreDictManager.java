@@ -258,6 +258,7 @@ public class OreDictManager {
 	public static final DictFrame HAFNIUM = new DictFrame("Hafnium");
 	public static final DictFrame IRIDIUM = new DictFrame("Iridium");
 	public static final DictFrame ZI = new DictFrame("Zinc");
+	public static final DictFrame SN = new DictFrame("Tin");
 	public static final DictFrame GALLIUM = new DictFrame("Gallium");
 	public static final DictFrame GAAS = new DictFrame("GalliumArsenide");
 	/** MINT */
@@ -503,6 +504,8 @@ public class OreDictManager {
 		GAAS		.nugget(nugget_gaas)									.ingot(ingot_gaas)													.billet(billet_gaas);
 		HAFNIUM		.nugget(nugget_hafnium)									.ingot(ingot_hafnium);
 		IRIDIUM		.ingot(ingot_iridium);
+
+		SN.nugget(nugget_tin).ingot(ingot_tin).dust(powder_tin).oreAll(ore_tin);
 
 		W.ingot(ingot_tungsten).dust(powder_tungsten).plate(plate_tungsten).block(block_tungsten).ore(ore_tungsten, ore_nether_tungsten).oreNether(ore_nether_tungsten);
 

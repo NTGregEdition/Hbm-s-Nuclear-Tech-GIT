@@ -57,13 +57,14 @@ public class WorldGeneratorIke implements IWorldGenerator {
 		DungeonToolbox.generateOre(world, rand, i, j, WorldConfig.asbestosSpawn, 8, 3, 22, ModBlocks.ore_asbestos, meta, stone);
 		DungeonToolbox.generateOre(world, rand, i, j, WorldConfig.copperSpawn, 9, 4, 27, ModBlocks.ore_copper, meta, stone);
 		DungeonToolbox.generateOre(world, rand, i, j, WorldConfig.ironSpawn,  8, 1, 33, ModBlocks.ore_iron, meta, stone);
+		DungeonToolbox.generateOre(world, rand, i, j, WorldConfig.ironSpawn,  8, 1, 33, ModBlocks.ore_tin, meta, stone);
 		DungeonToolbox.generateOre(world, rand, i, j, WorldConfig.lithiumSpawn,  6, 4, 8, ModBlocks.ore_lithium, meta, stone);
 		DungeonToolbox.generateOre(world, rand, i, j, 2, 4, 15, 40, ModBlocks.ore_coltan, meta, stone);
 
 		//okay okay okay, lets say on duna you DO make solvent, this is now awesome because you can now make gallium arsenide to then head to
 		//dres and the likes :)
 
-	
+
 		// the HACKIEST hack i ever hacked.
 		for (int x = 0; x < 16; x++) {
 			for (int z = 0; z < 16; z++) {

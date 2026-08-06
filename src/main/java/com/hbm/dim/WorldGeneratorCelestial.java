@@ -141,6 +141,7 @@ public class WorldGeneratorCelestial implements IWorldGenerator {
 		BlockOre.addAllBodies(ModBlocks.ore_aluminium);
 		BlockOre.addAllBodies(ModBlocks.ore_copper);
 		BlockOre.addAllBodies(ModBlocks.ore_zinc);
+		BlockOre.addAllBodies(ModBlocks.ore_tin);
 		BlockOre.addAllBodies(ModBlocks.ore_fluorite);
 		BlockOre.addAllBodies(ModBlocks.ore_niter);
 		BlockOre.addAllBodies(ModBlocks.ore_tungsten);
@@ -178,6 +179,7 @@ public class WorldGeneratorCelestial implements IWorldGenerator {
 		int meta = CelestialBody.getMeta(world);
 
 		generateStructures(world, rand, chunkX * 16, chunkZ * 16);
+		genVanillaOre(world, rand, chunkX * 16, chunkZ * 16, 0, 64, 20, 8, ModBlocks.ore_tin, blockToReplace, meta);
 
 		// Generate vanilla ores too
 		if(blockToReplace != Blocks.stone) {

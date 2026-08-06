@@ -103,6 +103,7 @@ public class MineralRecipes {
 
 		add1To9Pair(ModItems.ingot_gaas, ModItems.nugget_gaas);
 		add1To9Pair(ModItems.ingot_zinc, ModItems.nugget_zinc);
+		add1To9Pair(ModItems.ingot_tin, ModItems.nugget_tin);
 		add1To9Pair(ModItems.ingot_gallium, ModItems.nugget_gallium);
 		add1To9Pair(ModItems.ingot_pu241, ModItems.nugget_pu241);
 		add1To9Pair(ModItems.ingot_am241, ModItems.nugget_am241);

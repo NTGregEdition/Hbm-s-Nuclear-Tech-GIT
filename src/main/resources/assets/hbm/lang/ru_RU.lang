@@ -7609,3 +7609,10 @@ desc.util.fin_inaccuracy=Неточность стабилизатора
 // Vitya Note: Здесь небольшой беспорядок в файле.
 // В следующем обновлении это исправлю...
 // last updated March 27th, 2026 by Vitya2127, approved by KimiKimi //
+
+item.crystal_tin.name=Кристаллизованное олово
+item.ingot_tin.name=Оловянный слиток
+item.nugget_tin.name=Оловянный самородок
+item.powder_tin.name=Оловянный порошок
+tile.ore_tin.name=Оловянная руда
+hbmmat.tin=Олово

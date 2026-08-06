@@ -292,6 +292,7 @@ public class ShredderRecipes extends SerializableRecipe {
 		ShredderRecipes.setRecipe(ModItems.crystal_nickel, new ItemStack(ModItems.powder_nickel, 3));
 		ShredderRecipes.setRecipe(ModItems.crystal_niobium, new ItemStack(ModItems.powder_niobium, 3));
 		ShredderRecipes.setRecipe(ModItems.crystal_zinc, new ItemStack(ModItems.powder_zinc, 3));
+		ShredderRecipes.setRecipe(ModItems.crystal_tin, new ItemStack(ModItems.powder_tin, 3));
 
 		/* Misc recycling */
 		ShredderRecipes.setRecipe(ModBlocks.steel_poles, new ItemStack(ModItems.powder_steel_tiny, 2));

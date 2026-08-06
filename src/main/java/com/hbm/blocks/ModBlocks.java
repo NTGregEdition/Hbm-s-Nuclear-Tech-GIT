@@ -97,6 +97,7 @@ public class ModBlocks {
 	public static Block ore_alexandrite;
 	public static Block ore_mineral;
 	public static Block ore_zinc;
+	public static Block ore_tin;
 	public static Block ore_lithium;
 	public static Block ore_niobium;
 	public static Block ore_cadmium;
@@ -1448,6 +1449,7 @@ public class ModBlocks {
 		ore_nickel = new BlockOre(Material.rock).setBlockName("ore_nickel").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_nickel");
 		ore_mineral = new BlockOre(Material.rock).setBlockName("ore_mineral").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_mineral");
 		ore_zinc = new BlockOre(Material.rock).setBlockName("ore_zinc").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_zinc");
+		ore_tin = new BlockOre(Material.rock).setBlockName("ore_tin").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_tin");
 		ore_lithium = new BlockOre(Material.rock).setBlockName("ore_lithium").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_lithium");
 		ore_niobium = new BlockOre(Material.rock).setBlockName("ore_niobium").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_niobium");
 		ore_palladium = new BlockOre(Material.rock).setBlockName("ore_palladium").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_palladium");
@@ -2784,6 +2786,7 @@ public class ModBlocks {
 		GameRegistry.registerBlock(ore_nickel, ItemBlockBase.class, ore_nickel.getUnlocalizedName());
 		GameRegistry.registerBlock(ore_mineral, ItemBlockBase.class, ore_mineral.getUnlocalizedName());
 		GameRegistry.registerBlock(ore_zinc, ItemBlockBase.class, ore_zinc.getUnlocalizedName());
+		GameRegistry.registerBlock(ore_tin, ItemBlockBase.class, ore_tin.getUnlocalizedName());
 		GameRegistry.registerBlock(ore_tungsten, ItemBlockBase.class, ore_tungsten.getUnlocalizedName());
 		GameRegistry.registerBlock(ore_aluminium, ItemBlockBase.class, ore_aluminium.getUnlocalizedName());
 		GameRegistry.registerBlock(ore_fluorite, ItemBlockBase.class, ore_fluorite.getUnlocalizedName());
