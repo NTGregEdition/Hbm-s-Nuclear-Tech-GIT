@@ -1,4 +1,4 @@
-# NTM: GregEdition for NunclearTech:GregEdition Modpack
+# NTM: GregEdition for NuclearTech:GregEdition Modpack
 ### WARNING - this version of NTM IS NOT GUARANTEED to work properly OUTSIDE of NT:GE
 
 Main things:
