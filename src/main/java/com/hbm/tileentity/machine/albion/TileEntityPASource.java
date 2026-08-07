@@ -1,6 +1,7 @@
 package com.hbm.tileentity.machine.albion;
 import api.hbm.energymk2.VoltageCheckedCharging;
 
+import api.hbm.redstoneoverradio.IRORInteractive;
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.handler.CompatHandler;
 import com.hbm.interfaces.IControlReceiver;
@@ -13,6 +14,7 @@ import com.hbm.util.EnumUtil;
 import com.hbm.util.fauxpointtwelve.BlockPos;
 import com.hbm.util.fauxpointtwelve.DirPos;
 
+import api.hbm.redstoneoverradio.IRORValueProvider;
 import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -33,7 +35,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 @Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityPASource extends TileEntityCooledBase implements IGUIProvider, IConditionalInvAccess, IControlReceiver, SimpleComponent, CompatHandler.OCComponent {
+public class TileEntityPASource extends TileEntityCooledBase implements IGUIProvider, IConditionalInvAccess, IControlReceiver, SimpleComponent, CompatHandler.OCComponent, IRORValueProvider, IRORInteractive {
 
 	public static final long usage = 100_000;
 	public Particle particle;
@@ -165,6 +167,9 @@ public class TileEntityPASource extends TileEntityCooledBase implements IGUIProv
 				new DirPos(xCoord - dir.offsetX * 2 + rot.offsetX * 2, yCoord, zCoord - dir.offsetZ * 2 + rot.offsetZ * 2, dir.getOpposite()),
 				new DirPos(xCoord - dir.offsetX * 2 - rot.offsetX * 2, yCoord, zCoord - dir.offsetZ * 2 - rot.offsetZ * 2, dir.getOpposite()),
 				new DirPos(xCoord + rot.offsetX * 5, yCoord, zCoord + rot.offsetZ * 5, rot),
+				new DirPos(xCoord, yCoord-2, zCoord, dir),
+				new DirPos(xCoord + rot.offsetX * 2, yCoord-2, zCoord + rot.offsetZ * 2, dir),
+				new DirPos(xCoord - rot.offsetX * 2, yCoord-2, zCoord - rot.offsetZ * 2, dir),
 		};
 	}
 
@@ -448,5 +453,41 @@ public class TileEntityPASource extends TileEntityCooledBase implements IGUIProv
 			this.defocus -= amount;
 			if(this.defocus < 0) this.defocus = 0;
 		}
+	}
+
+	@Override
+	public String[] getFunctionInfo() {
+		return new String[] {
+			PREFIX_VALUE + "status",
+			PREFIX_VALUE + "momentum",
+			PREFIX_VALUE + "defocus",
+			PREFIX_VALUE + "temperature",
+			PREFIX_VALUE + "pfmcold",
+			PREFIX_VALUE + "pfm",
+			PREFIX_FUNCTION + "cancel"
+		};
+	}
+	@Override
+	public String provideRORValue(String name) {
+		if((PREFIX_VALUE + "status").equals(name))		return "" + this.state;
+		if((PREFIX_VALUE + "momentum").equals(name))	return "" + this.lastSpeed;
+		if((PREFIX_VALUE + "defocus").equals(name)) {
+			return this.particle != null ? "" + this.particle.defocus : "0";
+		}
+		if((PREFIX_VALUE + "temperature").equals(name))	return "" + (int) this.temperature;
+		if((PREFIX_VALUE + "pfmcold").equals(name))		return "" + coolantTanks[0].getFill();
+		if((PREFIX_VALUE + "pfm").equals(name))			return "" + coolantTanks[1].getFill();
+		return null;
+	}
+
+	@Override
+	public String runRORFunction(String name, String[] params) {
+
+		if ((PREFIX_FUNCTION + "cancel").equals(name)) {
+			particle = null;
+			state = PAState.IDLE;
+			return null;
+		}
+		return null;
 	}
 }

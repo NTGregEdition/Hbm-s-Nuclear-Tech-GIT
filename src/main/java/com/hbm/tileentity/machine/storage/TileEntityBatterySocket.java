@@ -48,6 +48,8 @@ import api.hbm.energymk2.VoltageTier;
 
 public class TileEntityBatterySocket extends TileEntityBatteryBase implements IRORValueProvider, IRORInteractive, IInfoProviderEC {
 
+	public boolean frame = false;
+
 	public static BulletConfig discharge;
 	public static BiConsumer<EntityBulletBeamBase, MovingObjectPosition> BEAM_DISCHARGE_HIT = (beam, mop) -> {
 
@@ -114,6 +116,11 @@ public class TileEntityBatterySocket extends TileEntityBatteryBase implements IR
 			}
 
 			this.log[19] = avg;
+		} else {
+
+			if(worldObj.getTotalWorldTime() % 20 == 0) {
+				frame = !worldObj.getBlock(xCoord, yCoord + 2, zCoord).isAir(worldObj, xCoord, yCoord + 2, zCoord);
+			}
 		}
 	}
 
@@ -213,11 +220,13 @@ public class TileEntityBatterySocket extends TileEntityBatteryBase implements IR
 	@Override
 	public boolean canExtractItem(int i, ItemStack stack, int j) {
 		if(stack.getItem() instanceof IBatteryItem) {
-			if(i == mode_input && ((IBatteryItem)stack.getItem()).getCharge(stack) == 0) return true;
-			if(i == mode_output && ((IBatteryItem)stack.getItem()).getCharge(stack) == ((IBatteryItem)stack.getItem()).getMaxCharge(stack)) return true;
+			if(i == mode_output && ((IBatteryItem)stack.getItem()).getCharge(stack) == 0) return true;
+			if(i == mode_input && ((IBatteryItem)stack.getItem()).getCharge(stack) == ((IBatteryItem)stack.getItem()).getMaxCharge(stack)) return true;
 		}
 		return false;
 	}
+
+	@Override public boolean isItemValidForSlot(int slot, ItemStack stack) { return stack.getItem() instanceof IBatteryItem; }
 
 	@Override public int[] getAccessibleSlotsFromSide(int side) { return new int[] {0}; }
 
@@ -331,6 +340,7 @@ public class TileEntityBatterySocket extends TileEntityBatteryBase implements IR
 	public String[] getFunctionInfo() {
 		return new String[] {
 				PREFIX_VALUE + "fill",
+				PREFIX_VALUE + "maxfill",
 				PREFIX_VALUE + "fillpercent",
 				PREFIX_VALUE + "delta",
 				PREFIX_FUNCTION + "setmode" + NAME_SEPARATOR + "mode (0-3)",
@@ -344,6 +354,7 @@ public class TileEntityBatterySocket extends TileEntityBatteryBase implements IR
 	@Override
 	public String provideRORValue(String name) {
 		if((PREFIX_VALUE + "fill").equals(name))		return "" + this.getPower();
+		if((PREFIX_VALUE + "maxfill").equals(name))		return "" + this.getMaxPower();
 		if((PREFIX_VALUE + "fillpercent").equals(name))	return "" + this.getPower() * 100 / (Math.max(this.getMaxPower(), 1));
 		if((PREFIX_VALUE + "delta").equals(name))		return "" + delta;
 		return null;

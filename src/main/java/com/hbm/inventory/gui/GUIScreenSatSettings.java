@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.lwjgl.input.Mouse;
@@ -13,20 +14,16 @@ import org.lwjgl.opengl.GL13;
 import com.hbm.dim.CelestialBody;
 import com.hbm.dim.trait.CBT_Impact;
 import com.hbm.dim.trait.CBT_Lights;
+import com.hbm.handler.CelestialNukeShockHandler;
 import com.hbm.lib.RefStrings;
 import com.hbm.main.NTMSounds;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.packet.toserver.NBTItemControlPacket;
 import com.hbm.render.shader.Shader;
+import com.hbm.render.util.AtmosphereRenderUtil;
 import com.hbm.saveddata.SatelliteSavedData;
-import com.hbm.saveddata.satellites.Satellite;
-import com.hbm.saveddata.satellites.SatelliteFoeq;
-import com.hbm.saveddata.satellites.SatelliteLaser;
-import com.hbm.saveddata.satellites.SatelliteMapper;
-import com.hbm.saveddata.satellites.SatelliteMiner;
-import com.hbm.saveddata.satellites.SatelliteRadar;
-import com.hbm.saveddata.satellites.SatelliteResonator;
-import com.hbm.saveddata.satellites.SatelliteScanner;
+import com.hbm.saveddata.satellites.SatelliteBase;
+import com.hbm.saveddata.satellites.XSatelliteRegistry;
 import com.hbm.util.AstronomyUtil;
 import com.hbm.util.i18n.I18nUtil;
 
@@ -51,32 +48,37 @@ public class GUIScreenSatSettings extends GuiScreen {
 	private static final ResourceLocation ringTexture = new ResourceLocation(RefStrings.MODID + ":textures/misc/space/rings.png");
 	private static final ResourceLocation impactTexture = new ResourceLocation(RefStrings.MODID + ":textures/misc/space/impact.png");
 	private static final ResourceLocation defaultMask = new ResourceLocation(RefStrings.MODID, "textures/misc/space/default_mask.png");
-	private static final ResourceLocation satelliteTextureDefault = new ResourceLocation(RefStrings.MODID, "textures/items/sat_base.png");
-	private static final ResourceLocation satelliteTextureFoeq = new ResourceLocation(RefStrings.MODID, "textures/items/sat_foeq.png");
-	private static final ResourceLocation satelliteTextureLaser = new ResourceLocation(RefStrings.MODID, "textures/items/sat_laser.png");
-	private static final ResourceLocation satelliteTextureMapper = new ResourceLocation(RefStrings.MODID, "textures/items/sat_mapper.png");
-	private static final ResourceLocation satelliteTextureMiner = new ResourceLocation(RefStrings.MODID, "textures/items/sat_miner.png");
-	private static final ResourceLocation satelliteTextureRadar = new ResourceLocation(RefStrings.MODID, "textures/items/sat_radar.png");
-	private static final ResourceLocation satelliteTextureResonator = new ResourceLocation(RefStrings.MODID, "textures/items/sat_resonator.png");
-	private static final ResourceLocation satelliteTextureScanner = new ResourceLocation(RefStrings.MODID, "textures/items/sat_scanner.png");
-	private static final Map<Class<?>, ResourceLocation> satelliteTextureByClass = new HashMap<Class<?>, ResourceLocation>();
+	private static final ResourceLocation satelliteTextureDefault = new ResourceLocation(RefStrings.MODID, "textures/items/sat_scanner.png");
+	// private static final ResourceLocation satelliteTextureFoeq = new ResourceLocation(RefStrings.MODID, "textures/items/sat_foeq.png");
+	// private static final ResourceLocation satelliteTextureLaser = new ResourceLocation(RefStrings.MODID, "textures/items/sat_laser.png");
+	// private static final ResourceLocation satelliteTextureMapper = new ResourceLocation(RefStrings.MODID, "textures/items/sat_mapper.png");
+	// private static final ResourceLocation satelliteTextureMiner = new ResourceLocation(RefStrings.MODID, "textures/items/sat_miner.png");
+	// private static final ResourceLocation satelliteTextureRadar = new ResourceLocation(RefStrings.MODID, "textures/items/sat_radar.png");
+	// private static final ResourceLocation satelliteTextureResonator = new ResourceLocation(RefStrings.MODID, "textures/items/sat_resonator.png");
+	// private static final ResourceLocation satelliteTextureScanner = new ResourceLocation(RefStrings.MODID, "textures/items/sat_scanner.png");
+	// private static final Map<Class<?>, ResourceLocation> satelliteTextureByClass = new HashMap<Class<?>, ResourceLocation>();
 	private static final ResourceLocation[] citylights = new ResourceLocation[]{
 		new ResourceLocation(RefStrings.MODID, "textures/misc/space/citylights_0.png"),
 		new ResourceLocation(RefStrings.MODID, "textures/misc/space/citylights_1.png"),
 		new ResourceLocation(RefStrings.MODID, "textures/misc/space/citylights_2.png"),
 		new ResourceLocation(RefStrings.MODID, "textures/misc/space/citylights_3.png")
 	};
-	private static final Shader planetShader = new Shader(new ResourceLocation(RefStrings.MODID, "shaders/crescent.frag"));
+	private static final Shader crescentShader = new Shader(new ResourceLocation(RefStrings.MODID, "shaders/crescent.frag"));
+	private static final Shader atmosphereShader = new Shader(new ResourceLocation(RefStrings.MODID, "shaders/atmosphere.frag"));
+	private static final Shader atmosphereEmissiveShader = new Shader(new ResourceLocation(RefStrings.MODID, "shaders/atmosphere_emissive.frag"));
+	private static final Shader lightningShader = new Shader(new ResourceLocation(RefStrings.MODID, "shaders/lightning.frag"));
+	private static final Shader nukeShader = new Shader(new ResourceLocation(RefStrings.MODID, "shaders/nuke.frag"));
+	private static final Shader nightLightsShader = new Shader(new ResourceLocation(RefStrings.MODID, "shaders/nightlights.frag"));
 
-	static {
-		satelliteTextureByClass.put(SatelliteMapper.class, satelliteTextureMapper);
-		satelliteTextureByClass.put(SatelliteScanner.class, satelliteTextureScanner);
-		satelliteTextureByClass.put(SatelliteRadar.class, satelliteTextureRadar);
-		satelliteTextureByClass.put(SatelliteLaser.class, satelliteTextureLaser);
-		satelliteTextureByClass.put(SatelliteResonator.class, satelliteTextureResonator);
-		satelliteTextureByClass.put(SatelliteFoeq.class, satelliteTextureFoeq);
-		satelliteTextureByClass.put(SatelliteMiner.class, satelliteTextureMiner);
-	}
+	// static {
+	// 	satelliteTextureByClass.put(SatelliteMapper.class, satelliteTextureMapper);
+	// 	satelliteTextureByClass.put(SatelliteScanner.class, satelliteTextureScanner);
+	// 	satelliteTextureByClass.put(SatelliteRadar.class, satelliteTextureRadar);
+	// 	satelliteTextureByClass.put(SatelliteLaser.class, satelliteTextureLaser);
+	// 	satelliteTextureByClass.put(SatelliteResonator.class, satelliteTextureResonator);
+	// 	satelliteTextureByClass.put(SatelliteFoeq.class, satelliteTextureFoeq);
+	// 	satelliteTextureByClass.put(SatelliteMiner.class, satelliteTextureMiner);
+	// }
 
 	private final EntityPlayer player;
 	private final Map<ResourceLocation, Boolean> textureAlphaCache = new HashMap<ResourceLocation, Boolean>();
@@ -135,7 +137,7 @@ public class GUIScreenSatSettings extends GuiScreen {
 				drawLeftAligned(10, 160, 170, I18nUtil.resolveKey("item.sat.desc.inclination") + ": " + formatValue(editInclination) + "\u00B0", 0x00FF00);
 			} else {
 				drawLeftAligned(10, 130, 140, I18nUtil.resolveKey("gui.sat.settings.label.orbital_phase") + ": " + formatPhaseOffset(editPhaseOffset) + "\u00B0", 0x00FF00);
-				drawLeftAligned(10, 145, 155, I18nUtil.resolveKey("item.sat.desc.owner") + ": " + (editOwner != null ? editOwner : Satellite.DEFAULT_OWNER), 0x00FF00);
+				drawLeftAligned(10, 145, 155, I18nUtil.resolveKey("item.sat.desc.owner") + ": " + (editOwner != null ? editOwner : SatelliteBase.DEFAULT_OWNER), 0x00FF00);
 				drawLeftAligned(10, 160, 170, "", 0x00FF00);
 			}
 			drawRect(guiLeft + 81, guiTop + 177, guiLeft + 110, guiTop + 199, 0xFF000000 | (editColorR << 16) | (editColorG << 8) | editColorB);
@@ -363,7 +365,7 @@ public class GUIScreenSatSettings extends GuiScreen {
 	private void adjustAltitude(int delta) {
 		float oldValue = editAltitude;
 		float step = isShiftKeyDown() ? 5.0F : 1.0F;
-		float newValue = MathHelper.clamp_float(oldValue + (delta > 0 ? step : -step),Satellite.MIN_ALTITUDE_KM, Satellite.MAX_ALTITUDE_KM);
+		float newValue = MathHelper.clamp_float(oldValue + (delta > 0 ? step : -step), SatelliteBase.MIN_ALTITUDE_KM, SatelliteBase.MAX_ALTITUDE_KM);
 
 		if(newValue == oldValue) return;
 
@@ -374,7 +376,7 @@ public class GUIScreenSatSettings extends GuiScreen {
 	private void adjustInclination(int delta) {
 		float oldValue = editInclination;
 		float step = isShiftKeyDown() ? 15.0F : 1.0F;
-		float newValue = MathHelper.clamp_float(oldValue + (delta > 0 ? step : -step), Satellite.MIN_INCLINATION, Satellite.MAX_INCLINATION);
+		float newValue = MathHelper.clamp_float(oldValue + (delta > 0 ? step : -step), SatelliteBase.MIN_INCLINATION, SatelliteBase.MAX_INCLINATION);
 
 		if(newValue == oldValue) return;
 
@@ -390,7 +392,7 @@ public class GUIScreenSatSettings extends GuiScreen {
 	private void adjustPhaseOffset(int delta) {
 		float oldValue = editPhaseOffset;
 		float step = isShiftKeyDown() ? 15.0F : 1.0F;
-		float newValue = Satellite.normalizePhaseOffset(oldValue + (delta > 0 ? step : -step));
+		float newValue = SatelliteBase.normalizePhaseOffset(oldValue + (delta > 0 ? step : -step));
 		if(Math.abs(newValue - oldValue) < 0.0005F) return;
 
 		editPhaseOffset = newValue;
@@ -401,7 +403,7 @@ public class GUIScreenSatSettings extends GuiScreen {
 		float oldValue = editBlinkPeriod;
 		float newValue = Math.round((oldValue + (delta > 0 ? 0.1F : -0.1F)) * 10F) / 10F;
 
-		newValue = Satellite.clampBlinkPeriod(newValue);
+		newValue = SatelliteBase.clampBlinkPeriod(newValue);
 		if(newValue == oldValue) return;
 
 		editBlinkPeriod = newValue;
@@ -449,7 +451,7 @@ public class GUIScreenSatSettings extends GuiScreen {
 
 	private ItemStack getHeldSatellite() {
 		ItemStack held = player.getHeldItem();
-		return held != null && Satellite.isSatelliteItem(held.getItem()) ? held : null;
+		return held != null && XSatelliteRegistry.isSatelliteItem(held.getItem()) ? held : null;
 	}
 
 	private void loadEditableValues() {
@@ -457,15 +459,15 @@ public class GUIScreenSatSettings extends GuiScreen {
 		if(held == null) return;
 
 		hasPendingChanges = false;
-		editOwner = Satellite.getOwner(held);
-		editAltitude = Satellite.getAltitude(held);
-		editInclination = Satellite.getInclination(held);
-		editPhaseOffset = Satellite.getPhaseOffset(held);
-		editBlinking = Satellite.isBlinking(held);
-		editBlinkPeriod = Satellite.getBlinkPeriod(held);
-		editColorR = toColorChannel(Satellite.getColorR(held));
-		editColorG = toColorChannel(Satellite.getColorG(held));
-		editColorB = toColorChannel(Satellite.getColorB(held));
+		editOwner = SatelliteBase.getOwner(held);
+		editAltitude = SatelliteBase.getAltitude(held);
+		editInclination = SatelliteBase.getInclination(held);
+		editPhaseOffset = SatelliteBase.getPhaseOffset(held);
+		editBlinking = SatelliteBase.isBlinking(held);
+		editBlinkPeriod = SatelliteBase.getBlinkPeriod(held);
+		editColorR = toColorChannel(SatelliteBase.getColorR(held));
+		editColorG = toColorChannel(SatelliteBase.getColorG(held));
+		editColorB = toColorChannel(SatelliteBase.getColorB(held));
 	}
 
 	private void markDirty() {
@@ -473,13 +475,13 @@ public class GUIScreenSatSettings extends GuiScreen {
 	}
 
 	private void applyEditableValues(ItemStack held) {
-		Satellite.setOwner(held, editOwner);
-		Satellite.setAltitude(held, editAltitude);
-		Satellite.setInclination(held, editInclination);
-		Satellite.setPhaseOffset(held, editPhaseOffset);
-		Satellite.setBlinking(held, editBlinking);
-		Satellite.setBlinkPeriod(held, editBlinkPeriod);
-		Satellite.setColor(held, editColorR / 255F, editColorG / 255F, editColorB / 255F);
+		SatelliteBase.setOwner(held, editOwner);
+		SatelliteBase.setAltitude(held, editAltitude);
+		SatelliteBase.setInclination(held, editInclination);
+		SatelliteBase.setPhaseOffset(held, editPhaseOffset);
+		SatelliteBase.setBlinking(held, editBlinking);
+		SatelliteBase.setBlinkPeriod(held, editBlinkPeriod);
+		SatelliteBase.setColor(held, editColorR / 255F, editColorG / 255F, editColorB / 255F);
 	}
 
 	private NBTTagCompound buildControlData() {
@@ -512,11 +514,11 @@ public class GUIScreenSatSettings extends GuiScreen {
 		CelestialBody body = getPreviewBody(held);
 		float bodySizeAt1x = getBodySizePxAt1x(body);
 		float baseOrbitRadiusMapPx = bodySizeAt1x * 1.5F;
-		Map<Integer, Satellite> satellites = SatelliteSavedData.getClientSats(body.dimensionId);
+		Map<Integer, SatelliteBase> satellites = SatelliteSavedData.getClientSats(body.dimensionId);
 		String owner = editOwner;
 		float maxAltitude = editAltitude;
 
-		for(Satellite satellite : satellites.values()) {
+		for(SatelliteBase satellite : satellites.values()) {
 			if(owner.equals(satellite.owner)) {
 				maxAltitude = Math.max(maxAltitude, satellite.altitude);
 			}
@@ -535,7 +537,7 @@ public class GUIScreenSatSettings extends GuiScreen {
 		float heldR = editColorR / 255F;
 		float heldG = editColorG / 255F;
 		float heldB = editColorB / 255F;
-		ResourceLocation heldTexture = getSatelliteTextureByType(Satellite.itemToClass.get(held.getItem()));
+		ResourceLocation heldTexture = satelliteTextureDefault;
 
 		double dayTicks = mc.theWorld.getTotalWorldTime() + partialTicks;
 
@@ -587,19 +589,19 @@ public class GUIScreenSatSettings extends GuiScreen {
 		);
 	}
 
-	private void drawOwnedSatellites(Map<Integer, Satellite> satellites, String owner, float centerX, float centerY, float baseOrbitRadiusMapPx, float zoom, double angle, float iconSize, boolean frontHalf) {
-		for(Satellite satellite : satellites.values()) {
+	private void drawOwnedSatellites(Map<Integer, SatelliteBase> satellites, String owner, float centerX, float centerY, float baseOrbitRadiusMapPx, float zoom, double angle, float iconSize, boolean frontHalf) {
+		for(SatelliteBase satellite : satellites.values()) {
 			if(!owner.equals(satellite.owner)) continue;
 			float blinkAlpha = getBlinkAlpha(satellite.isBlinking, satellite.blinkPeriod);
 
 			drawSatelliteOrbitHalf(centerX, centerY, baseOrbitRadiusMapPx, zoom, satellite.altitude, satellite.inclination, satellite.colorR, satellite.colorG, satellite.colorB, frontHalf, 0.25F * blinkAlpha);
 		}
 
-		for(Map.Entry<Integer, Satellite> entry : satellites.entrySet()) {
-			Satellite satellite = entry.getValue();
+		for(Map.Entry<Integer, SatelliteBase> entry : satellites.entrySet()) {
+			SatelliteBase satellite = entry.getValue();
 			if(!owner.equals(satellite.owner)) continue;
 
-			drawSatelliteIcon(getSatelliteTextureByType(satellite.getClass()), centerX, centerY, baseOrbitRadiusMapPx, zoom, satellite.phaseOffset, satellite.altitude, satellite.inclination, angle, frontHalf, iconSize);
+			drawSatelliteIcon(satelliteTextureDefault, centerX, centerY, baseOrbitRadiusMapPx, zoom, satellite.phaseOffset, satellite.altitude, satellite.inclination, angle, frontHalf, iconSize);
 		}
 	}
 
@@ -685,7 +687,7 @@ public class GUIScreenSatSettings extends GuiScreen {
 	}
 
 	private void drawSatelliteIcon(ResourceLocation texture, float centerX, float centerY, float baseRadiusMapPx, float zoom, float phaseOffset, float altitude, float inclination, double angle, boolean frontHalf, float size) {
-		float satelliteAngle = Satellite.applyPhaseOffsetToOrbitAngle(phaseOffset, altitude, angle, (float) (2D * Math.PI));
+		float satelliteAngle = SatelliteBase.applyPhaseOffsetToOrbitAngle(phaseOffset, altitude, angle, (float) (2D * Math.PI));
 		SatelliteOrbitPoint orbitPoint = getArtificialSatelliteOrbitPoint(altitude, inclination, satelliteAngle, baseRadiusMapPx);
 		float screenX = mapToScreenX(centerX, orbitPoint.offsetU, orbitPoint.offsetV, zoom);
 		float screenY = mapToScreenY(centerY, orbitPoint.offsetU, orbitPoint.offsetV, zoom);
@@ -707,7 +709,7 @@ public class GUIScreenSatSettings extends GuiScreen {
 
 	private float getBlinkAlpha(boolean isBlinking, float blinkPeriod) {
 		if(!isBlinking) return 1.0F;
-		long cycleMillis = (long) (Satellite.clampBlinkPeriod(blinkPeriod) * 1000.0F);
+		long cycleMillis = (long) (SatelliteBase.clampBlinkPeriod(blinkPeriod) * 1000.0F);
 		if(cycleMillis <= 0L) return 1.0F;
 		return 1.0F - (float) (System.currentTimeMillis() % cycleMillis) / cycleMillis;
 	}
@@ -746,6 +748,8 @@ public class GUIScreenSatSettings extends GuiScreen {
 			if(body.parent == null) {
 				drawTexturedQuad(centerX, centerY, size, 0F);
 			} else {
+				AtmosphereRenderUtil.renderAtmosphereGlow2D(Tessellator.instance, body, centerX, centerY, size, 1.0F);
+
 				float phase = getBodyRotationPhase(body, dayTicks);
 				float bodyRotationAngle = phase * 360F;
 				boolean rotateBody = hasTransparentPixels(body.texture);
@@ -758,7 +762,7 @@ public class GUIScreenSatSettings extends GuiScreen {
 					textureUOffset = phase;
 				}
 
-				drawBodyCrescentOverlay(body, centerX, centerY, size, rotateBody, bodyRotationAngle, dayTicks, textureUOffset);
+				drawBodyOverlays(body, centerX, centerY, size, rotateBody, bodyRotationAngle, dayTicks, textureUOffset);
 			}
 		} else {
 			int color = 0xFF666666;
@@ -793,34 +797,81 @@ public class GUIScreenSatSettings extends GuiScreen {
 		GL11.glColor4f(1F, 1F, 1F, 1F);
 	}
 
-	private void drawBodyCrescentOverlay(CelestialBody body, float bodyScreenX, float bodyScreenY, float drawSize, boolean rotateBody, float bodyRotationAngle, double dayTicks, float textureUOffset) {
+	private void drawBodyOverlays(CelestialBody body, float bodyScreenX, float bodyScreenY, float drawSize, boolean rotateBody, float bodyRotationAngle, double dayTicks, float textureUOffset) {
 		float phase = calculateBodyCrescentPhase(body, dayTicks);
 		CBT_Impact impact = body.getTrait(CBT_Impact.class);
 		CBT_Lights light = body.getTrait(CBT_Lights.class);
+		List<CelestialNukeShockHandler.ShockStatus> nukeShocks = CelestialNukeShockHandler.getClientShocks(body);
 		double impactTime = impact != null ? dayTicks - impact.time : 0.0D;
+		float impactAnimationTime = impact != null ? (float) impactTime : -1.0F;
 		int lightIntensity = light != null && impactTime < 40.0D ? MathHelper.clamp_int(light.getIntensity(), 0, citylights.length - 1) : 0;
 		int activeBlackouts = Math.max(0, Math.min((int) (impactTime / 8.0D), 5));
+		float atmosphereAlpha = AtmosphereRenderUtil.getAtmosphereSurfaceAlpha(body);
+		float atmosphereDensity = AtmosphereRenderUtil.getAtmosphereDensity(body);
+		net.minecraft.util.Vec3 atmosphereColor = AtmosphereRenderUtil.getBodyAtmosphereColor(body);
+		net.minecraft.util.Vec3 cloudColor = AtmosphereRenderUtil.getBodyCloudColor(body);
+		float cloudTintStrength = AtmosphereRenderUtil.getBodyCloudTintStrength(body);
+		float weatherPartialTicks = (float) (dayTicks - Math.floor(dayTicks));
+		float cloudStormDarkness = AtmosphereRenderUtil.getBodyCloudStormDarkness(body, weatherPartialTicks);
+		float cloudLightningStrength = AtmosphereRenderUtil.getBodyCloudLightningStrength(body, weatherPartialTicks);
+		int atmosphereStyle = AtmosphereRenderUtil.getAtmosphereStyle(body);
+		float atmosphereTime = (float) (dayTicks / 20.0D);
+		float atmospherePatternOffset = textureUOffset;
+		if(!rotateBody && body != null) {
+			double period = body.getRotationalPeriod();
+			if(period > 0D && !Double.isNaN(period) && !Double.isInfinite(period)) {
+				atmospherePatternOffset = (float) (dayTicks / period);
+			}
+		}
+
+		if(atmosphereAlpha > 0.001F) {
+			GL11.glEnable(GL11.GL_BLEND);
+			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+			GL11.glColor4f(1F, 1F, 1F, 1F);
+
+			atmosphereShader.use();
+			atmosphereShader.setUniform1f("offset", textureUOffset);
+			atmosphereShader.setUniform1f("patternOffset", atmospherePatternOffset);
+			atmosphereShader.setUniform1i("bodyTex", 0);
+			atmosphereShader.setUniform1i("useBodyAlphaMask", 1);
+			atmosphereShader.setUniform1f("atmosphereColorR", (float) atmosphereColor.xCoord);
+			atmosphereShader.setUniform1f("atmosphereColorG", (float) atmosphereColor.yCoord);
+			atmosphereShader.setUniform1f("atmosphereColorB", (float) atmosphereColor.zCoord);
+			atmosphereShader.setUniform1f("cloudColorR", (float) cloudColor.xCoord);
+			atmosphereShader.setUniform1f("cloudColorG", (float) cloudColor.yCoord);
+			atmosphereShader.setUniform1f("cloudColorB", (float) cloudColor.zCoord);
+			atmosphereShader.setUniform1f("cloudTintStrength", cloudTintStrength);
+			atmosphereShader.setUniform1f("cloudStormDarkness", cloudStormDarkness);
+			atmosphereShader.setUniform1f("atmosphereAlpha", atmosphereAlpha);
+			atmosphereShader.setUniform1f("atmosphereTime", atmosphereTime);
+			atmosphereShader.setUniform1i("atmosphereStyle", atmosphereStyle);
+			atmosphereShader.setUniform1f("impactTime", impactAnimationTime);
+			AtmosphereRenderUtil.applyNukeShockUniforms(atmosphereShader, nukeShocks, dayTicks);
+
+			GL13.glActiveTexture(GL13.GL_TEXTURE0);
+			mc.getTextureManager().bindTexture(body.texture);
+
+			if(rotateBody) {
+				drawTexturedQuadRotating(bodyScreenX, bodyScreenY, drawSize, bodyRotationAngle);
+			} else {
+				drawTexturedQuad(bodyScreenX, bodyScreenY, drawSize, 0F);
+			}
+
+			atmosphereShader.stop();
+		}
 
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GL11.glColor4f(1F, 1F, 1F, 1F);
 
-		planetShader.use();
-		planetShader.setUniform1f("phase", phase);
-		planetShader.setUniform1f("offset", textureUOffset);
-		planetShader.setUniform1i("bodyTex", 0);
-		planetShader.setUniform1i("lights", 1);
-		planetShader.setUniform1i("cityMask", 2);
-		planetShader.setUniform1i("blackouts", activeBlackouts);
-		planetShader.setUniform1i("useBodyAlphaMask", 1);
+		crescentShader.use();
+		crescentShader.setUniform1f("phase", phase);
+		crescentShader.setUniform1f("offset", textureUOffset);
+		crescentShader.setUniform1i("bodyTex", 0);
+		crescentShader.setUniform1i("useBodyAlphaMask", 1);
 
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		mc.getTextureManager().bindTexture(body.texture);
-		GL13.glActiveTexture(GL13.GL_TEXTURE1);
-		mc.getTextureManager().bindTexture(citylights[lightIntensity]);
-		GL13.glActiveTexture(GL13.GL_TEXTURE2);
-		mc.getTextureManager().bindTexture(body.cityMask != null ? body.cityMask : defaultMask);
-		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 
 		if(rotateBody) {
 			drawTexturedQuadRotating(bodyScreenX, bodyScreenY, drawSize, bodyRotationAngle);
@@ -828,7 +879,123 @@ public class GUIScreenSatSettings extends GuiScreen {
 			drawTexturedQuad(bodyScreenX, bodyScreenY, drawSize, 0F);
 		}
 
-		planetShader.stop();
+		crescentShader.stop();
+
+			if(lightIntensity > 0
+				&& atmosphereDensity > 0.001F
+				&& (atmosphereStyle == AtmosphereRenderUtil.ATMOSPHERE_STYLE_CLOUDS || atmosphereStyle == AtmosphereRenderUtil.ATMOSPHERE_STYLE_HAZE)) {
+			GL11.glEnable(GL11.GL_BLEND);
+			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+			GL11.glColor4f(1F, 1F, 1F, 1F);
+
+			atmosphereEmissiveShader.use();
+			atmosphereEmissiveShader.setUniform1f("phase", phase);
+			atmosphereEmissiveShader.setUniform1f("offset", textureUOffset);
+			atmosphereEmissiveShader.setUniform1f("atmosphereDensity", atmosphereDensity);
+			atmosphereEmissiveShader.setUniform1f("patternOffset", atmospherePatternOffset);
+			atmosphereEmissiveShader.setUniform1f("atmosphereTime", atmosphereTime);
+			atmosphereEmissiveShader.setUniform1i("atmosphereStyle", atmosphereStyle);
+			atmosphereEmissiveShader.setUniform1f("impactTime", impactAnimationTime);
+			AtmosphereRenderUtil.applyNukeShockUniforms(atmosphereEmissiveShader, nukeShocks, dayTicks);
+			atmosphereEmissiveShader.setUniform1i("bodyTex", 0);
+			atmosphereEmissiveShader.setUniform1i("lights", 1);
+			atmosphereEmissiveShader.setUniform1i("cityMask", 2);
+			atmosphereEmissiveShader.setUniform1i("blackouts", activeBlackouts);
+			atmosphereEmissiveShader.setUniform1i("useBodyAlphaMask", 1);
+
+			GL13.glActiveTexture(GL13.GL_TEXTURE0);
+			mc.getTextureManager().bindTexture(body.texture);
+			GL13.glActiveTexture(GL13.GL_TEXTURE1);
+			mc.getTextureManager().bindTexture(citylights[lightIntensity]);
+			GL13.glActiveTexture(GL13.GL_TEXTURE2);
+			mc.getTextureManager().bindTexture(body.cityMask != null ? body.cityMask : defaultMask);
+			GL13.glActiveTexture(GL13.GL_TEXTURE0);
+
+			if(rotateBody) {
+				drawTexturedQuadRotating(bodyScreenX, bodyScreenY, drawSize, bodyRotationAngle);
+			} else {
+				drawTexturedQuad(bodyScreenX, bodyScreenY, drawSize, 0F);
+			}
+
+			atmosphereEmissiveShader.stop();
+		}
+
+			if(lightIntensity > 0) {
+				GL11.glEnable(GL11.GL_BLEND);
+				GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+				GL11.glColor4f(1F, 1F, 1F, 1F);
+
+				nightLightsShader.use();
+				nightLightsShader.setUniform1f("phase", phase);
+				nightLightsShader.setUniform1f("offset", textureUOffset);
+				nightLightsShader.setUniform1f("atmosphereDensity", atmosphereDensity);
+				nightLightsShader.setUniform1f("patternOffset", atmospherePatternOffset);
+				nightLightsShader.setUniform1f("atmosphereTime", atmosphereTime);
+				nightLightsShader.setUniform1i("atmosphereStyle", atmosphereStyle);
+				nightLightsShader.setUniform1f("impactTime", impactAnimationTime);
+				AtmosphereRenderUtil.applyNukeShockUniforms(nightLightsShader, nukeShocks, dayTicks);
+				nightLightsShader.setUniform1i("bodyTex", 0);
+				nightLightsShader.setUniform1i("lights", 1);
+				nightLightsShader.setUniform1i("cityMask", 2);
+				nightLightsShader.setUniform1i("blackouts", activeBlackouts);
+				nightLightsShader.setUniform1i("useBodyAlphaMask", 1);
+
+				GL13.glActiveTexture(GL13.GL_TEXTURE0);
+				mc.getTextureManager().bindTexture(body.texture);
+				GL13.glActiveTexture(GL13.GL_TEXTURE1);
+				mc.getTextureManager().bindTexture(citylights[lightIntensity]);
+				GL13.glActiveTexture(GL13.GL_TEXTURE2);
+				mc.getTextureManager().bindTexture(body.cityMask != null ? body.cityMask : defaultMask);
+				GL13.glActiveTexture(GL13.GL_TEXTURE0);
+
+				if(rotateBody) {
+					drawTexturedQuadRotating(bodyScreenX, bodyScreenY, drawSize, bodyRotationAngle);
+				} else {
+					drawTexturedQuad(bodyScreenX, bodyScreenY, drawSize, 0F);
+				}
+
+				nightLightsShader.stop();
+			}
+
+		if(atmosphereAlpha > 0.001F && cloudLightningStrength > 0.001F
+			&& (atmosphereStyle == AtmosphereRenderUtil.ATMOSPHERE_STYLE_CLOUDS || atmosphereStyle == AtmosphereRenderUtil.ATMOSPHERE_STYLE_HAZE)) {
+			GL11.glEnable(GL11.GL_BLEND);
+			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+			GL11.glColor4f(1F, 1F, 1F, 1F);
+
+			lightningShader.use();
+			lightningShader.setUniform1f("phase", phase);
+			lightningShader.setUniform1f("offset", textureUOffset);
+			lightningShader.setUniform1f("patternOffset", atmospherePatternOffset);
+			lightningShader.setUniform1i("bodyTex", 0);
+			lightningShader.setUniform1i("cityMask", 1);
+			lightningShader.setUniform1i("useBodyAlphaMask", 1);
+			lightningShader.setUniform1f("cloudTintStrength", cloudTintStrength);
+			lightningShader.setUniform1f("cloudLightningStrength", cloudLightningStrength);
+			lightningShader.setUniform1f("atmosphereAlpha", atmosphereAlpha);
+			lightningShader.setUniform1f("atmosphereTime", atmosphereTime);
+			lightningShader.setUniform1f("eveFlashStrength", AtmosphereRenderUtil.getBodyEveFlashStrength(body, atmosphereTime));
+			lightningShader.setUniform1i("atmosphereStyle", atmosphereStyle);
+			lightningShader.setUniform1i("lightningMode", AtmosphereRenderUtil.getBodyLightningMode(body));
+			lightningShader.setUniform1f("impactTime", impactAnimationTime);
+			AtmosphereRenderUtil.applyNukeShockUniforms(lightningShader, nukeShocks, dayTicks);
+
+			GL13.glActiveTexture(GL13.GL_TEXTURE0);
+			mc.getTextureManager().bindTexture(body.texture);
+			GL13.glActiveTexture(GL13.GL_TEXTURE1);
+			mc.getTextureManager().bindTexture(body.cityMask != null ? body.cityMask : defaultMask);
+			GL13.glActiveTexture(GL13.GL_TEXTURE0);
+
+			if(rotateBody) {
+				drawTexturedQuadRotating(bodyScreenX, bodyScreenY, drawSize, bodyRotationAngle);
+			} else {
+				drawTexturedQuad(bodyScreenX, bodyScreenY, drawSize, 0F);
+			}
+
+			lightningShader.stop();
+		}
+
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
 		if(impact != null) {
 			float lavaAlpha = (float) Math.min(impactTime * 0.1D, 1.0D);
@@ -845,7 +1012,30 @@ public class GUIScreenSatSettings extends GuiScreen {
 			}
 		}
 
+		if(!nukeShocks.isEmpty()) {
+			renderNukeImpactOverlay(bodyScreenX, bodyScreenY, drawSize, rotateBody, bodyRotationAngle, phase, nukeShocks, dayTicks);
+			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		}
+
 		GL11.glColor4f(1F, 1F, 1F, 1F);
+	}
+
+	private void renderNukeImpactOverlay(float bodyScreenX, float bodyScreenY, float drawSize, boolean rotateBody, float bodyRotationAngle, float phase, List<CelestialNukeShockHandler.ShockStatus> nukeShocks, double currentShockTime) {
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+		GL11.glColor4f(1F, 1F, 1F, 1F);
+
+		nukeShader.use();
+		nukeShader.setUniform1f("phase", phase);
+		AtmosphereRenderUtil.applyNukeShockUniforms(nukeShader, nukeShocks, currentShockTime);
+
+		if(rotateBody) {
+			drawTexturedQuadRotating(bodyScreenX, bodyScreenY, drawSize, bodyRotationAngle);
+		} else {
+			drawTexturedQuad(bodyScreenX, bodyScreenY, drawSize, 0F);
+		}
+
+		nukeShader.stop();
 	}
 
 	private boolean hasTransparentPixels(ResourceLocation texture) {
@@ -932,8 +1122,8 @@ public class GUIScreenSatSettings extends GuiScreen {
 	}
 
 	private float getPreviewZoom(float bodySizeAt1x, float baseOrbitRadiusMapPx, float maxAltitude) {
-		float altitude = Math.max(Satellite.DEFAULT_ALTITUDE_KM, maxAltitude);
-		float altitudeFactor = altitude / Satellite.DEFAULT_ALTITUDE_KM;
+		float altitude = Math.max(SatelliteBase.DEFAULT_ALTITUDE_KM, maxAltitude);
+		float altitudeFactor = altitude / SatelliteBase.DEFAULT_ALTITUDE_KM;
 		float maxOrbitRadius = 116F * 0.46F;
 		float zoomForOrbit = maxOrbitRadius / Math.max(0.0001F, baseOrbitRadiusMapPx * altitudeFactor);
 		float zoomForBody = 16F / Math.max(0.0001F, bodySizeAt1x);
@@ -951,7 +1141,7 @@ public class GUIScreenSatSettings extends GuiScreen {
 	private SatelliteOrbitPoint getArtificialSatelliteOrbitPoint(float altitude, float inclination, float angle, float baseRadiusMapPx) {
 		float satAltitude = altitude;
 		double satInclination = Math.toRadians(inclination);
-		double radiusMapPx = baseRadiusMapPx * (satAltitude / Satellite.DEFAULT_ALTITUDE_KM);
+		double radiusMapPx = baseRadiusMapPx * (satAltitude / SatelliteBase.DEFAULT_ALTITUDE_KM);
 
 		double x = radiusMapPx * MathHelper.cos(angle);
 		double orbitY = radiusMapPx * MathHelper.sin(angle);
@@ -973,7 +1163,7 @@ public class GUIScreenSatSettings extends GuiScreen {
 	}
 
 	private CelestialBody getPreviewBody(ItemStack held) {
-		int previewDimensionId = Satellite.getTargetDimensionId(held, getCurrentBody().dimensionId);
+		int previewDimensionId = XSatelliteRegistry.getTargetDimensionId(held, getCurrentBody().dimensionId);
 		return CelestialBody.getBody(previewDimensionId);
 	}
 
@@ -994,15 +1184,6 @@ public class GUIScreenSatSettings extends GuiScreen {
 		float t = (Math.max(0F, moon.radiusKm) - 65F) / (500F - 65F);
 		t = MathHelper.clamp_float(t, 0F, 1F);
 		return (0.2F + (0.5F - 0.2F) * t) * 0.45F * 0.82F;
-	}
-
-	private ResourceLocation getSatelliteTextureByType(Class<?> type) {
-		for(Class<?> current = type; current != null; current = current.getSuperclass()) {
-			ResourceLocation texture = satelliteTextureByClass.get(current);
-			if(texture != null) return texture;
-			if(current == Satellite.class) break;
-		}
-		return satelliteTextureDefault;
 	}
 
 	private boolean isMoon(CelestialBody body) {
@@ -1042,11 +1223,11 @@ public class GUIScreenSatSettings extends GuiScreen {
 	}
 
 	private static String formatOrbitSpeed(float altitude) {
-		return formatValue(Math.round(Satellite.getOrbitSpeedKmPerSecond(altitude) * 10.0F) / 10.0F);
+		return formatValue(Math.round(SatelliteBase.getOrbitSpeedKmPerSecond(altitude) * 10.0F) / 10.0F);
 	}
 
 	private static String formatPhaseOffset(float phaseOffset) {
-		float rounded = Math.round(Satellite.normalizePhaseOffset(phaseOffset) * 10.0F) / 10.0F;
+		float rounded = Math.round(SatelliteBase.normalizePhaseOffset(phaseOffset) * 10.0F) / 10.0F;
 		return formatValue(rounded);
 	}
 }

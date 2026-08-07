@@ -22,13 +22,16 @@ import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemZirnoxRod;
 import com.hbm.items.machine.ItemZirnoxRod.EnumZirnoxType;
 import com.hbm.main.MainRegistry;
+import com.hbm.saveddata.satellites.SatelliteRayScan;
+import com.hbm.saveddata.satellites.SatelliteRayScan.RayEvent;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.util.CompatEnergyControl;
 import com.hbm.util.EnumUtil;
+import com.hbm.util.fauxpointtwelve.BlockPos;
 import com.hbm.util.fauxpointtwelve.DirPos;
 
-import api.hbm.fluid.IFluidStandardTransceiver;
+import api.hbm.fluidmk2.IFluidStandardTransceiverMK2;
 import api.hbm.redstoneoverradio.IRORValueProvider;
 import api.hbm.redstoneoverradio.IRORInteractive;
 import api.hbm.tile.IInfoProviderEC;
@@ -51,7 +54,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 @Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityReactorZirnox extends TileEntityMachineBase implements IControlReceiver, IFluidStandardTransceiver, SimpleComponent, IGUIProvider, IInfoProviderEC, CompatHandler.OCComponent, IRORValueProvider, IRORInteractive {
+public class TileEntityReactorZirnox extends TileEntityMachineBase implements IControlReceiver, IFluidStandardTransceiverMK2, SimpleComponent, IGUIProvider, IInfoProviderEC, CompatHandler.OCComponent, IRORValueProvider, IRORInteractive {
 
 	public int heat;
 	public static final int maxHeat = 100000;
@@ -187,12 +190,14 @@ public class TileEntityReactorZirnox extends TileEntityMachineBase implements IC
 	public void updateEntity() {
 
 		if(!worldObj.isRemote) {
+			this.checkTilt(TiltType.CONFIG, true);
+			
 			if (redstonePowered) {
 				isOn = true;
 			}
 			this.output = 0;
 
-			if(worldObj.getTotalWorldTime() % 20 == 0) {
+			if(!tilted && worldObj.getTotalWorldTime() % 20 == 0) {
 				this.updateConnections();
 			}
 
@@ -223,10 +228,12 @@ public class TileEntityReactorZirnox extends TileEntityMachineBase implements IC
 					this.heat -= 10;
 				}
 
+				if(worldObj.getTotalWorldTime() % 100 == 0)
+					SatelliteRayScan.reportEvent(worldObj, xCoord, yCoord, zCoord, RayEvent.INFO_NUCLEAR, 200);
 			}
 
-			for(DirPos pos : getConPos()) {
-				this.sendFluid(steam, worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
+			if(!this.tilted) for(DirPos pos : getConPos()) {
+				this.tryProvide(steam, worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
 			}
 
 			checkIfMeltdown();
@@ -234,6 +241,9 @@ public class TileEntityReactorZirnox extends TileEntityMachineBase implements IC
 			this.networkPackNT(150);
 		}
 	}
+	
+	@Override public int getFloorCount() { return 3 * 3; }
+	@Override public BlockPos getFloorPosFromIndex(int index) { return this.standardFloor5x5(index); }
 
 	@Override
 	public void serialize(ByteBuf buf) {
@@ -264,7 +274,8 @@ public class TileEntityReactorZirnox extends TileEntityMachineBase implements IC
 		// function of SHS produced per tick
 		// (heat - 10256)/100000 * steamFill (max efficiency at 14b) * 25 * 5 (should get rid of any rounding errors)
 		if(this.heat > 10256) {
-			int cycle = (int)((((float)heat - 10256F) / (float)maxHeat) * Math.min(((float)carbonDioxide.getFill() / 14000F), 1F) * 25F * 5F);
+			float mult = 7.5F; // was 5 originally
+			int cycle = (int)((((float)heat - 10256F) / (float)maxHeat) * Math.min(((float)carbonDioxide.getFill() / 14000F), 1F) * 25F * mult);
 			this.output = cycle;
 
 			water.setFill(water.getFill() - cycle);
@@ -609,8 +620,8 @@ public class TileEntityReactorZirnox extends TileEntityMachineBase implements IC
 				PREFIX_VALUE + "steam",
 				PREFIX_VALUE + "co2",
 				PREFIX_VALUE + "state",
-				PREFIX_FUNCTION + "setState" + NAME_SEPARATOR + "active (0 or 1)",
-				PREFIX_FUNCTION + "ventCO2"
+				PREFIX_FUNCTION + "setstate" + NAME_SEPARATOR + "active (0 or 1)",
+				PREFIX_FUNCTION + "ventco2"
 		};
 	}
 	
@@ -627,7 +638,7 @@ public class TileEntityReactorZirnox extends TileEntityMachineBase implements IC
 
 	@Override
 	public String runRORFunction(String name, String[] params) {
-		if((PREFIX_FUNCTION + "setState").equals(name) && params.length > 0) {
+		if((PREFIX_FUNCTION + "setstate").equals(name) && params.length > 0) {
 			if(redstonePowered) return null;
 			try {
 				int val = Integer.parseInt(params[0]);
@@ -636,7 +647,7 @@ public class TileEntityReactorZirnox extends TileEntityMachineBase implements IC
 			} catch(NumberFormatException e) {}
 			return null;
 		}
-		if ((PREFIX_FUNCTION + "ventCO2").equals(name)) {
+		if ((PREFIX_FUNCTION + "ventco2").equals(name)) {
 			int fill = this.carbonDioxide.getFill();
 			this.carbonDioxide.setFill(Math.max(fill - 1000, 0));
 			this.markDirty();

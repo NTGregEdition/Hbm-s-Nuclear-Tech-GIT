@@ -1,8 +1,9 @@
 package com.hbm.tileentity.machine;
 import api.hbm.energymk2.VoltageCheckedCharging;
 
-import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.fluidmk2.IFluidStandardTransceiverMK2;
+import java.util.HashMap;
+import java.util.List;
+
 import com.hbm.blocks.ModBlocks;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.inventory.UpgradeManagerNT;
@@ -10,7 +11,6 @@ import com.hbm.inventory.container.ContainerMachinePrecAss;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.fluid.tank.FluidTank;
 import com.hbm.inventory.gui.GUIMachinePrecAss;
-import com.hbm.inventory.recipes.PrecAssRecipes;
 import com.hbm.inventory.recipes.loader.GenericRecipe;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemMachineUpgrade;
@@ -25,6 +25,9 @@ import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.util.BobMathUtil;
 import com.hbm.util.fauxpointtwelve.DirPos;
 import com.hbm.util.i18n.I18nUtil;
+
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluidmk2.IFluidStandardTransceiverMK2;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
@@ -36,9 +39,6 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-
-import java.util.HashMap;
-import java.util.List;
 
 // horribly copy-pasted crap device
 public class TileEntityMachinePrecAss extends TileEntityMachineBase implements IEnergyReceiverMK2, IFluidStandardTransceiverMK2, IUpgradeInfoProvider, IControlReceiver, IGUIProvider {
@@ -93,7 +93,7 @@ public class TileEntityMachinePrecAss extends TileEntityMachineBase implements I
 
 		if(!worldObj.isRemote) {
 
-			GenericRecipe recipe = PrecAssRecipes.INSTANCE.recipeNameMap.get(assemblerModule.recipe);
+			GenericRecipe recipe = assemblerModule.getRecipe();
 			if(recipe != null) {
 				this.maxPower = recipe.power * 100;
 			}
@@ -352,7 +352,7 @@ public class TileEntityMachinePrecAss extends TileEntityMachineBase implements I
 			int index = data.getInteger("index");
 			String selection = data.getString("selection");
 			if(index == 0) {
-				this.assemblerModule.recipe = selection;
+				this.assemblerModule.setRecipe(selection, false);
 				this.markChanged();
 			}
 		}

@@ -1,8 +1,6 @@
 package com.hbm.tileentity.machine;
 import api.hbm.energymk2.VoltageCheckedCharging;
 
-import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.fluid.IFluidStandardTransceiver;
 import com.hbm.inventory.container.ContainerMachineMilkReformer;
 import com.hbm.inventory.fluid.FluidType;
 import com.hbm.inventory.fluid.Fluids;
@@ -12,9 +10,13 @@ import com.hbm.lib.Library;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.util.fauxpointtwelve.DirPos;
+
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluid.IFluidStandardTransceiver;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.nbt.NBTTagCompound;
@@ -27,7 +29,7 @@ public class TileEntityMachineMilkReformer extends TileEntityMachineBase impleme
 
 	public FluidTank tanks[];
 	public long power;
-	public static final long maxPower = 100_000_000;
+	public static final long maxPower = 1_000_000;
 
 	public TileEntityMachineMilkReformer() {
 		super(11);

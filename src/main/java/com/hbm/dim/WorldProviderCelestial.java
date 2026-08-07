@@ -1,7 +1,6 @@
 package com.hbm.dim;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Random;
 import java.util.List;
 import java.util.ListIterator;
@@ -11,17 +10,16 @@ import com.hbm.dim.SolarSystem.AstroMetric;
 import com.hbm.dim.orbit.WorldProviderOrbit;
 import com.hbm.dim.trait.CBT_Atmosphere;
 import com.hbm.dim.trait.CBT_Atmosphere.FluidEntry;
-import com.hbm.dim.trait.CBT_War;
 import com.hbm.dim.trait.CBT_Destroyed;
+import com.hbm.dim.trait.CBT_Weather;
+import com.hbm.dim.trait.CBT_War;
+import com.hbm.dim.trait.CBT_Water;
 import com.hbm.handler.ImpactWorldHandler;
 import com.hbm.handler.atmosphere.ChunkAtmosphereManager;
 import com.hbm.inventory.FluidStack;
 import com.hbm.inventory.fluid.FluidType;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.main.MainRegistry;
-import com.hbm.saveddata.SatelliteSavedData;
-import com.hbm.saveddata.satellites.Satellite;
-import com.hbm.saveddata.satellites.SatelliteWar;
 import com.hbm.util.Compat;
 
 import cpw.mods.fml.common.Loader;
@@ -37,6 +35,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
@@ -53,7 +52,7 @@ public abstract class WorldProviderCelestial extends WorldProviderSurface {
 
 	private double eclipseAmount;
 	private long localTime = -1;
-	
+
 	public static ArrayList<Meteor> meteors = new ArrayList<>();
 
 	@Override
@@ -84,14 +83,14 @@ public abstract class WorldProviderCelestial extends WorldProviderSurface {
 
 	@Override
 	public void updateWeather() {
+		CelestialBody body = CelestialBody.getBody(worldObj);
 		CBT_Atmosphere atmosphere = CelestialBody.getTrait(worldObj, CBT_Atmosphere.class);
-
 		double pressure = atmosphere != null ? atmosphere.getPressure() : 0;
 
 		// Will prevent water from existing, will be unset immediately before using a bucket if inside a pressurized room
 		isHellWorld = !worldObj.isRemote && pressure <= 0.2F && !Loader.isModLoaded(Compat.MOD_COFH);
 
-		if(worldObj.isRemote) {
+		if(worldObj.isRemote && Minecraft.getMinecraft().thePlayer != null && Minecraft.getMinecraft().thePlayer.dimension == dimensionId) {
 			ListIterator<Meteor> iterator = meteors.listIterator();
 			while(iterator.hasNext()) {
 				Meteor meteor = iterator.next();
@@ -104,17 +103,29 @@ public abstract class WorldProviderCelestial extends WorldProviderSurface {
 			eclipseAmount = -1;
 		}
 
-		if(pressure > 0.5F) {
-			super.updateWeather();
+		if(!hasWeatherCycle()) {
+			worldObj.prevRainingStrength = 0.0F;
+			worldObj.rainingStrength = 0.0F;
+			worldObj.prevThunderingStrength = 0.0F;
+			worldObj.thunderingStrength = 0.0F;
 			return;
 		}
 
-		worldObj.prevRainingStrength = 0.0F;
-		worldObj.rainingStrength = 0.0F;
-		worldObj.prevThunderingStrength = 0.0F;
-		worldObj.thunderingStrength = 0.0F;
+		if(!worldObj.isRemote) {
+			CBT_Weather weather = CBT_Weather.ensureTrait(body);
+			if(weather != null && weather.updateForTick(MinecraftServer.getServer().getTickCounter(), worldObj.rand, body)) {
+				SolarSystemWorldSavedData.get(worldObj).markDirty();
+			}
+			weather = body.getTrait(CBT_Weather.class);
+			if(weather != null) {
+				worldObj.prevRainingStrength = weather.prevRainStrength;
+				worldObj.rainingStrength = weather.rainStrength;
+				worldObj.prevThunderingStrength = weather.prevThunderStrength;
+				worldObj.thunderingStrength = weather.thunderStrength;
+			}
+		}
 	}
-	
+
 
 	// Can be overridden to provide fog changing events based on weather
 	public float fogDensity(FogDensity event) {
@@ -373,18 +384,6 @@ public abstract class WorldProviderCelestial extends WorldProviderSurface {
 		CBT_Atmosphere atmosphere = CelestialBody.getTrait(worldObj, CBT_Atmosphere.class);
 		Vec3 color = Vec3.createVectorHelper(0, 0, 0);
 
-		for(Map.Entry<Integer, Satellite> entry : SatelliteSavedData.getClientSats().entrySet()) {
-			if(entry instanceof SatelliteWar) {
-				SatelliteWar war = (SatelliteWar) entry.getValue();
-				float flame = war.interp;
-				float alpd = 1.0F - Math.min(1.0F, flame / 100);
-
-				color.xCoord += alpd * 1.5;
-				color.yCoord += alpd * 1.5;
-				color.zCoord += alpd * 1.5;
-			}
-		}
-
 		// The cold hard vacuum of space
 		if(atmosphere == null) {
 			return color;
@@ -421,29 +420,16 @@ public abstract class WorldProviderCelestial extends WorldProviderSurface {
 
 		if(CelestialBody.getBody(worldObj).hasTrait(CBT_War.class)) {
 			CBT_War wardat = CelestialBody.getTrait(worldObj, CBT_War.class);
-				for(int i = 0; i < wardat.getProjectiles().size(); i++) {
-					CBT_War.Projectile projectile = wardat.getProjectiles().get(i);
-					float flash = projectile.getFlashtime();
-					if(projectile.getAnimtime() > 0) {
-						float invertedFlash = 100 - flash;
+			for(int i = 0; i < wardat.getProjectiles().size(); i++) {
+				CBT_War.Projectile projectile = wardat.getProjectiles().get(i);
+				float flash = projectile.getFlashtime();
+				if(projectile.getAnimtime() > 0) {
+					float invertedFlash = 100 - flash;
 
-						color.xCoord += invertedFlash * 0.5;
-						color.yCoord += invertedFlash * 0.5;
-						color.zCoord += invertedFlash * 0.5;
-					}
+					color.xCoord += invertedFlash * 0.5;
+					color.yCoord += invertedFlash * 0.5;
+					color.zCoord += invertedFlash * 0.5;
 				}
-			}
-
-
-		for(Map.Entry<Integer, Satellite> entry : SatelliteSavedData.getClientSats().entrySet()) {
-			if(entry instanceof SatelliteWar) {
-				SatelliteWar war = (SatelliteWar) entry.getValue();
-				float flame = war.interp;
-				float alpd = 1.0F - Math.min(1.0F, flame / 100);
-
-				color.xCoord += alpd * 1.5;
-				color.yCoord += alpd * 1.5;
-				color.zCoord += alpd * 1.5;
 			}
 		}
 
@@ -525,23 +511,74 @@ public abstract class WorldProviderCelestial extends WorldProviderSurface {
 		return colors;
 	}
 
-	// this function should be called `getCloudColor`, please slap the next MCP dev you see lmao
-	@Override
+	public static int getCloudLayerCount(CBT_Atmosphere atmosphere) {
+		if(atmosphere == null || atmosphere.getPressure() < 0.5F) {
+			return 0;
+		}
+
+		if(atmosphere.getPressure() >= 5.0F) {
+			return 3;
+		}
+
+		if(atmosphere.getPressure() >= 2.5F) {
+			return 2;
+		}
+
+		return 1;
+	}
+	public boolean hasWeatherCycle() {
+		return CBT_Weather.supportsWeather(CelestialBody.getBody(worldObj));
+	}
+
 	@SideOnly(Side.CLIENT)
-	public Vec3 drawClouds(float partialTicks) {
-		return super.drawClouds(partialTicks);
+	public Vec3 getWeatherColor() {
+		CBT_Water water = CelestialBody.getTrait(worldObj, CBT_Water.class);
+		if(water == null || water.fluid == null) {
+			return Vec3.createVectorHelper(1.0D, 1.0D, 1.0D);
+		}
+
+		Vec3 base = getColorFromHex(water.fluid.getColor());
+		double luminance = base.xCoord * 0.299D + base.yCoord * 0.587D + base.zCoord * 0.114D;
+		double saturation = 0.35D;
+
+		double desaturatedR = luminance + (base.xCoord - luminance) * saturation;
+		double desaturatedG = luminance + (base.yCoord - luminance) * saturation;
+		double desaturatedB = luminance + (base.zCoord - luminance) * saturation;
+
+		return Vec3.createVectorHelper(
+			MathHelper.clamp_double(desaturatedR, 0.0D, 1.0D),
+			MathHelper.clamp_double(desaturatedG, 0.0D, 1.0D),
+			MathHelper.clamp_double(desaturatedB, 0.0D, 1.0D)
+		);
+	}
+
+	@SideOnly(Side.CLIENT)
+	public Vec3 getSnowColor() {
+		CBT_Water water = CelestialBody.getTrait(worldObj, CBT_Water.class);
+		if(water == null || water.fluid == null || water.fluid == Fluids.WATER) {
+			return Vec3.createVectorHelper(1.0D, 1.0D, 1.0D);
+		}
+
+		return getWeatherColor();
 	}
 
 	@Override
 	public boolean canDoLightning(Chunk chunk) {
-		CBT_Atmosphere atmosphere = CelestialBody.getTrait(worldObj, CBT_Atmosphere.class);
-		return atmosphere != null && atmosphere.getPressure() > 0.5;
+		return hasWeatherCycle();
 	}
 
 	@Override
 	public boolean canDoRainSnowIce(Chunk chunk) {
-		CBT_Atmosphere atmosphere = CelestialBody.getTrait(worldObj, CBT_Atmosphere.class);
-		return atmosphere != null && atmosphere.getPressure() > 0.5;
+		return hasWeatherCycle();
+	}
+
+	private IRenderHandler weatherProvider;
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public IRenderHandler getWeatherRenderer() {
+		if(weatherProvider == null) weatherProvider = new WeatherProviderCelestial();
+		return weatherProvider;
 	}
 
 	// Stars do not show up during the day in a vacuum, common misconception:
@@ -583,15 +620,6 @@ public abstract class WorldProviderCelestial extends WorldProviderSurface {
 
 		// brightness _inside_ of the atmosphere, from effects like lightning or war weapons
 		float insideBrightness = 0;
-
-		for(Map.Entry<Integer, Satellite> entry : SatelliteSavedData.getClientSats().entrySet()) {
-			if(entry instanceof SatelliteWar) {
-				SatelliteWar war = (SatelliteWar) entry.getValue();
-				float flame = war.interp;
-				float alpd = 1.0F - Math.min(1.0F, flame / 100);
-				insideBrightness += alpd;
-			}
-		}
 
 		if(CelestialBody.getBody(worldObj).hasTrait(CBT_War.class)) {
 			CBT_War wardat = CelestialBody.getTrait(worldObj, CBT_War.class);
@@ -670,7 +698,16 @@ public abstract class WorldProviderCelestial extends WorldProviderSurface {
 	// which means we can set the time of day to local morning safely here!
 	@Override
 	public void resetRainAndThunder() {
-		super.resetRainAndThunder();
+		CBT_Weather weather = CBT_Weather.ensureTrait(CelestialBody.getBody(worldObj));
+		if(weather != null) {
+			weather.forceClear(worldObj.rand, worldObj.rand.nextInt(168000) + 12000);
+			SolarSystemWorldSavedData.get(worldObj).markDirty();
+		}
+
+		worldObj.prevRainingStrength = 0.0F;
+		worldObj.rainingStrength = 0.0F;
+		worldObj.prevThunderingStrength = 0.0F;
+		worldObj.thunderingStrength = 0.0F;
 
 		if(dimensionId == 0) return;
 		if(!worldObj.getGameRules().getGameRuleBooleanValue("doDaylightCycle")) return;
@@ -712,9 +749,23 @@ public abstract class WorldProviderCelestial extends WorldProviderSurface {
 	public float getCloudHeight() {
 		CBT_Atmosphere atmosphere = CelestialBody.getTrait(worldObj, CBT_Atmosphere.class);
 
-		if(atmosphere == null || atmosphere.getPressure() < 0.5F) return -99999;
+		if(getCloudLayerCount(atmosphere) <= 0) return -99999;
 
 		return super.getCloudHeight();
+	}
+
+	@SideOnly(Side.CLIENT)
+	public int getCloudLayerCount() {
+		return getCloudLayerCount(CelestialBody.getTrait(worldObj, CBT_Atmosphere.class));
+	}
+
+	private IRenderHandler cloudProvider;
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public IRenderHandler getCloudRenderer() {
+		if(cloudProvider == null) cloudProvider = new CloudProviderCelestial();
+		return cloudProvider;
 	}
 
 	private IRenderHandler skyProvider;

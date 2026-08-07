@@ -24,7 +24,7 @@ public class MapGenBubble extends MapGenBaseMeta {
 	private int minSize = 8;
 	private int maxSize = 64;
 
-	public int minY = 0;
+	public int minY = 15;
 	public int rangeY = 25;
 
 	public boolean fuzzy;
@@ -107,7 +107,7 @@ public class MapGenBubble extends MapGenBaseMeta {
 
 			if(rx >= 0 && rx < 16 && rz >= 0 && rz < 16) {
 				// find ground level
-				for(int y = 127; y >= 0; y--) {
+				for(int y = 127; y >= 4; y--) {
 					int index = (rx * 16 + rz) * 256 + y;
 
 					if(blocks[index] != null && blocks[index].isOpaqueCube()) {
