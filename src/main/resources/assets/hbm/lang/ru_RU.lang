@@ -7093,4 +7093,12 @@ item.ingot_tin.name=Оловянный слиток
 item.nugget_tin.name=Оловянный самородок
 item.powder_tin.name=Оловянный порошок
 tile.ore_tin.name=Оловянная руда
+tile.block_tin.name=Оловянный блок
 hbmmat.tin=Олово
+
+item.ingot_bronze.name=Бронзовый слиток
+item.nugget_bronze.name=Бронзовый самородок
+item.powder_bronze.name=Бронзовый порошок
+item.plate_bronze.name=Бронзовая пластина
+tile.block_bronze.name=Бронзовый блок
+hbmmat.bronze=Бронза

@@ -159,6 +159,7 @@ public class AnvilRecipes extends SerializableRecipe {
 		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(STAR.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_starmetal))).setTier(3));
 		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(TCALLOY.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_tcalloy))).setTier(3));
 		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(DESH.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_c_desh))).setTier(3));
+		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(BRONZE.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_bronze))).setTier(3));
 		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(DNT.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_c_dineutronium))).setTier(3));
 		constructionRecipes.add(new AnvilConstructionRecipe(new OreDictStack(CN989.ingot()), new AnvilOutput(new ItemStack(ModItems.plate_cn989))).setTier(3));
 

@@ -39,6 +39,8 @@ public class MineralRecipes {
 		add1To9Pair(ModItems.ingot_hafnium, ModItems.nugget_hafnium);
 
 		add1To9Pair(ModBlocks.block_aluminium, ModItems.ingot_aluminium);
+		add1To9Pair(ModBlocks.block_bronze, ModItems.ingot_bronze);
+		add1To9Pair(ModBlocks.block_tin, ModItems.ingot_tin);
 		add1To9Pair(ModBlocks.block_graphite, ModItems.ingot_graphite);
 		add1To9Pair(ModBlocks.block_boron, ModItems.ingot_boron);
 		add1To9Pair(ModBlocks.block_schraranium, ModItems.ingot_schraranium);
@@ -104,6 +106,7 @@ public class MineralRecipes {
 		add1To9Pair(ModItems.ingot_gaas, ModItems.nugget_gaas);
 		add1To9Pair(ModItems.ingot_zinc, ModItems.nugget_zinc);
 		add1To9Pair(ModItems.ingot_tin, ModItems.nugget_tin);
+		add1To9Pair(ModItems.ingot_bronze, ModItems.nugget_bronze);
 		add1To9Pair(ModItems.ingot_gallium, ModItems.nugget_gallium);
 		add1To9Pair(ModItems.ingot_pu241, ModItems.nugget_pu241);
 		add1To9Pair(ModItems.ingot_am241, ModItems.nugget_am241);

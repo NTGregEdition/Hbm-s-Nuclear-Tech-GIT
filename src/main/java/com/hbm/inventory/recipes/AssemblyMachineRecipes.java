@@ -83,6 +83,7 @@ public class AssemblyMachineRecipes extends GenericRecipes<GenericRecipe> {
 		this.register(new GenericRecipe("ass.platestar").setup(60, 100).outputItems(new ItemStack(ModItems.plate_starmetal, 1)).inputItems(new OreDictStack(STAR.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
 		this.register(new GenericRecipe("ass.platetcalloy").setup(60, 100).outputItems(new ItemStack(ModItems.plate_tcalloy, 1)).inputItems(new OreDictStack(TCALLOY.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
 		this.register(new GenericRecipe("ass.platec_desh").setup(60, 100).outputItems(new ItemStack(ModItems.plate_c_desh, 1)).inputItems(new OreDictStack(DESH.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
+		this.register(new GenericRecipe("ass.platec_bronze").setup(60, 100).outputItems(new ItemStack(ModItems.plate_bronze, 1)).inputItems(new OreDictStack(BRONZE.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
 		this.register(new GenericRecipe("ass.platec_dnt").setup(60, 100).outputItems(new ItemStack(ModItems.plate_c_dineutronium, 1)).inputItems(new OreDictStack(DNT.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
 		this.register(new GenericRecipe("ass.platecn989").setup(60, 100).outputItems(new ItemStack(ModItems.plate_cn989, 1)).inputItems(new OreDictStack(CN989.ingot())).setPools(GenericRecipes.POOL_PREFIX_ALT + "plates").setGroup(autoPlate, this));
 

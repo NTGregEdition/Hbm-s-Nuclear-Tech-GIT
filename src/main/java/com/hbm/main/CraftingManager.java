@@ -1038,6 +1038,7 @@ public class CraftingManager {
 		hammerPlates.put(Mats.MAT_SATURN, ModItems.plate_saturnite);
 		hammerPlates.put(Mats.MAT_DNT, ModItems.plate_c_dineutronium);
 		hammerPlates.put(Mats.MAT_DESH, ModItems.plate_c_desh);
+		hammerPlates.put(Mats.MAT_BRONZE, ModItems.plate_bronze);
 		hammerPlates.put(Mats.MAT_CN989, ModItems.plate_cn989);
 
 		for(Entry<NTMMaterial, Item> entry : hammerPlates.entrySet()) {

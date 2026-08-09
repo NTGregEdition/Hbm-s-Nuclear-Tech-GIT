@@ -244,6 +244,7 @@ public class OreDictManager {
 	public static final DictFrame MAGTUNG = new DictFrame("MagnetizedTungsten");
 	public static final DictFrame CMB = new DictFrame("CMBSteel");
 	public static final DictFrame DESH = new DictFrame("Desh");
+	public static final DictFrame BRONZE = new DictFrame("Bronze");
 	public static final DictFrame STAR = new DictFrame("Starmetal");
 	public static final DictFrame GUNMETAL = new DictFrame("GunMetal");
 	public static final DictFrame WEAPONSTEEL = new DictFrame("WeaponSteel");
@@ -487,6 +488,7 @@ public class OreDictManager {
 		MAGTUNG																.ingot(ingot_magnetized_tungsten)									.dust(powder_magnetized_tungsten)								.block(block_magnetized_tungsten);
 		CMB																	.ingot(ingot_combine_steel)											.dust(powder_combine_steel)		.plate(plate_combine_steel)		.block(block_combine_steel);
 		DESH		.nugget(nugget_desh)									.ingot(ingot_desh)													.dust(powder_desh)				.plate(plate_c_desh)	        .block(block_desh);
+		BRONZE		.nugget(nugget_bronze)									.ingot(ingot_bronze)												.dust(powder_bronze)			.plate(plate_bronze)			.block(block_bronze);
 		STAR																.ingot(ingot_starmetal)																												.block(block_starmetal);
 		GUNMETAL															.ingot(ingot_gunmetal)																				.plate(plate_gunmetal);
 		WEAPONSTEEL															.ingot(ingot_weaponsteel)																			.plate(plate_weaponsteel);
@@ -503,7 +505,7 @@ public class OreDictManager {
 		HAFNIUM		.nugget(nugget_hafnium)									.ingot(ingot_hafnium);
 		IRIDIUM		.ingot(ingot_iridium);
 
-		SN.nugget(nugget_tin).ingot(ingot_tin).dust(powder_tin).oreAll(ore_tin);
+		SN.nugget(nugget_tin).ingot(ingot_tin).dust(powder_tin).block(block_tin).oreAll(ore_tin);
 
 		W.ingot(ingot_tungsten).dust(powder_tungsten).plate(plate_tungsten).block(block_tungsten).ore(ore_tungsten, ore_nether_tungsten).oreNether(ore_nether_tungsten);
 

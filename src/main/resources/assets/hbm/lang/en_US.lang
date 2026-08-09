@@ -7454,7 +7454,15 @@ item.ingot_tin.name=Tin Ingot
 item.nugget_tin.name=Tin Nugget
 item.powder_tin.name=Tin Powder
 tile.ore_tin.name=Tin Ore
+tile.block_tin.name=Block Of Tin
 hbmmat.tin=Tin
+
+item.ingot_bronze.name=Bronze Ingot
+item.nugget_bronze.name=Bronze Nugget
+item.powder_bronze.name=Bronze Powder
+item.plate_bronze.name=Bronze Plate
+tile.block_bronze.name=Block Of Bronze
+hbmmat.bronze=Bronze
 
 desc.gui.upgrade=§lAcceptable Upgrades:§r
 desc.gui.upgrade.afterburner= * §dAfterburner§r: Stacks to level 3

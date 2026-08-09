@@ -245,6 +245,8 @@ public class ModItems {
 
 	public static Item ingot_desh;
 	public static Item nugget_desh;
+	public static Item ingot_bronze;
+	public static Item nugget_bronze;
 	public static Item ingot_dineutronium;
 	public static Item nugget_dineutronium;
 	public static Item powder_dineutronium;
@@ -416,6 +418,7 @@ public class ModItems {
 	public static Item plate_stainless;
 	public static Item plate_steel;
 	public static Item plate_iron;
+	public static Item plate_bronze;
 	public static Item powder_cn989;
 	public static Item plate_cn989;
 	public static Item ingot_lead;
@@ -610,6 +613,7 @@ public class ModItems {
 	public static Item powder_beryllium;
 	public static Item powder_copper;
 	public static Item powder_gold;
+	public static Item powder_bronze;
 	public static Item powder_iron;
 	public static Item powder_titanium;
 	public static Item powder_nickel;
@@ -2483,6 +2487,7 @@ public class ModItems {
 		plate_schrabidium = new ItemCustomLore().setRarity(EnumRarity.rare).setUnlocalizedName("plate_schrabidium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":plate_schrabidium");
 		plate_copper = new Item().setUnlocalizedName("plate_copper").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":plate_copper");
 		plate_gold = new Item().setUnlocalizedName("plate_gold").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":plate_gold");
+		plate_bronze = new Item().setUnlocalizedName("plate_bronze").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":plate_bronze");
 		lithium = new Item().setUnlocalizedName("lithium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":lithium");
 		ingot_zirconium = new Item().setUnlocalizedName("ingot_zirconium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":ingot_zirconium");
 		ingot_semtex = new ItemLemon(4, 5, true).setUnlocalizedName("ingot_semtex").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":ingot_semtex");
@@ -2605,6 +2610,8 @@ public class ModItems {
 		ingot_pvc = new ItemCustomLore().setUnlocalizedName("ingot_pvc").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":ingot_pvc");
 		ingot_desh = new ItemCustomLore().setUnlocalizedName("ingot_desh").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":ingot_desh");
 		nugget_desh = new ItemCustomLore().setUnlocalizedName("nugget_desh").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":nugget_desh");
+		ingot_bronze = new ItemCustomLore().setUnlocalizedName("ingot_bronze").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":ingot_bronze");
+		nugget_bronze = new ItemCustomLore().setUnlocalizedName("nugget_bronze").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":nugget_bronze");
 		ingot_dineutronium = new ItemCustomLore().setUnlocalizedName("ingot_dineutronium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":ingot_dineutronium");
 		nugget_dineutronium = new ItemCustomLore().setUnlocalizedName("nugget_dineutronium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":nugget_dineutronium");
 		powder_dineutronium = new ItemCustomLore().setUnlocalizedName("powder_dineutronium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_dineutronium");
@@ -2872,6 +2879,7 @@ public class ModItems {
 		powder_zinc = new Item().setUnlocalizedName("powder_zinc").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_zinc");
 		powder_lead = new Item().setUnlocalizedName("powder_lead").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_lead");
 		powder_gold = new Item().setUnlocalizedName("powder_gold").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_gold");
+		powder_bronze = new Item().setUnlocalizedName("powder_bronze").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_bronze");
 		powder_iron = new Item().setUnlocalizedName("powder_iron").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_iron");
 		powder_titanium = new Item().setUnlocalizedName("powder_titanium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_titanium");
 		powder_nickel = new Item().setUnlocalizedName("powder_nickel").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_nickel");
@@ -5125,6 +5133,7 @@ public class ModItems {
 		GameRegistry.registerItem(ingot_lanthanium, ingot_lanthanium.getUnlocalizedName());
 		GameRegistry.registerItem(ingot_actinium, ingot_actinium.getUnlocalizedName());
 		GameRegistry.registerItem(ingot_desh, ingot_desh.getUnlocalizedName());
+		GameRegistry.registerItem(ingot_bronze, ingot_bronze.getUnlocalizedName());
 		GameRegistry.registerItem(ingot_ferrouranium, ingot_ferrouranium.getUnlocalizedName());
 		GameRegistry.registerItem(ingot_starmetal, ingot_starmetal.getUnlocalizedName());
 		GameRegistry.registerItem(ingot_gunmetal, ingot_gunmetal.getUnlocalizedName());
@@ -5257,6 +5266,7 @@ public class ModItems {
 		GameRegistry.registerItem(powder_coal_tiny, powder_coal_tiny.getUnlocalizedName());
 		GameRegistry.registerItem(powder_iron, powder_iron.getUnlocalizedName());
 		GameRegistry.registerItem(powder_gold, powder_gold.getUnlocalizedName());
+		GameRegistry.registerItem(powder_bronze, powder_bronze.getUnlocalizedName());
 		GameRegistry.registerItem(powder_lapis, powder_lapis.getUnlocalizedName());
 		GameRegistry.registerItem(powder_quartz, powder_quartz.getUnlocalizedName());
 		GameRegistry.registerItem(powder_diamond, powder_diamond.getUnlocalizedName());
@@ -5540,6 +5550,7 @@ public class ModItems {
 		GameRegistry.registerItem(nugget_australium_lesser, nugget_australium_lesser.getUnlocalizedName());
 		GameRegistry.registerItem(nugget_australium_greater, nugget_australium_greater.getUnlocalizedName());
 		GameRegistry.registerItem(nugget_desh, nugget_desh.getUnlocalizedName());
+		GameRegistry.registerItem(nugget_bronze, nugget_bronze.getUnlocalizedName());
 		GameRegistry.registerItem(nugget_euphemium, nugget_euphemium.getUnlocalizedName());
 		GameRegistry.registerItem(nugget_dineutronium, nugget_dineutronium.getUnlocalizedName());
 		GameRegistry.registerItem(nugget_osmiridium, nugget_osmiridium.getUnlocalizedName());
@@ -5556,6 +5567,7 @@ public class ModItems {
 		GameRegistry.registerItem(plate_stainless, plate_stainless.getUnlocalizedName());
 		GameRegistry.registerItem(plate_lead, plate_lead.getUnlocalizedName());
 		GameRegistry.registerItem(plate_copper, plate_copper.getUnlocalizedName());
+		GameRegistry.registerItem(plate_bronze, plate_bronze.getUnlocalizedName());
 		GameRegistry.registerItem(plate_tungsten, plate_tungsten.getUnlocalizedName());
 		GameRegistry.registerItem(plate_starmetal, plate_starmetal.getUnlocalizedName());
 		GameRegistry.registerItem(plate_ferrouranium, plate_ferrouranium.getUnlocalizedName());
