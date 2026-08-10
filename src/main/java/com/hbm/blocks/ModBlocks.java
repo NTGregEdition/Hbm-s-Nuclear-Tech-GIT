@@ -1461,7 +1461,7 @@ public class ModBlocks {
 		ore_niter = new BlockOre(Material.rock).setBlockName("ore_niter").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_niter");
 		ore_niter.setHarvestLevel("pickaxe", 2);
 		ore_copper = new BlockOre(Material.rock).setBlockName("ore_copper").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_copper");
-		ore_copper.setHarvestLevel("pickaxe", 2);
+		ore_copper.setHarvestLevel("pickaxe", 0);
 		ore_nickel = new BlockOre(Material.rock).setBlockName("ore_nickel").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_nickel");
 		ore_nickel.setHarvestLevel("pickaxe", 2);
 		ore_mineral = new BlockOre(Material.rock).setBlockName("ore_mineral").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_mineral");
@@ -1469,7 +1469,7 @@ public class ModBlocks {
 		ore_zinc = new BlockOre(Material.rock).setBlockName("ore_zinc").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_zinc");
 		ore_zinc.setHarvestLevel("pickaxe", 2);
 		ore_tin = new BlockOre(Material.rock).setBlockName("ore_tin").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_tin");
-		ore_tin.setHarvestLevel("pickaxe", 1);
+		ore_tin.setHarvestLevel("pickaxe", 0);
 		ore_lithium = new BlockOre(Material.rock).setBlockName("ore_lithium").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_lithium");
 		ore_lithium.setHarvestLevel("pickaxe", 2);
 		ore_niobium = new BlockOre(Material.rock).setBlockName("ore_niobium").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_niobium");
@@ -1510,7 +1510,8 @@ public class ModBlocks {
 		cluster_aluminium = new BlockCluster(Material.rock).setBlockName("cluster_aluminium").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(15.0F).setBlockTextureName(RefStrings.MODID + ":cluster_aluminium");
 		cluster_aluminium.setHarvestLevel("pickaxe", 2);
 		cluster_copper = new BlockCluster(Material.rock).setBlockName("cluster_copper").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(15.0F).setBlockTextureName(RefStrings.MODID + ":cluster_copper");
-		cluster_copper.setHarvestLevel("pickaxe", 2);		ore_nether_coal = new BlockNetherCoal(Material.rock, false, 5, true).setBlockName("ore_nether_coal").setCreativeTab(MainRegistry.blockTab).setLightLevel(10F/15F).setHardness(0.4F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_nether_coal");
+		cluster_copper.setHarvestLevel("pickaxe", 0);
+		ore_nether_coal = new BlockNetherCoal(Material.rock, false, 5, true).setBlockName("ore_nether_coal").setCreativeTab(MainRegistry.blockTab).setLightLevel(10F/15F).setHardness(0.4F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_nether_coal");
 		ore_nether_coal.setHarvestLevel("pickaxe", 2);
 		ore_nether_smoldering = new BlockSmolder(Material.rock).setBlockName("ore_nether_smoldering").setCreativeTab(MainRegistry.blockTab).setLightLevel(1F).setHardness(0.4F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_nether_smoldering");
 		ore_nether_smoldering.setHarvestLevel("pickaxe", 2);
@@ -1541,7 +1542,7 @@ public class ModBlocks {
 		ore_gneiss_uranium_scorched = new BlockOutgas(Material.rock, true, 5, true).setBlockName("ore_gneiss_uranium_scorched").setCreativeTab(MainRegistry.blockTab).setHardness(1.5F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_gneiss_uranium_scorched");
 		ore_gneiss_uranium_scorched.setHarvestLevel("pickaxe", 2);
 		ore_gneiss_copper = new BlockStepEffect(Material.rock).setBlockName("ore_gneiss_copper").setCreativeTab(MainRegistry.blockTab).setHardness(1.5F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_gneiss_copper");
-		ore_gneiss_copper.setHarvestLevel("pickaxe", 2);
+		ore_gneiss_copper.setHarvestLevel("pickaxe", 1);
 		ore_gneiss_asbestos = new BlockOutgas(Material.rock, true, 5, true).setBlockName("ore_gneiss_asbestos").setCreativeTab(MainRegistry.blockTab).setHardness(1.5F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_gneiss_asbestos");
 		ore_gneiss_asbestos.setHarvestLevel("pickaxe", 2);
 		ore_gneiss_lithium = new BlockStepEffect(Material.rock).setBlockName("ore_gneiss_lithium").setCreativeTab(MainRegistry.blockTab).setHardness(1.5F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_gneiss_lithium");
@@ -1595,7 +1596,6 @@ public class ModBlocks {
 		basalt_tiles = new BlockGeneric(Material.rock).setBlockName("basalt_tiles").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":basalt_tiles");
 
 		ore_australium = new BlockOre(Material.rock).setBlockName("ore_australium").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_australium");
-
 		ore_australium.setHarvestLevel("pickaxe", 2);
 		ore_rare = new BlockOre(Material.rock).setBlockName("ore_rare").setCreativeTab(MainRegistry.blockTab).setHardness(5.0F).setResistance(10.0F).setBlockTextureName(RefStrings.MODID + ":ore_rare");
 		ore_rare.setHarvestLevel("pickaxe", 2);
