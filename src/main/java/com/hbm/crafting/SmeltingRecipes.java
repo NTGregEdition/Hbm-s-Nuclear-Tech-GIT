@@ -107,6 +107,7 @@ public class SmeltingRecipes {
 		GameRegistry.addSmelting(ModItems.powder_aluminium, new ItemStack(ModItems.ingot_aluminium), 1.0F);
 		GameRegistry.addSmelting(ModItems.powder_beryllium, new ItemStack(ModItems.ingot_beryllium), 1.0F);
 		GameRegistry.addSmelting(ModItems.powder_copper, new ItemStack(ModItems.ingot_copper), 1.0F);
+		GameRegistry.addSmelting(ModItems.powder_bronze, new ItemStack(ModItems.ingot_bronze), 1.0F);
 		GameRegistry.addSmelting(ModItems.powder_nickel, new ItemStack(ModItems.ingot_nickel), 1.0F);
 		GameRegistry.addSmelting(ModItems.powder_zinc, new ItemStack(ModItems.ingot_zinc), 1.0F);
 		GameRegistry.addSmelting(ModItems.powder_tin, new ItemStack(ModItems.ingot_tin), 1.0F);
