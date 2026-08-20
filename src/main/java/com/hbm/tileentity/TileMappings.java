@@ -202,6 +202,7 @@ public class TileMappings {
 		put(TileEntityICF.class, "tileentity_icf");
 		put(TileEntityMachineFENSU.class, "tileentity_fensu");
 		put(TileEntityTrappedBrick.class, "tileentity_trapped_brick");
+		put(TileEntityBlastFurnaceStruct.class, "tileentity_blast_furnace_struct");
 		put(TileEntityWatzStruct.class, "tileentity_watz_struct");
 		put(TileEntityICFStruct.class, "tileentity_icf_struct");
 		put(TileEntityPASource.class, "tileentity_pa_source");
@@ -444,7 +445,7 @@ public class TileMappings {
 		put(TileEntityPileSource.class, "tileentity_pile_source");
 		put(TileEntityPileBreedingFuel.class, "tileentity_pile_breedingfuel");
 		put(TileEntityPileNeutronDetector.class, "tileentity_pile_neutrondetector");
-		
+
 		put(TileEntityPileCore.class, "tileentity_pile_core");
 		put(TileEntityPileBaseMK2.class, "tileentity_pile_block");
 		put(TileEntityPileLoader.class, "tileentity_pile_loader");

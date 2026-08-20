@@ -6160,6 +6160,7 @@ tile.stones_slab.lightstone.2.name=Плита из светлокаменног�
 tile.struct_icf_core.name=Ядро инерциального термоядерного реактора (ICF)
 tile.struct_iter_core.name=Ядро термоядерного реактора
 tile.struct_torus_core.name=Ядро основной камеры (Термоядерный реактор)
+tile.struct_blast_furnace.name=Ядро доменной печи
 tile.struct_launcher.name=Блок-компонент пусковой площадки
 tile.struct_launcher_core.name=Ядро компактной пусковой площадки
 tile.struct_launcher_core_large.name=Ядро большой пусковой площадки

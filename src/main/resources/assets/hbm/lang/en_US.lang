@@ -7143,6 +7143,7 @@ tile.struct_plasma_core.name=Plasma Heater Core Component
 tile.struct_scaffold.name=Launch Pad Scaffold Block
 tile.struct_soyuz_core.name=Soyuz Launcher Core Component
 tile.struct_torus_core.name=Fusion Reactor Vessel Core Component
+tile.struct_blast_furnace.name=Blast Furnace Core
 tile.struct_watz_core.name=Watz Powerplant Core Component
 tile.substation.name=Substation
 tile.sulfuric_acid_block.name=Sulfuric Acid

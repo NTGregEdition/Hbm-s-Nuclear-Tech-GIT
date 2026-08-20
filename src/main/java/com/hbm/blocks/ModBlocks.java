@@ -959,6 +959,7 @@ public class ModBlocks {
 	public static Block struct_launcher_core;
 	public static Block struct_launcher_core_large;
 	public static Block struct_soyuz_core;
+	public static Block struct_blast_furnace;
 	public static Block struct_torus_core;
 	public static Block struct_watz_core;
 	public static Block struct_icf_core;
@@ -2327,6 +2328,7 @@ public class ModBlocks {
 		struct_launcher_core = new BlockStruct(Material.iron).setBlockName("struct_launcher_core").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.missileTab).setBlockTextureName(RefStrings.MODID + ":struct_launcher_core");
 		struct_launcher_core_large = new BlockStruct(Material.iron).setBlockName("struct_launcher_core_large").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.missileTab).setBlockTextureName(RefStrings.MODID + ":struct_launcher_core_large");
 		struct_soyuz_core = new BlockSoyuzStruct(Material.iron).setBlockName("struct_soyuz_core").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.missileTab).setBlockTextureName(RefStrings.MODID + ":struct_soyuz_core");
+		struct_blast_furnace = new BlockBlastFurnaceStruct(Material.rock).setBlockName("struct_blast_furnace").setLightLevel(1F).setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":struct_blast_furnace");
 		struct_torus_core = new BlockFusionTorusStruct(Material.iron).setBlockName("struct_torus_core").setLightLevel(1F).setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":struct_torus_core");
 		struct_watz_core = new BlockWatzStruct(Material.iron).setBlockName("struct_watz_core").setLightLevel(1F).setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":struct_watz_core");
 		struct_icf_core = new BlockICFStruct(Material.iron).setBlockName("struct_icf_core").setLightLevel(1F).setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":struct_icf_core");
@@ -3911,6 +3913,7 @@ public class ModBlocks {
 		GameRegistry.registerBlock(struct_launcher_core, struct_launcher_core.getUnlocalizedName());
 		GameRegistry.registerBlock(struct_launcher_core_large, struct_launcher_core_large.getUnlocalizedName());
 		GameRegistry.registerBlock(struct_soyuz_core, struct_soyuz_core.getUnlocalizedName());
+		register(struct_blast_furnace);
 		register(struct_torus_core);
 		GameRegistry.registerBlock(struct_watz_core, struct_watz_core.getUnlocalizedName());
 		GameRegistry.registerBlock(struct_icf_core, struct_icf_core.getUnlocalizedName());

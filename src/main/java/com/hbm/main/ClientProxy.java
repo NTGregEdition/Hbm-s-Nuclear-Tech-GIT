@@ -461,6 +461,7 @@ public class ClientProxy extends ServerProxy {
 		//multiblocks
 		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityMultiblock.class, new RenderMultiblock());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileEntitySoyuzStruct.class, new RenderSoyuzMultiblock());
+		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityBlastFurnaceStruct.class, new RenderBlastFurnaceStruct());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityWatzStruct.class, new RenderWatzMultiblock());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityICFStruct.class, new RenderICFMultiblock());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityCustomMachine.class, new RenderCustomMachine());
