@@ -3,15 +3,19 @@ package com.hbm.items.tool;
 import java.util.List;
 
 import com.hbm.blocks.BlockDummyable;
+import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.network.TileEntityPipelineBase;
 
 import api.hbm.block.IToolable.ToolType;
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 public class ItemToolingWrench extends ItemTooling {
@@ -86,6 +90,24 @@ public class ItemToolingWrench extends ItemTooling {
 	}
 
 	@Override
+	public boolean hitEntity(ItemStack stack, EntityLivingBase entity, EntityLivingBase entityPlayer) {
+		World world = entity.worldObj;
+
+		Vec3 vec = entityPlayer.getLookVec();
+
+		double dX = vec.xCoord * 0.5;
+		double dY = vec.yCoord * 0.5;
+		double dZ = vec.zCoord * 0.5;
+
+		entity.motionX += dX;
+		entity.motionY += dY;
+		entity.motionZ += dZ;
+		world.playSoundAtEntity(entity, "random.anvil_land", 3.0F, 0.75F);
+
+		return false;
+	}
+
+	@Override
 	public void addInformation(ItemStack itemstack, EntityPlayer player, List list, boolean bool) {
 		if(itemstack.stackTagCompound != null) {
 			list.add("Pipe start x: " + itemstack.stackTagCompound.getInteger("x"));
@@ -93,6 +115,21 @@ public class ItemToolingWrench extends ItemTooling {
 			list.add("Pipe start z: " + itemstack.stackTagCompound.getInteger("z"));
 		} else {
 			list.add("Right-click anchor to connect");
+		}
+	}
+
+	@Override
+	public void onUpdate(ItemStack stack, World world, Entity entity, int slot, boolean inhand) {
+
+		if(world.isRemote) {
+			if(stack.stackTagCompound != null) {
+				Vec3 vec = Vec3.createVectorHelper(
+					entity.posX - stack.stackTagCompound.getInteger("x"),
+					entity.posY - stack.stackTagCompound.getInteger("y"),
+					entity.posZ - stack.stackTagCompound.getInteger("z"));
+
+				MainRegistry.proxy.displayTooltip(stack.getDisplayName() + ": " + ((int) vec.lengthVector()) + "m", MainRegistry.proxy.ID_WRENCH);
+			}
 		}
 	}
 }

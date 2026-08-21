@@ -227,7 +227,10 @@ public class ItemMultitool extends ItemCraftingDegradation {
 
 		boolean handled;
 		try {
-			handled = b.onBlockActivated(world, x, y, z, player, side, fX, fY, fZ);
+			handled = mode.emulatedItem.onItemUseFirst(fake, player, world, x, y, z, side, fX, fY, fZ);
+			if (!handled) {
+				handled = b.onBlockActivated(world, x, y, z, player, side, fX, fY, fZ);
+			}
 		} finally {
 			restoreRealItem(stack, mode, player, fake, backup);
 		}

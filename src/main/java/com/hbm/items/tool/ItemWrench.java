@@ -28,27 +28,24 @@ public class ItemWrench extends ItemSword {
 	public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int p_77648_7_, float p_77648_8_, float p_77648_9_, float p_77648_10_) {
 
 		if(!player.isSneaking()) {
-			
+
 			Block b = world.getBlock(x, y, z);
-			
+
 			if(b instanceof BlockDummyable) {
 				int[] core = ((BlockDummyable)b).findCore(world, x, y, z);
-				
+
 				if(core != null) {
 					x = core[0];
 					y = core[1];
 					z = core[2];
 				}
 			}
-			
+
 			TileEntity te = world.getTileEntity(x, y, z);
 
 			if(te != null && te instanceof TileEntityPipelineBase) {
-				
-				if(stack.stackTagCompound == null)
-					stack.stackTagCompound = new NBTTagCompound();
 
-				if(!stack.stackTagCompound.hasKey("x")) {
+				if(stack.stackTagCompound == null) {
 					stack.stackTagCompound = new NBTTagCompound();
 
 					stack.stackTagCompound.setInteger("x", x);
@@ -68,7 +65,7 @@ public class ItemWrench extends ItemSword {
 
 						TileEntityPipelineBase first = (TileEntityPipelineBase) world.getTileEntity(x1, y1, z1);
 						TileEntityPipelineBase second = ((TileEntityPipelineBase) te);
-						
+
 						switch (TileEntityPipelineBase.canConnect(first, second)) {
 							case 0:
 								first.addConnection(x, y, z);
@@ -81,17 +78,12 @@ public class ItemWrench extends ItemSword {
 							case 4: player.addChatMessage(new ChatComponentText("Pipe error - Pipe anchor fluid types do not match")); break;
 						}
 
-						stack.stackTagCompound.removeTag("x");
-						stack.stackTagCompound.removeTag("y");
-						stack.stackTagCompound.removeTag("z");
+						stack.stackTagCompound = null;
 
 					} else {
 
-						stack.stackTagCompound.removeTag("x");
-						stack.stackTagCompound.removeTag("y");
-						stack.stackTagCompound.removeTag("z");
-
 						player.addChatMessage(new ChatComponentText("Pipe error"));
+						stack.stackTagCompound = null;
 					}
 				}
 
@@ -117,7 +109,7 @@ public class ItemWrench extends ItemSword {
 		entity.motionY += dY;
 		entity.motionZ += dZ;
 		world.playSoundAtEntity(entity, "random.anvil_land", 3.0F, 0.75F);
-		
+
 		return false;
 	}
 
@@ -138,10 +130,10 @@ public class ItemWrench extends ItemSword {
 		if(world.isRemote) {
 			if(stack.stackTagCompound != null) {
 				Vec3 vec = Vec3.createVectorHelper(
-						entity.posX - stack.stackTagCompound.getInteger("x"),
-						entity.posY - stack.stackTagCompound.getInteger("y"),
-						entity.posZ - stack.stackTagCompound.getInteger("z"));
-				
+					entity.posX - stack.stackTagCompound.getInteger("x"),
+					entity.posY - stack.stackTagCompound.getInteger("y"),
+					entity.posZ - stack.stackTagCompound.getInteger("z"));
+
 				MainRegistry.proxy.displayTooltip(stack.getDisplayName() + ": " + ((int) vec.lengthVector()) + "m", MainRegistry.proxy.ID_WRENCH);
 			}
 		}
