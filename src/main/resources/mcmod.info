@@ -8,7 +8,7 @@
   "url": "",
   "updateUrl": "",
   "credits": "${credits}",
-  "logoFile": "assets/hbm/textures/HBM_GregEdition.png",
+  "logoFile": "assets/hbm/textures/NTM_GregEdition.png",
   "screenshots": [],
   "dependencies": []
 }

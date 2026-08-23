@@ -561,6 +561,7 @@ public class ClientProxy extends ServerProxy {
 		double[] tir = new double[] {0, 0, 0};
 		double[] sir = new double[] {1, 1, 1};
 
+		MinecraftForgeClient.registerItemRenderer(ModItems.bronze_sword, new ItemRenderTransformer(rtp, ttp_high, stp, rfp, tfp, sfp, rir, tir, sir));
 		MinecraftForgeClient.registerItemRenderer(ModItems.steel_sword, new ItemRenderTransformer(rtp, ttp_high, stp, rfp, tfp, sfp, rir, tir, sir));
 		MinecraftForgeClient.registerItemRenderer(ModItems.titanium_sword, new ItemRenderTransformer(rtp, ttp_high, stp, rfp, tfp, sfp, rir, tir, sir));
 		MinecraftForgeClient.registerItemRenderer(ModItems.alloy_sword, new ItemRenderTransformer(rtp, ttp_high, stp, rfp, tfp, sfp, rir, tir, sir));

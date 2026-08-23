@@ -126,6 +126,7 @@ public class MainRegistry {
 	public static ToolMaterial tMatSchrab = EnumHelper.addToolMaterial("SCHRABIDIUM", 3, 10000, 50.0F, 100.0F, 200);
 	public static ToolMaterial tMatHammmer = EnumHelper.addToolMaterial("SCHRABIDIUMHAMMER", 3, 0, 50.0F, 999999996F, 200);
 	public static ToolMaterial tMatChainsaw = EnumHelper.addToolMaterial("CHAINSAW", 3, 1500, 50.0F, 22.0F, 0);
+	public static ToolMaterial tMatBronze = EnumHelper.addToolMaterial("HBM_BRONZE", 1, 128, 4.0F, 2.0F, 10);
 	public static ToolMaterial tMatSteel = EnumHelper.addToolMaterial("HBM_STEEL", 3, 750, 8.0F, 2.0F, 10);
 	public static ToolMaterial tMatTitan = EnumHelper.addToolMaterial("HBM_TITANIUM", 3, 1000, 9.0F, 2.5F, 15);
 	@Deprecated public static ToolMaterial tMatAlloy = EnumHelper.addToolMaterial("HBM_ALLOY", 3, 2000, 15.0F, 5.0F, 5);

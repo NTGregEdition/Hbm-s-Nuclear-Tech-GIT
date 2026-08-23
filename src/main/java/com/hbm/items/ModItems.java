@@ -2028,6 +2028,11 @@ public class ModItems {
 	public static Item schrabidium_axe;
 	public static Item schrabidium_shovel;
 	public static Item schrabidium_hoe;
+	public static Item bronze_sword;
+	public static Item bronze_pickaxe;
+	public static Item bronze_axe;
+	public static Item bronze_shovel;
+	public static Item bronze_hoe;
 	public static Item titanium_sword;
 	public static Item titanium_pickaxe;
 	public static Item titanium_axe;
@@ -4524,6 +4529,12 @@ public class ModItems {
 
 		schrabidium_hoe = new HoeSchrabidium(MainRegistry.tMatSchrab).setUnlocalizedName("schrabidium_hoe").setTextureName(RefStrings.MODID + ":schrabidium_hoe");
 
+		bronze_sword = new ItemSwordAbility(5F, 0, MainRegistry.tMatBronze).setUnlocalizedName("bronze_sword").setTextureName(RefStrings.MODID + ":bronze_sword");
+		bronze_pickaxe = new ItemToolAbility(3F, 0, MainRegistry.tMatBronze, EnumToolType.PICKAXE).setUnlocalizedName("bronze_pickaxe").setTextureName(RefStrings.MODID + ":bronze_pickaxe");
+		bronze_axe = new ItemToolAbility(4F, 0, MainRegistry.tMatBronze, EnumToolType.AXE).setUnlocalizedName("bronze_axe").setTextureName(RefStrings.MODID + ":bronze_axe");
+		bronze_shovel = new ItemToolAbility(3F, 0, MainRegistry.tMatBronze, EnumToolType.SHOVEL).setUnlocalizedName("bronze_shovel").setTextureName(RefStrings.MODID + ":bronze_shovel");
+		bronze_hoe = new ModHoe(MainRegistry.tMatBronze).setUnlocalizedName("bronze_hoe").setTextureName(RefStrings.MODID + ":bronze_hoe");
+
 		titanium_sword = new ItemSwordAbility(6.5F, 0, MainRegistry.tMatTitan).setUnlocalizedName("titanium_sword").setTextureName(RefStrings.MODID + ":titanium_sword");
 		titanium_pickaxe = new ItemToolAbility(4.5F, 0, MainRegistry.tMatTitan, EnumToolType.PICKAXE).setUnlocalizedName("titanium_pickaxe").setTextureName(RefStrings.MODID + ":titanium_pickaxe");
 		titanium_axe = new ItemToolAbility(5.5F, 0, MainRegistry.tMatTitan, EnumToolType.AXE)
@@ -6653,6 +6664,11 @@ public class ModItems {
 		GameRegistry.registerItem(schrabidium_axe, schrabidium_axe.getUnlocalizedName());
 		GameRegistry.registerItem(schrabidium_shovel, schrabidium_shovel.getUnlocalizedName());
 		GameRegistry.registerItem(schrabidium_hoe, schrabidium_hoe.getUnlocalizedName());
+		GameRegistry.registerItem(bronze_sword, bronze_sword.getUnlocalizedName());
+		GameRegistry.registerItem(bronze_pickaxe, bronze_pickaxe.getUnlocalizedName());
+		GameRegistry.registerItem(bronze_axe, bronze_axe.getUnlocalizedName());
+		GameRegistry.registerItem(bronze_shovel, bronze_shovel.getUnlocalizedName());
+		GameRegistry.registerItem(bronze_hoe, bronze_hoe.getUnlocalizedName());
 		GameRegistry.registerItem(steel_sword, steel_sword.getUnlocalizedName());
 		GameRegistry.registerItem(steel_pickaxe, steel_pickaxe.getUnlocalizedName());
 		GameRegistry.registerItem(steel_axe, steel_axe.getUnlocalizedName());
