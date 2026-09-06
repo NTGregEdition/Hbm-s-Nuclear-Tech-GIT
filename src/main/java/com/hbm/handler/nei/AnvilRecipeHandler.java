@@ -22,27 +22,33 @@ import com.hbm.util.ItemStackUtil;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.TemplateRecipeHandler;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.ResourceLocation;
+import org.lwjgl.opengl.GL11;
 
 public class AnvilRecipeHandler extends TemplateRecipeHandler implements ICompatNHNEI {
+
+	private static final ResourceLocation TOOL_ICON = new ResourceLocation(RefStrings.MODID + ":textures/gui/nei/overlay_tool.png");
 
 	@Override
 	public ItemStack[] getMachinesForRecipe() {
 		return new ItemStack[]{
-				new ItemStack(ModBlocks.anvil_iron),
-				new ItemStack(ModBlocks.anvil_lead),
-				new ItemStack(ModBlocks.anvil_steel),
-				new ItemStack(ModBlocks.anvil_desh),
-				new ItemStack(ModBlocks.anvil_saturnite),
-				new ItemStack(ModBlocks.anvil_ferrouranium),
-				new ItemStack(ModBlocks.anvil_bismuth_bronze),
-				new ItemStack(ModBlocks.anvil_arsenic_bronze),
-				new ItemStack(ModBlocks.anvil_schrabidate),
-				new ItemStack(ModBlocks.anvil_dnt),
-				new ItemStack(ModBlocks.anvil_osmiridium),
-				new ItemStack(ModBlocks.anvil_murky)};
+			new ItemStack(ModBlocks.anvil_iron),
+			new ItemStack(ModBlocks.anvil_lead),
+			new ItemStack(ModBlocks.anvil_steel),
+			new ItemStack(ModBlocks.anvil_desh),
+			new ItemStack(ModBlocks.anvil_saturnite),
+			new ItemStack(ModBlocks.anvil_ferrouranium),
+			new ItemStack(ModBlocks.anvil_bismuth_bronze),
+			new ItemStack(ModBlocks.anvil_arsenic_bronze),
+			new ItemStack(ModBlocks.anvil_schrabidate),
+			new ItemStack(ModBlocks.anvil_dnt),
+			new ItemStack(ModBlocks.anvil_osmiridium),
+			new ItemStack(ModBlocks.anvil_murky)};
 	}
 
 	@Override
@@ -274,26 +280,58 @@ public class AnvilRecipeHandler extends TemplateRecipeHandler implements ICompat
 		RecipeSet set = (RecipeSet) this.arecipes.get(recipe);
 
 		switch(set.shape) {
-		case NONE:
-			drawTexturedModalRect(2, 5, 5, 87, 72, 54);			//in
-			drawTexturedModalRect(92, 5, 5, 87, 72, 54);		//out
-			drawTexturedModalRect(74, 14, 131, 96, 18, 36);		//operation
-			break;
-		case SMITHING:
-			drawTexturedModalRect(47, 23, 113, 105, 18, 18);	//in
-			drawTexturedModalRect(101, 23, 113, 105, 18, 18);	//out
-			drawTexturedModalRect(74, 14, 149, 96, 18, 36);		//operation
-			break;
-		case CONSTRUCTION:
-			drawTexturedModalRect(11, 5, 5, 87, 108, 54);		//in
-			drawTexturedModalRect(137, 23, 113, 105, 18, 18);	//out
-			drawTexturedModalRect(119, 14, 167, 96, 18, 36);	//operation
-			break;
-		case RECYCLING:
-			drawTexturedModalRect(11, 23, 113, 105, 18, 18);	//in
-			drawTexturedModalRect(47, 5, 5, 87, 108, 54);		//out
-			drawTexturedModalRect(29, 14, 185, 96, 18, 36);		//operation
-			break;
+			case NONE:
+				drawTexturedModalRect(2, 5, 5, 87, 72, 54);			//in
+				drawTexturedModalRect(92, 5, 5, 87, 72, 54);		//out
+				drawTexturedModalRect(74, 14, 131, 96, 18, 36);		//operation
+				break;
+			case SMITHING:
+				drawTexturedModalRect(47, 23, 113, 105, 18, 18);	//in
+				drawTexturedModalRect(101, 23, 113, 105, 18, 18);	//out
+				drawTexturedModalRect(74, 14, 149, 96, 18, 36);		//operation
+				break;
+			case CONSTRUCTION:
+				drawTexturedModalRect(11, 5, 5, 87, 108, 54);		//in
+				drawTexturedModalRect(137, 23, 113, 105, 18, 18);	//out
+				drawTexturedModalRect(119, 14, 167, 96, 18, 36);	//operation
+				break;
+			case RECYCLING:
+				drawTexturedModalRect(11, 23, 113, 105, 18, 18);	//in
+				drawTexturedModalRect(47, 5, 5, 87, 108, 54);		//out
+				drawTexturedModalRect(29, 14, 185, 96, 18, 36);		//operation
+				break;
+		}
+	}
+
+	@Override
+	public void drawExtras(int recipe) {
+
+		RecipeSet set = (RecipeSet) this.arecipes.get(recipe);
+
+		GL11.glColor4f(1F, 1F, 1F, 1F);
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+
+		Minecraft.getMinecraft().getTextureManager().bindTexture(TOOL_ICON);
+
+		Tessellator tessellator = Tessellator.instance;
+
+		for(int i = 0; i < set.input.size(); i++) {
+
+			if(set.recipe.isKept(i)) {
+
+				PositionedStack pos = set.input.get(i);
+				int x = pos.relx;
+				int y = pos.rely;
+
+				//manual UV(0,0)-(1,1) quad: always maps the whole bound texture regardless of its actual pixel size
+				tessellator.startDrawingQuads();
+				tessellator.addVertexWithUV(x, y + 16, 0, 0, 1);
+				tessellator.addVertexWithUV(x + 16, y + 16, 0, 1, 1);
+				tessellator.addVertexWithUV(x + 16, y, 0, 1, 0);
+				tessellator.addVertexWithUV(x, y, 0, 0, 0);
+				tessellator.draw();
+			}
 		}
 	}
 }

@@ -295,6 +295,35 @@ public class InventoryUtil {
 		return true;
 	}
 
+	public static void damageMatchingStack(EntityPlayer player, AStack matcher, int amount) {
+
+		ItemStack[] inventory = player.inventory.mainInventory;
+
+		for(int i = 0; i < inventory.length; i++) {
+
+			ItemStack stack = inventory[i];
+
+			if(stack != null && matcher.matchesRecipe(stack, true) && stack.getItem().getMaxDamage() <= 0) {
+				return;
+			}
+		}
+
+		for(int i = 0; i < inventory.length; i++) {
+
+			ItemStack stack = inventory[i];
+
+			if(stack != null && matcher.matchesRecipe(stack, true)) {
+				stack.damageItem(amount, player);
+
+				if(stack.stackSize <= 0) {
+					inventory[i] = null;
+				}
+
+				return;
+			}
+		}
+	}
+
 	public static void giveChanceStacksToPlayer(EntityPlayer player, List<AnvilOutput> stacks) {
 
 		for(AnvilOutput out : stacks) {
@@ -524,7 +553,7 @@ public class InventoryUtil {
 					int toRemove = Math.min(stack.stackSize, max);
 
 					if(slot.isItemValid(ItemStackUtil.carefulCopyWithSize(stack, toRemove)) && current.getItem() == stack.getItem() &&
-							(!stack.getHasSubtypes() || stack.getItemDamage() == current.getItemDamage()) && ItemStack.areItemStackTagsEqual(stack, current)) {
+						(!stack.getHasSubtypes() || stack.getItemDamage() == current.getItemDamage()) && ItemStack.areItemStackTagsEqual(stack, current)) {
 
 						int currentSize = current.stackSize + stack.stackSize;
 						if(currentSize <= max) {
