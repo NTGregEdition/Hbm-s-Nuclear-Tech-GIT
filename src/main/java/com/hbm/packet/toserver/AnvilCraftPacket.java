@@ -3,6 +3,7 @@ package com.hbm.packet.toserver;
 import com.hbm.inventory.container.ContainerAnvil;
 import com.hbm.inventory.recipes.anvil.AnvilRecipes;
 import com.hbm.inventory.recipes.anvil.AnvilRecipes.AnvilConstructionRecipe;
+import com.hbm.inventory.RecipesCommon.AStack;
 import com.hbm.util.AchievementHandler;
 import com.hbm.util.InventoryUtil;
 
@@ -12,6 +13,8 @@ import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
 
 import java.util.Map;
+import java.util.Collections;
+import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
 
@@ -62,8 +65,19 @@ public class AnvilCraftPacket implements IMessage {
 
 			for(int i = 0; i < count; i++) {
 
-				if(InventoryUtil.doesPlayerHaveAStacks(p, recipe.input, false)) {
-					InventoryUtil.doesPlayerHaveAStacks(p, recipe.getConsumedInputs(), true);
+				List<AStack> consumed = recipe.getConsumedInputs();
+				boolean hasConsumed = InventoryUtil.doesPlayerHaveAStacks(p, consumed, false);
+
+				boolean hasTools = true;
+				for(int idx : recipe.keptInputs) {
+					if(!InventoryUtil.doesPlayerHaveAStacks(p, Collections.singletonList(recipe.input.get(idx)), false)) {
+						hasTools = false;
+						break;
+					}
+				}
+
+				if(hasConsumed && hasTools) {
+					InventoryUtil.doesPlayerHaveAStacks(p, consumed, true);
 
 					for(Map.Entry<Integer, Integer> entry : recipe.wear.entrySet()) {
 						InventoryUtil.damageMatchingStack(p, recipe.input.get(entry.getKey()), entry.getValue());
