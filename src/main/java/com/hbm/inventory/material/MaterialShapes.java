@@ -43,7 +43,6 @@ public class MaterialShapes {
 	public static final MaterialShapes SPRING = new MaterialShapes(INGOT.quantity * 4, "spring");
 	public static final MaterialShapes SMALL_SPRING = new MaterialShapes(INGOT.quantity * 1, "small_spring");
 	public static final MaterialShapes ROTOR = new MaterialShapes(INGOT.quantity * 4, "rotor");
-	public static final MaterialShapes FINE_WIRE = new MaterialShapes(36,"fine_wire");
 	public static final MaterialShapes QUART = new MaterialShapes(162);
 	public static final MaterialShapes BLOCK = new MaterialShapes(INGOT.quantity * 9, "block");
 

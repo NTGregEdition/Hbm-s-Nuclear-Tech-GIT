@@ -792,7 +792,6 @@ public class ModItems {
 	public static Item spring;
 	public static Item small_spring;
 	public static Item rotor;
-	public static Item fine_wire;
 
 	public static Item gear_large;
 	public static Item sawblade;
@@ -3041,7 +3040,6 @@ public class ModItems {
 		spring = new ItemAutogen(MaterialShapes.SPRING).oun("spring").setUnlocalizedName("spring").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":spring");
 		small_spring = new ItemAutogen(MaterialShapes.SMALL_SPRING).oun("small_spring").setUnlocalizedName("small_spring").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":small_spring");
 		rotor = new ItemAutogen(MaterialShapes.ROTOR).oun("rotor").setUnlocalizedName("rotor").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":rotor");
-		fine_wire = new ItemAutogen(MaterialShapes.FINE_WIRE).oun("fine_wire").setUnlocalizedName("fine_wire").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":fine_wire");
 
 		ducttape = new Item().setUnlocalizedName("ducttape").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":ducttape");
 		catalyst_clay = new Item().setUnlocalizedName("catalyst_clay").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":catalyst_clay");
@@ -5632,7 +5630,6 @@ public class ModItems {
 		GameRegistry.registerItem(spring, spring.getUnlocalizedName());
 		GameRegistry.registerItem(small_spring, small_spring.getUnlocalizedName());
 		GameRegistry.registerItem(rotor, rotor.getUnlocalizedName());
-		GameRegistry.registerItem(fine_wire, fine_wire.getUnlocalizedName());
 
 
 		//Cloth

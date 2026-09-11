@@ -1235,20 +1235,6 @@ public class CraftingManager {
 			}
 		}
 
-		for(NTMMaterial mat : Mats.orderedList) {
-			if(mat.autogen.contains(MaterialShapes.FINE_WIRE)) {
-				for(String name : mat.names) {
-					addRecipeAuto(new ItemStack(ModItems.fine_wire, 1, mat.id), new Object[] {
-						"PS ",
-						"   ",
-						"   ",
-						'P', MaterialShapes.FOIL.name() + name,
-						'S', "ntmwire_cutter"
-					});
-				}
-			}
-		}
-
 		if(!GeneralConfig.enable528) {
 			addRecipeAuto(new ItemStack(ModItems.reactor_sensor, 1), new Object[] { "WPW", "CMC", "PPP", 'W', W.wireFine(), 'P', PB.plate(), 'C', DictFrame.fromOne(ModItems.circuit, EnumCircuitType.BASIC), 'M', ModItems.magnetron });
 			addRecipeAuto(new ItemStack(ModBlocks.rbmk_console, 1), new Object[] { "BBB", "DGD", "DCD", 'B', B.ingot(), 'D', ModBlocks.deco_rbmk, 'G', KEY_ANYPANE, 'C', DictFrame.fromOne(ModItems.circuit, EnumCircuitType.ANALOG) });

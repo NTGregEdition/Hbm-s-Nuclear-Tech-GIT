@@ -704,7 +704,6 @@ public class OreDictManager {
 			if(mat.autogen.contains(SPRING)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.SPRING.name() + name, new ItemStack(ModItems.spring, 1, mat.id));
 			if(mat.autogen.contains(SMALL_SPRING)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.SMALL_SPRING.name() + name, new ItemStack(ModItems.small_spring, 1, mat.id));
 			if(mat.autogen.contains(ROTOR)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.ROTOR.name() + name, new ItemStack(ModItems.rotor, 1, mat.id));
-			if(mat.autogen.contains(FINE_WIRE)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.FINE_WIRE.name() + name, new ItemStack(ModItems.fine_wire, 1, mat.id));
 
 			if(mat.autogen.contains(MaterialShapes.LIGHTBARREL)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.LIGHTBARREL.name() + name, new ItemStack(ModItems.part_barrel_light, 1, mat.id));
 			if(mat.autogen.contains(MaterialShapes.HEAVYBARREL)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.HEAVYBARREL.name() + name, new ItemStack(ModItems.part_barrel_heavy, 1, mat.id));
