@@ -83,19 +83,32 @@ public class TileEntityPADipole extends TileEntityCooledBase implements IGUIProv
 		int mult = 1;
 		if(slots[1] != null && slots[1].getItem() == ModItems.pa_coil) {
 			type = EnumUtil.grabEnumSafely(EnumCoilType.class, slots[1].getItemDamage());
-
-			if(type.diMin > particle.momentum) mult *= 10;
-			if(type.diDistMin > particle.distanceTraveled) mult *= 10;
-			if(isInline) mult = 1;
 		}
 
-		if(!isCool())													particle.crash(PAState.CRASH_NOCOOL);
-		if(this.power < usage * mult)									particle.crash(PAState.CRASH_NOPOWER);
-		if(type == null)												particle.crash(PAState.CRASH_NOCOIL);
-		if(type != null && type.diMax < particle.momentum && !isInline)	particle.crash(PAState.CRASH_OVERSPEED);
-
-		if(particle.invalid) return;
-
+		if(type == null) {
+			particle.discharge();
+			particle.crash(PAState.CRASH_NOCOIL);
+			return;
+		}
+		boolean belowMinimum = particle.momentum < type.diMin || particle.distanceTraveled < type.diDistMin;
+		boolean aboveMaximum = particle.momentum > type.diMax;
+		if(belowMinimum || aboveMaximum) {
+			slots[1] = null;
+			markDirty();
+			particle.discharge();
+			particle.crash(belowMinimum ? PAState.CRASH_UNDERSPEED : PAState.CRASH_OVERSPEED);
+			return;
+		}
+		if(!isCool()) {
+			particle.discharge();
+			particle.crash(PAState.CRASH_NOCOOL);
+			return;
+		}
+		if(this.power < usage * mult) {
+			particle.discharge();
+			particle.crash(PAState.CRASH_NOPOWER);
+			return;
+		}
 		if(isInline) {
 			particle.addDistance(3);
 		} else {

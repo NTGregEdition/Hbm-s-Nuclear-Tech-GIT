@@ -3,11 +3,17 @@ import api.hbm.energymk2.VoltageCheckedCharging;
 
 import api.hbm.redstoneoverradio.IRORInteractive;
 import com.hbm.blocks.BlockDummyable;
+import com.hbm.entity.projectile.EntityBulletBeamBase;
 import com.hbm.handler.CompatHandler;
+import com.hbm.handler.threading.PacketThreading;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.inventory.container.ContainerPASource;
 import com.hbm.inventory.gui.GUIPASource;
+import com.hbm.items.weapon.sedna.BulletConfig;
+import com.hbm.items.weapon.sedna.factory.XFactoryAccelerator;
 import com.hbm.lib.Library;
+import com.hbm.main.NTMSounds;
+import com.hbm.packet.toclient.AuxParticlePacketNT;
 import com.hbm.tileentity.IConditionalInvAccess;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.util.EnumUtil;
@@ -16,6 +22,7 @@ import com.hbm.util.fauxpointtwelve.DirPos;
 
 import api.hbm.redstoneoverradio.IRORValueProvider;
 import cpw.mods.fml.common.Optional;
+import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
@@ -31,6 +38,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -38,6 +46,11 @@ import net.minecraftforge.common.util.ForgeDirection;
 public class TileEntityPASource extends TileEntityCooledBase implements IGUIProvider, IConditionalInvAccess, IControlReceiver, SimpleComponent, CompatHandler.OCComponent, IRORValueProvider, IRORInteractive {
 
 	public static final long usage = 100_000;
+	public static final int PARTICLE_BEAM_RANGE = 30;
+	public static final int PARTICLE_BEAM_MEDIUM_RANGE = 50;
+	public static final int PARTICLE_BEAM_HIGH_RANGE = 75;
+	public static final int PARTICLE_BEAM_MEDIUM_MOMENTUM = 1500;
+	public static final int PARTICLE_BEAM_HIGH_MOMENTUM = 7500;
 	public Particle particle;
 	public PAState state = PAState.IDLE;
 
@@ -108,18 +121,90 @@ public class TileEntityPASource extends TileEntityCooledBase implements IGUIProv
 		Block b = worldObj.getBlock(particle.x, particle.y, particle.z);
 		if(b instanceof BlockDummyable) {
 			int[] pos = ((BlockDummyable) b).findCore(worldObj, particle.x, particle.y, particle.z);
-			if(pos == null) { particle.crash(PAState.CRASH_DERAIL); return; }
+			if(pos == null) { particle.discharge(); particle.crash(PAState.CRASH_DERAIL); return; }
 			TileEntity tile = worldObj.getTileEntity(pos[0], pos[1], pos[2]);
-			if(!(tile instanceof IParticleUser)) { particle.crash(PAState.CRASH_DERAIL); return; }
+			if(!(tile instanceof IParticleUser)) { particle.discharge(); particle.crash(PAState.CRASH_DERAIL); return; }
 			IParticleUser pa = (IParticleUser) tile;
 			if(pa.canParticleEnter(particle, particle.dir, particle.x, particle.y, particle.z)) {
 				pa.onEnter(particle, particle.dir);
+				if(particle.invalid) return;
 				BlockPos exit = pa.getExitPos(particle);
 				if(exit != null) particle.move(exit);
-			} else { particle.crash(PAState.CRASH_CANNOT_ENTER); return; }
+			} else {
+				particle.discharge();
+				particle.crash(PAState.CRASH_CANNOT_ENTER);
+				return;
+			}
 		} else {
+			particle.discharge();
 			particle.crash(PAState.CRASH_DERAIL);
 		}
+	}
+
+	/** Fires a full-length beam after a particle escapes the accelerator or destroys a coil. */
+	private void fireParticleBeam(int x, int y, int z, ForgeDirection dir, int momentum) {
+		int range = PARTICLE_BEAM_RANGE;
+		int radius = 0;
+		BulletConfig beamConfig = XFactoryAccelerator.pa_particle_beam_small;
+		if(momentum > PARTICLE_BEAM_HIGH_MOMENTUM) {
+			range = PARTICLE_BEAM_HIGH_RANGE;
+			radius = 2;
+			beamConfig = XFactoryAccelerator.pa_particle_beam_large;
+		} else if(momentum > PARTICLE_BEAM_MEDIUM_MOMENTUM) {
+			range = PARTICLE_BEAM_MEDIUM_RANGE;
+			radius = 1;
+			beamConfig = XFactoryAccelerator.pa_particle_beam_medium;
+		}
+
+		// The simulated particle is already in the first block it should destroy.
+		int beamOriginX = x - dir.offsetX;
+		int beamOriginY = y - dir.offsetY;
+		int beamOriginZ = z - dir.offsetZ;
+		ForgeDirection side = dir.getRotation(ForgeDirection.UP);
+
+		for(int distance = 1; distance <= range; distance++) {
+			for(int lateral = -radius; lateral <= radius; lateral++) {
+				for(int vertical = -radius; vertical <= radius; vertical++) {
+					int targetX = beamOriginX + dir.offsetX * distance + side.offsetX * lateral;
+					int targetY = beamOriginY + dir.offsetY * distance + vertical;
+					int targetZ = beamOriginZ + dir.offsetZ * distance + side.offsetZ * lateral;
+					Block block = worldObj.getBlock(targetX, targetY, targetZ);
+					if(!block.isAir(worldObj, targetX, targetY, targetZ)) {
+						worldObj.func_147480_a(targetX, targetY, targetZ, false);
+					}
+				}
+			}
+		}
+
+		spawnParticleBeam(beamOriginX + 0.5, beamOriginY + 0.5, beamOriginZ + 0.5, dir, range, beamConfig);
+
+		float beamScale = 1.0F + radius * 0.75F;
+		for(int distance = 0; distance <= range; distance += 5) {
+			float scale = (distance == 0 || distance == range ? 3.5F : 1.25F) * beamScale;
+			spawnParticleBeamPulse(beamOriginX + 0.5 + dir.offsetX * distance, beamOriginY + 0.5 + dir.offsetY * distance, beamOriginZ + 0.5 + dir.offsetZ * distance, dir, scale);
+		}
+
+		worldObj.playSoundEffect(beamOriginX + 0.5, beamOriginY + 0.5, beamOriginZ + 0.5, NTMSounds.GUN_TAU_FIRE, 5.0F, 0.75F);
+	}
+
+	private void spawnParticleBeam(double x, double y, double z, ForgeDirection dir, int range, BulletConfig config) {
+		EntityBulletBeamBase beam = new EntityBulletBeamBase(worldObj, config, 1000F);
+		beam.setPosition(x, y, z);
+		beam.setRotationsFromVector(Vec3.createVectorHelper(dir.offsetX, dir.offsetY, dir.offsetZ));
+		beam.performHitscanExternal(range);
+		worldObj.spawnEntityInWorld(beam);
+	}
+
+	private void spawnParticleBeamPulse(double x, double y, double z, ForgeDirection dir, float scale) {
+		NBTTagCompound data = new NBTTagCompound();
+		data.setString("type", "plasmablast");
+		data.setFloat("r", 1.0F);
+		data.setFloat("g", 0.75F);
+		data.setFloat("b", 0.2F);
+		data.setFloat("pitch", 90F);
+		data.setFloat("yaw", (float) Math.toDegrees(Math.atan2(dir.offsetX, dir.offsetZ)));
+		data.setFloat("scale", scale);
+		PacketThreading.createAllAroundThreadedPacket(new AuxParticlePacketNT(data, x, y, z), new TargetPoint(worldObj.provider.dimensionId, x, y, z, 150));
 	}
 
 	public void tryRun() {
@@ -432,6 +517,10 @@ public class TileEntityPASource extends TileEntityCooledBase implements IGUIProv
 		public void crash(PAState state) {
 			this.invalid = true;
 			this.source.updateState(state);
+		}
+
+		public void discharge() {
+			if(!source.worldObj.isRemote) source.fireParticleBeam(x, y, z, dir, momentum);
 		}
 
 		public void move(BlockPos pos) {

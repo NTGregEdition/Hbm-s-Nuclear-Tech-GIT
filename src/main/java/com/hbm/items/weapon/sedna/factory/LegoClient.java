@@ -354,6 +354,9 @@ public class LegoClient {
 
 		RenderArcFurnace.fullbright(true);
 		double age = MathHelper.clamp_double(1D - ((double) bullet.ticksExisted - 2 + interp) / (double) bullet.getBulletConfig().expires, 0, 1);
+		double beamScale = 3D;
+		if(bullet.getBulletConfig() == XFactoryAccelerator.pa_particle_beam_medium) beamScale = 5D;
+		if(bullet.getBulletConfig() == XFactoryAccelerator.pa_particle_beam_large) beamScale = 10D;
 
 		GL11.glPushMatrix();
 		GL11.glRotatef(180 - bullet.rotationYaw, 0, 1F, 0);
@@ -364,10 +367,10 @@ public class LegoClient {
 		GL11.glScaled(age / 2 + 0.5, 1, age / 2 + 0.5);
 		double scale = 0.075D;
 		int colorInner = ((int)(0x30 * age) << 16) | ((int)(0x25 * age) << 8) | (int) (0x10 * age);
-		BeamPronter.prontBeam(delta, EnumWaveType.RANDOM, EnumBeamType.SOLID, colorInner, colorInner, (bullet.ticksExisted + bullet.getEntityId()) / 2, (int)(bullet.beamLength / 2 + 1), (float)scale * 4F, 2, 0.0625F);
+		BeamPronter.prontBeam(delta, EnumWaveType.RANDOM, EnumBeamType.SOLID, colorInner, colorInner, (bullet.ticksExisted + bullet.getEntityId()) / 2, (int)(bullet.beamLength / 2 + 1), (float)(scale * 4D * beamScale), 2, (float)(0.0625D * beamScale));
 		GL11.glPopMatrix();
 
-		GL11.glScaled(age * 2, 1, age * 2);
+		GL11.glScaled(age * 2D * beamScale, 1, age * 2D * beamScale);
 		GL11.glTranslated(0, bullet.beamLength, 0);
 		GL11.glRotatef(-90, 0, 0, 1);
 		renderBulletStandard(Tessellator.instance, 0xFFBF00, 0xFFFFFF, bullet.beamLength, true);

@@ -129,8 +129,8 @@ public class TileEntityPADetector extends TileEntityCooledBase implements IGUIPr
 		particle.invalid = true;
 		//particle will crash if not perfectly focused
 		if(particle.defocus > 0) { particle.crash(PAState.CRASH_DEFOCUS); return; }
-		if(this.power < usage) { particle.crash(PAState.CRASH_NOPOWER); return; }
-		if(!isCool()) { particle.crash(PAState.CRASH_NOCOOL); return; }
+		if(this.power < usage) { particle.discharge(); particle.crash(PAState.CRASH_NOPOWER); return; }
+		if(!isCool()) { particle.discharge(); particle.crash(PAState.CRASH_NOCOOL); return; }
 		this.power -= usage;
 
 		for(ParticleAcceleratorRecipe recipe : ParticleAcceleratorRecipes.recipes) {

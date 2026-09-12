@@ -189,6 +189,7 @@ public class MainRegistry {
 	public static Achievement achRadDeath;
 	public static Achievement achStratum;
 	public static Achievement achOmega12;
+	public static Achievement achParticleBeam;
 	public static Achievement achSomeWounds;
 	public static Achievement achSlimeball;
 	public static Achievement achSulfuric;
@@ -404,6 +405,7 @@ public class MainRegistry {
 		achFiend2 = new Achievement("achievement.fiend2", "fiend2", -4, 9, ModItems.shimmer_axe, null).initIndependentStat().setSpecial().registerStat();
 		achStratum = new Achievement("achievement.stratum", "stratum", -4, -2, new ItemStack(ModBlocks.stone_gneiss), null).initIndependentStat().setSpecial().registerStat();
 		achOmega12 = new Achievement("achievement.omega12", "omega12", 17, -1, ModItems.particle_digamma, null).initIndependentStat().setSpecial().registerStat();
+		achParticleBeam = new Achievement("achievement.particleBeam", "particleBeam", 19, -1, ModItems.particle_hydrogen, null).initIndependentStat().setSpecial().registerStat();
 
 		achNo9 = new Achievement("achievement.no9", "no9", -8, 12, ModItems.no9, null).initIndependentStat().registerStat();
 		achSlimeball = new Achievement("achievement.slimeball", "slimeball", -10, 6, DictFrame.fromOne(ModItems.achievement_icon, EnumAchievementType.ACID), null).initIndependentStat().registerStat();
@@ -479,6 +481,7 @@ public class MainRegistry {
 			achFiend2,
 			achStratum,
 			achOmega12,
+			achParticleBeam,
 			bobHidden,
 			horizonsStart,
 			horizonsEnd,

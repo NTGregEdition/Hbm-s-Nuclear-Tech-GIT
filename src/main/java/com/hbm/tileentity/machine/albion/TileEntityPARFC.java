@@ -56,10 +56,16 @@ public class TileEntityPARFC extends TileEntityCooledBase implements IGUIProvide
 	@Override
 	public void onEnter(Particle particle, ForgeDirection dir) {
 
-		if(!isCool())				particle.crash(PAState.CRASH_NOCOOL);
-		if(this.power < this.usage)	particle.crash(PAState.CRASH_NOPOWER);
-
-		if(particle.invalid) return;
+		if(!isCool()) {
+			particle.discharge();
+			particle.crash(PAState.CRASH_NOCOOL);
+			return;
+		}
+		if(this.power < this.usage) {
+			particle.discharge();
+			particle.crash(PAState.CRASH_NOPOWER);
+			return;
+		}
 
 		particle.addDistance(9);
 		particle.momentum += this.momentumGain;

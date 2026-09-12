@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import com.hbm.entity.projectile.EntityBulletBeamBase;
 import com.hbm.entity.projectile.EntityCoin;
+import com.hbm.extprop.HbmLivingProps;
 import com.hbm.items.ModItems;
 import com.hbm.items.weapon.sedna.BulletConfig;
 import com.hbm.items.weapon.sedna.Crosshair;
@@ -35,6 +36,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 
 public class XFactoryAccelerator {
@@ -43,6 +45,9 @@ public class XFactoryAccelerator {
 
 	public static BulletConfig tau_uranium;
 	public static BulletConfig tau_uranium_charge;
+	public static BulletConfig pa_particle_beam_small;
+	public static BulletConfig pa_particle_beam_medium;
+	public static BulletConfig pa_particle_beam_large;
 
 	public static BulletConfig coil_tungsten;
 	public static BulletConfig coil_ferrouranium;
@@ -51,6 +56,14 @@ public class XFactoryAccelerator {
 
 	public static Consumer<Entity> LAMBDA_UPDATE_TUNGSTEN = (entity) -> {breakInPath(entity, 1.25F); };
 	public static Consumer<Entity> LAMBDA_UPDATE_FERRO = (entity) -> { breakInPath(entity, 2.5F); };
+	public static BiConsumer<EntityBulletBeamBase, MovingObjectPosition> LAMBDA_PARTICLE_BEAM_HIT = (beam, hit) -> {
+		if(hit.entityHit instanceof EntityLivingBase) {
+			EntityLivingBase target = (EntityLivingBase) hit.entityHit;
+			if(!(target instanceof EntityPlayer) || !((EntityPlayer) target).capabilities.isCreativeMode) HbmLivingProps.setRadiation(target, 999F);
+			if(target instanceof EntityPlayer) ((EntityPlayer) target).triggerAchievement(MainRegistry.achParticleBeam);
+		}
+		BulletConfig.LAMBDA_BEAM_HIT.accept(beam, hit);
+	};
 
 	public static void breakInPath(Entity entity, float threshold) {
 
@@ -86,12 +99,20 @@ public class XFactoryAccelerator {
 		}
 	}
 
+	private static BulletConfig createParticleBeamConfig() {
+		return new BulletConfig().setupDamageClass(DamageClass.SUBATOMIC).setBeam().setLife(40).setRenderRotations(false).setDoesPenetrate(true).setDamageFalloffByPen(false).setSpectral(true)
+				.setOnBeamImpact(LAMBDA_PARTICLE_BEAM_HIT);
+	}
+
 	public static void init() {
 
 		tau_uranium = new BulletConfig().setItem(EnumAmmo.TAU_URANIUM).setCasing(new ItemStack(ModItems.plate_lead, 2), 16).setupDamageClass(DamageClass.SUBATOMIC).setBeam().setLife(5).setRenderRotations(false).setDoesPenetrate(true).setDamageFalloffByPen(false)
 				.setOnBeamImpact(BulletConfig.LAMBDA_BEAM_HIT);
 		tau_uranium_charge = new BulletConfig().setItem(EnumAmmo.TAU_URANIUM).setCasing(new ItemStack(ModItems.plate_lead, 2), 16).setupDamageClass(DamageClass.SUBATOMIC).setBeam().setLife(5).setRenderRotations(false).setDoesPenetrate(true).setDamageFalloffByPen(false).setSpectral(true)
 				.setOnBeamImpact(BulletConfig.LAMBDA_BEAM_HIT);
+		pa_particle_beam_small = createParticleBeamConfig();
+		pa_particle_beam_medium = createParticleBeamConfig();
+		pa_particle_beam_large = createParticleBeamConfig();
 
 		coil_tungsten = new BulletConfig().setItem(EnumAmmo.COIL_TUNGSTEN).setVel(7.5F).setLife(50).setDoesPenetrate(true).setDamageFalloffByPen(false).setSpectral(true)
 				.setOnUpdate(LAMBDA_UPDATE_TUNGSTEN);
