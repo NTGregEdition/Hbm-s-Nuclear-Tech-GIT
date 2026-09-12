@@ -83,20 +83,14 @@ public class TileEntityPADipole extends TileEntityCooledBase implements IGUIProv
 		int mult = 1;
 		if(slots[1] != null && slots[1].getItem() == ModItems.pa_coil) {
 			type = EnumUtil.grabEnumSafely(EnumCoilType.class, slots[1].getItemDamage());
+			if(particle.momentum < type.diMin) mult *= 10;
+			if(particle.momentum > type.diMax) mult *= 10;
+			if(particle.distanceTraveled < type.diDistMin) mult *= 10;
 		}
 
 		if(type == null) {
 			particle.discharge();
 			particle.crash(PAState.CRASH_NOCOIL);
-			return;
-		}
-		boolean belowMinimum = particle.momentum < type.diMin || particle.distanceTraveled < type.diDistMin;
-		boolean aboveMaximum = particle.momentum > type.diMax;
-		if(belowMinimum || aboveMaximum) {
-			slots[1] = null;
-			markDirty();
-			particle.discharge();
-			particle.crash(belowMinimum ? PAState.CRASH_UNDERSPEED : PAState.CRASH_OVERSPEED);
 			return;
 		}
 		if(!isCool()) {

@@ -45,7 +45,8 @@ public class ItemPACoil extends ItemEnumMulti {
 		list.add(EnumChatFormatting.BLUE + "Quadrupole operational range: " + EnumChatFormatting.RESET + String.format(Locale.US, "%,d", type.quadMin) + " - " + String.format(Locale.US, "%,d", type.quadMax));
 		list.add(EnumChatFormatting.BLUE + "Dipole operational range: " + EnumChatFormatting.RESET + String.format(Locale.US, "%,d", type.diMin) + " - " + String.format(Locale.US, "%,d", type.diMax));
 		list.add(EnumChatFormatting.BLUE + "Dipole minimum side length: " + EnumChatFormatting.RESET + type.diDistMin);
-		list.add(EnumChatFormatting.RED + "Exceeding any operational limit destroys the coil!");
-		list.add(EnumChatFormatting.RED + "The particle will discharge as a beam!");
+		list.add(EnumChatFormatting.RED + "Minimums not met result in a power draw penalty!");
+		list.add(EnumChatFormatting.RED + "Maximums exceeded result in the particle crashing!");
+		list.add(EnumChatFormatting.RED + "Particles will crash in dipoles if both penalties take effect!");
 	}
 }
