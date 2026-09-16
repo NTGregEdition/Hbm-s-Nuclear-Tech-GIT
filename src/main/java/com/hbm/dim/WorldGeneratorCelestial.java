@@ -175,7 +175,7 @@ public class WorldGeneratorCelestial implements IWorldGenerator {
 		int meta = CelestialBody.getMeta(world);
 
 		generateStructures(world, rand, chunkX * 16, chunkZ * 16);
-		genVanillaOre(world, rand, chunkX * 16, chunkZ * 16, 0, 64, 20, 8, ModBlocks.ore_tin, blockToReplace, meta);
+		genVanillaOre(world, rand, chunkX * 16, chunkZ * 16, 0, 64, WorldConfig.tinSpawn, 8, ModBlocks.ore_tin, blockToReplace, meta);
 
 		// Generate vanilla ores too
 		if(blockToReplace != Blocks.stone) {

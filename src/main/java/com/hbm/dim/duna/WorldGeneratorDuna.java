@@ -53,7 +53,7 @@ public class WorldGeneratorDuna implements IWorldGenerator {
 		Block stone = ((WorldProviderCelestial) world.provider).getStone();
 
 		DungeonToolbox.generateOre(world, rand, i, j, WorldConfig.ironSpawn, 8, 32, 64, ModBlocks.ore_iron, meta, stone);
-		DungeonToolbox.generateOre(world, rand, i, j, WorldConfig.ironSpawn, 8, 32, 64, ModBlocks.ore_tin, meta, stone);
+		DungeonToolbox.generateOre(world, rand, i, j, WorldConfig.tinDunaSpawn, 8, 32, 64, ModBlocks.ore_tin, meta, stone);
 		DungeonToolbox.generateOre(world, rand, i, j, WorldConfig.zincSpawn, 9, 4, 27, ModBlocks.ore_zinc, meta, stone);
 
 		// Basalt rich in minerals, but only in basaltic caves!

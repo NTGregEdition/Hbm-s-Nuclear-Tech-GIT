@@ -12,6 +12,10 @@ public class WorldConfig {
 	public static boolean endOre = true;
 
 	public static int ironSpawn = 9;
+	public static int tinSpawn = 20;
+	public static int tinDunaSpawn = 9;
+	public static int tinIkeSpawn = 9;
+	public static int tinDresSpawn = 12;
 
 	public static int uraniumSpawn = 6;
 	public static int thoriumSpawn = 7;
@@ -215,6 +219,10 @@ public class WorldConfig {
 		nickelSpawn = CommonConfig.createConfigInt(config, CATEGORY_OREGEN, "2.24_nickelSpawnrate", "Amount of nickel ore veins per chunk", 12);
 		zincSpawn = CommonConfig.createConfigInt(config, CATEGORY_OREGEN, "2.25_zincSpawnrate", "Amount of zinc ore veins per chunk", 8);
 		mineralSpawn = CommonConfig.createConfigInt(config, CATEGORY_OREGEN, "2.26_mineralSpawnrate", "Amount of mineral ore veins per chunk", 4);
+		tinSpawn = CommonConfig.createConfigInt(config, CATEGORY_OREGEN, "2.26A_tinSpawnrate", "Amount of tin ore veins per chunk in regular world generation", 20);
+		tinDunaSpawn = CommonConfig.createConfigInt(config, CATEGORY_OREGEN, "2.26B_tinDunaSpawnrate", "Amount of tin ore veins per chunk on Duna", 9);
+		tinIkeSpawn = CommonConfig.createConfigInt(config, CATEGORY_OREGEN, "2.26C_tinIkeSpawnrate", "Amount of tin ore veins per chunk on Ike", 9);
+		tinDresSpawn = CommonConfig.createConfigInt(config, CATEGORY_OREGEN, "2.26D_tinDresSpawnrate", "Amount of tin ore veins per chunk on Dres", 12);
 		dunaOilSpawn = CommonConfig.createConfigInt(config, CATEGORY_OREGEN, "2.27S_oilSpawnRate", "Spawns an oil bubble every nTH chunk (on Duna)", 100);
 		laytheOilSpawn = CommonConfig.createConfigInt(config, CATEGORY_OREGEN, "2.28S_oilSpawnRate", "Spawns a DS oil bubble every nTH chunk (on Laythe)", 100);
 		eveGasSpawn = CommonConfig.createConfigInt(config, CATEGORY_OREGEN, "2.29S_gasSpawnRate", "Spawns a natural gas bubble every nTH chunk (on Eve)", 100);
