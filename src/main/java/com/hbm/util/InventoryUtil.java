@@ -13,6 +13,7 @@ import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.List;
+import java.util.Map;
 
 //'t was about time
 public class InventoryUtil {
@@ -295,33 +296,57 @@ public class InventoryUtil {
 		return true;
 	}
 
-	public static void damageMatchingStack(EntityPlayer player, AStack matcher, int amount) {
+
+	public static boolean doesPlayerHaveToolDurability(EntityPlayer player, List<AStack> inputs, Map<Integer, Integer> wear, boolean shouldDamage) {
+
+		if(player.capabilities.isCreativeMode) return true; //damageItem does nothing in creative
 
 		ItemStack[] inventory = player.inventory.mainInventory;
+		int[] pending = new int[inventory.length];
 
-		for(int i = 0; i < inventory.length; i++) {
+		for(Map.Entry<Integer, Integer> entry : wear.entrySet()) {
 
-			ItemStack stack = inventory[i];
+			AStack matcher = inputs.get(entry.getKey());
+			int amount = entry.getValue();
+			int source = -1;
+			boolean undamageable = false;
 
-			if(stack != null && matcher.matchesRecipe(stack, true) && stack.getItem().getMaxDamage() <= 0) {
-				return;
-			}
-		}
+			for(int i = 0; i < inventory.length; i++) {
 
-		for(int i = 0; i < inventory.length; i++) {
+				ItemStack stack = inventory[i];
 
-			ItemStack stack = inventory[i];
+				if(stack == null || !matcher.matchesRecipe(stack, true)) continue;
 
-			if(stack != null && matcher.matchesRecipe(stack, true)) {
-				stack.damageItem(amount, player);
-
-				if(stack.stackSize <= 0) {
-					inventory[i] = null;
+				if(!stack.isItemStackDamageable()) {
+					undamageable = true;
+					break;
 				}
 
-				return;
+				if(source == -1 && stack.getMaxDamage() - stack.getItemDamage() - pending[i] + 1 >= amount) {
+					source = i;
+				}
+			}
+
+			if(undamageable) continue;
+			if(source == -1) return false;
+
+			pending[source] += amount;
+		}
+
+		if(shouldDamage) {
+			for(int i = 0; i < inventory.length; i++) {
+
+				if(pending[i] <= 0) continue;
+
+				inventory[i].damageItem(pending[i], player);
+
+				if(inventory[i].stackSize <= 0) {
+					inventory[i] = null;
+				}
 			}
 		}
+
+		return true;
 	}
 
 	public static void giveChanceStacksToPlayer(EntityPlayer player, List<AnvilOutput> stacks) {

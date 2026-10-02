@@ -12,7 +12,6 @@ import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
 
-import java.util.Map;
 import java.util.Collections;
 import java.util.List;
 
@@ -76,12 +75,11 @@ public class AnvilCraftPacket implements IMessage {
 					}
 				}
 
-				if(hasConsumed && hasTools) {
-					InventoryUtil.doesPlayerHaveAStacks(p, consumed, true);
+				boolean hasDurability = InventoryUtil.doesPlayerHaveToolDurability(p, recipe.input, recipe.wear, false);
 
-					for(Map.Entry<Integer, Integer> entry : recipe.wear.entrySet()) {
-						InventoryUtil.damageMatchingStack(p, recipe.input.get(entry.getKey()), entry.getValue());
-					}
+				if(hasConsumed && hasTools && hasDurability) {
+					InventoryUtil.doesPlayerHaveAStacks(p, consumed, true);
+					InventoryUtil.doesPlayerHaveToolDurability(p, recipe.input, recipe.wear, true);
 
 					InventoryUtil.giveChanceStacksToPlayer(p, recipe.output);
 					AchievementHandler.fire(p, recipe.output.get(0).stack);

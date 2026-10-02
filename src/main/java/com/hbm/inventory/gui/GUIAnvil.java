@@ -19,6 +19,7 @@ import com.hbm.inventory.recipes.anvil.AnvilRecipes.AnvilOutput;
 import com.hbm.lib.RefStrings;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.packet.toserver.AnvilCraftPacket;
+import com.hbm.util.InventoryUtil;
 
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.FontRenderer;
@@ -289,7 +290,12 @@ public class GUIAnvil extends GuiContainer {
 
 		list.add(EnumChatFormatting.YELLOW + "Inputs:");
 
-		for(AStack stack : recipe.input) {
+		boolean hasDurability = InventoryUtil.doesPlayerHaveToolDurability(inventory.player, recipe.input, recipe.wear, false);
+
+		for(int idx = 0; idx < recipe.input.size(); idx++) {
+			AStack stack = recipe.input.get(idx);
+			boolean durable = hasDurability || !recipe.wear.containsKey(idx);
+
 			if(stack instanceof ComparableStack) {
 				ComparableStack input = (ComparableStack) stack;
 				boolean hasItem = false;
@@ -304,7 +310,7 @@ public class GUIAnvil extends GuiContainer {
 						amount += stackItem.stackSize;
 					}
 				}
-				if(hasItem && amount >= stack.stacksize) {
+				if(hasItem && amount >= stack.stacksize && durable) {
 					list.add(">" + input.stacksize + "x " + input.toStack().getDisplayName());
 				} else {
 					list.add(EnumChatFormatting.RED + ">" + input.stacksize + "x " + input.toStack().getDisplayName());
@@ -327,7 +333,7 @@ public class GUIAnvil extends GuiContainer {
 						}
 					}
 					ItemStack inStack = ores.get((int) (Math.abs(System.currentTimeMillis() / 1000) % ores.size()));
-					if(hasItem && amount >= stack.stacksize) {
+					if(hasItem && amount >= stack.stacksize && durable) {
 						list.add(">" + input.stacksize + "x " + inStack.getDisplayName());
 					} else {
 						list.add(EnumChatFormatting.RED + ">" + input.stacksize + "x " + inStack.getDisplayName());
