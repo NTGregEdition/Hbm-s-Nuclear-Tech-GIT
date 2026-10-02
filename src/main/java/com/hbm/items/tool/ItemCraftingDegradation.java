@@ -7,7 +7,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 public class ItemCraftingDegradation extends Item {
-	
+
 	public ItemCraftingDegradation(int durability) {
 		this.setMaxStackSize(1);
 		this.setMaxDamage(durability);
@@ -19,23 +19,23 @@ public class ItemCraftingDegradation extends Item {
 	public boolean doesContainerItemLeaveCraftingGrid(ItemStack stack) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean hasContainerItem(ItemStack stack) {
 		return true;
 	}
-	
+
 	@Override
 	public ItemStack getContainerItem(ItemStack stack) {
 		if(this.getMaxDamage() > 0) {
-			stack.setItemDamage(stack.getItemDamage() + 1);
-			return stack;
-			
+			ItemStack damaged = stack.copy();
+			damaged.setItemDamage(stack.getItemDamage() + 1);
+			return damaged;
 		} else {
 			return stack;
 		}
 	}
-	
+
 	@Override
 	public Item setUnlocalizedName(String unlocalizedName) {
 		super.setUnlocalizedName(unlocalizedName);
