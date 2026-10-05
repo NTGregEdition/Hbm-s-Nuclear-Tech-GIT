@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.hbm.blocks.ModBlocks;
 import com.hbm.config.ServerConfig;
@@ -13,9 +14,12 @@ import com.hbm.lib.ModDamageSource;
 import com.hbm.main.MainRegistry;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.packet.toclient.PacketDigammaApocalypse;
+import com.hbm.saveddata.DigammaZoneSavedData;
 import com.hbm.util.ContaminationUtil;
 
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import net.minecraft.block.Block;
@@ -35,27 +39,30 @@ import net.minecraftforge.common.ForgeChunkManager.Type;
 
 public class DigammaApocalypseHandler {
 
-	public static int SUCK_TICKS = 20 * 12;
-	public static int CHARGE_TICKS = 20 * 10;
+	public static int SUCK_TICKS = 20 * 20;
+	public static int CHARGE_TICKS = 20 * 15;
 	public static int SINGULARITY_LIFESPAN_TICKS = 20 * 60 * 5;
 
 	public static float AOE_KILL_RADIUS = 500F;
 	public static float AOE_DAMAGE_PER_HIT = 20F;
 	public static int AOE_DAMAGE_INTERVAL_TICKS = 20;
 
-	public static int KICK_DELAY_AFTER_BOOM_TICKS = 25;
+	public static int KICK_DELAY_AFTER_BOOM_TICKS = 20 * 7;
+
+	private static final long TICK_NANOS = 50_000_000L;
+	/** A gap between server ticks longer than this (a paused integrated server) only counts this much, so a pause can't skip the show. */
+	private static final long MAX_TICK_GAP_NANOS = 1_000_000_000L;
 
 	/** make blocks just move them upwards */
 	public static int BLOCK_RAISE_INTERVAL_TICKS = 10;
 	public static int BLOCK_RAISE_COUNT_PER_INTERVAL = 4;
 	public static int BLOCK_RAISE_RADIUS = 8;
 
-	/** for some reason not working */
-	public static long RADIATION_DURATION_TICKS = 100L * 24000L;
+	public static int ZONE_DURATION_DAYS = 100;
+	private static final long TICKS_PER_DAY = 24000L;
 	/** digamma damage (50 drx/s) */
 	public static float RADIATION_PER_TICK = (50F / 1000F) / 20F;
 
-	/** (Not working) sometimes and randomly near the player digamma fire is placed on surface every 1 second */
 	public static int FIRE_PLACEMENT_INTERVAL_TICKS = 20;
 	public static float FIRE_PLACEMENT_CHANCE = 0.5F;
 	public static int FIRE_PLACEMENT_RADIUS = 12;
@@ -65,13 +72,20 @@ public class DigammaApocalypseHandler {
 	private static final Random rand = new Random();
 
 	private static class CutsceneSession {
-		NetHandlerPlayServer netHandler;
 		EntityQuasar quasar;
 		Ticket chunkTicket;
 		MinecraftServer server;
-		int ticksLeft;
+		/** Real time, not server ticks, so a lagging server still ends the event when the clients' timelines do. */
+		long elapsedNanos;
+		long lastTickNanos;
+		volatile long deadlineNanos;
+		volatile boolean finished;
 		int damageTickCounter;
 		int blockRaiseCounter;
+
+		long remainingNanos() {
+			return totalTicks() * TICK_NANOS - elapsedNanos;
+		}
 	}
 
 	private static class SingularityWatch {
@@ -83,16 +97,10 @@ public class DigammaApocalypseHandler {
 		int ticksLeft = SINGULARITY_LIFESPAN_TICKS;
 	}
 
-	private static class RadiationZone {
-		MinecraftServer server;
-		int dimensionId;
-		long ticksLeft = RADIATION_DURATION_TICKS;
-		int fireTickCounter;
-	}
-
 	private static final List<CutsceneSession> sessions = new ArrayList<CutsceneSession>();
 	private static final List<SingularityWatch> singularities = new ArrayList<SingularityWatch>();
-	private static final List<RadiationZone> radiationZones = new ArrayList<RadiationZone>();
+
+	private static final CopyOnWriteArrayList<NetHandlerPlayServer> kickTargets = new CopyOnWriteArrayList<NetHandlerPlayServer>();
 
 	private static boolean pendingWorldDeletion = false;
 	private static File pendingSaveDirectory = null;
@@ -111,15 +119,13 @@ public class DigammaApocalypseHandler {
 		singularities.add(w);
 	}
 
-	public static void beginCutscene(EntityPlayerMP player, EntityQuasar quasar) {
-
-		player.closeScreen();
+	public static void beginCutscene(EntityQuasar quasar) {
 
 		CutsceneSession s = new CutsceneSession();
-		s.netHandler = player.playerNetServerHandler;
 		s.quasar = quasar;
 		s.server = MinecraftServer.getServer();
-		s.ticksLeft = SUCK_TICKS + CHARGE_TICKS + KICK_DELAY_AFTER_BOOM_TICKS;
+		s.lastTickNanos = System.nanoTime();
+		s.deadlineNanos = s.lastTickNanos + totalTicks() * TICK_NANOS;
 
 		World world = quasar.worldObj;
 		Ticket ticket = ForgeChunkManager.requestTicket(MainRegistry.instance, world, Type.ENTITY);
@@ -132,16 +138,87 @@ public class DigammaApocalypseHandler {
 		sessions.add(s);
 
 		if(ServerConfig.DIGAMMA_APOCALYPSE_MODE.get()) {
-			RadiationZone z = new RadiationZone();
-			z.server = s.server;
-			z.dimensionId = world.provider.dimensionId;
-			radiationZones.add(z);
+			DigammaZoneSavedData.forWorld(world).extendTo(world.getTotalWorldTime() + ZONE_DURATION_DAYS * TICKS_PER_DAY);
+			// the event ends by kicking everyone and possibly stopping the server, so don't wait for an autosave
+			world.perWorldStorage.saveAllData();
 		}
 
-		PacketDispatcher.wrapper.sendTo(new PacketDigammaApocalypse(SUCK_TICKS, CHARGE_TICKS, quasar.posX, quasar.posY, quasar.posZ), player);
+		for(Object o : s.server.getConfigurationManager().playerEntityList) {
+			EntityPlayerMP p = (EntityPlayerMP) o;
+			p.closeScreen();
+			kickTargets.addIfAbsent(p.playerNetServerHandler);
+		}
+
+		if(s.server.isDedicatedServer()) {
+			startKickWatchdog(s);
+		}
+
+		PacketDispatcher.wrapper.sendToAll(createPacket(s));
+	}
+
+	/** If the main thread stalls, still disconnect everyone on time. Kicking is only a netty write, so it is safe off-thread. */
+	private static void startKickWatchdog(final CutsceneSession s) {
+
+		Thread t = new Thread("DigammaApocalypse-Kick") {
+			@Override
+			public void run() {
+				try {
+					while(!s.finished) {
+						long wait = s.deadlineNanos - System.nanoTime();
+						if(wait <= 0L)
+							break;
+						Thread.sleep(Math.min(wait / 1_000_000L + 1L, 20L));
+					}
+				} catch(InterruptedException ex) {
+					return;
+				}
+
+				if(!s.finished) {
+					for(NetHandlerPlayServer handler : kickTargets) {
+						handler.kickPlayerFromServer(KICK_MESSAGE);
+					}
+				}
+			}
+		};
+		t.setPriority(Thread.MAX_PRIORITY);
+		t.setDaemon(true);
+		t.start();
+	}
+
+	private static int totalTicks() {
+		return SUCK_TICKS + CHARGE_TICKS + KICK_DELAY_AFTER_BOOM_TICKS;
+	}
+
+	private static PacketDigammaApocalypse createPacket(CutsceneSession s) {
+		EntityQuasar q = s.quasar;
+		return new PacketDigammaApocalypse(SUCK_TICKS, CHARGE_TICKS, KICK_DELAY_AFTER_BOOM_TICKS, (int) (s.elapsedNanos / TICK_NANOS), q.worldObj.provider.dimensionId, q.posX, q.posY, q.posZ);
 	}
 
 	@SubscribeEvent
+	public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+
+		if(!(event.player instanceof EntityPlayerMP))
+			return;
+
+		EntityPlayerMP player = (EntityPlayerMP) event.player;
+		MinecraftServer server = MinecraftServer.getServer();
+		for(CutsceneSession s : sessions) {
+			if(s.server == server && s.quasar != null && s.quasar.worldObj != null) {
+				kickTargets.addIfAbsent(player.playerNetServerHandler);
+				PacketDispatcher.wrapper.sendTo(createPacket(s), player);
+				return;
+			}
+		}
+	}
+
+	@SubscribeEvent
+	public void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+		if(event.player instanceof EntityPlayerMP) {
+			kickTargets.remove(((EntityPlayerMP) event.player).playerNetServerHandler);
+		}
+	}
+
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void onServerTick(TickEvent.ServerTickEvent event) {
 
 		if(event.phase != Phase.END)
@@ -151,10 +228,12 @@ public class DigammaApocalypseHandler {
 
 		tickCutsceneSessions(currentServer);
 		tickSingularities(currentServer);
-		tickRadiationZones(currentServer);
+		tickDigammaZones(currentServer);
 	}
 
 	private void tickCutsceneSessions(MinecraftServer currentServer) {
+
+		long now = System.nanoTime();
 
 		Iterator<CutsceneSession> it = sessions.iterator();
 		while(it.hasNext()) {
@@ -165,28 +244,48 @@ public class DigammaApocalypseHandler {
 				if(s.chunkTicket != null) {
 					try { ForgeChunkManager.releaseTicket(s.chunkTicket); } catch(Exception ignored) { }
 				}
+				s.finished = true;
 				it.remove();
 				continue;
 			}
 
-			boolean inMainPhase = s.ticksLeft > KICK_DELAY_AFTER_BOOM_TICKS;
+			s.elapsedNanos += Math.min(now - s.lastTickNanos, MAX_TICK_GAP_NANOS);
+			s.lastTickNanos = now;
+
+			long remaining = s.remainingNanos();
+			s.deadlineNanos = now + remaining;
+
+			// first thing, so nothing below can delay the disconnect
+			if(remaining <= 0L) {
+				if(s.chunkTicket != null) {
+					ForgeChunkManager.releaseTicket(s.chunkTicket);
+				}
+				s.finished = true;
+				it.remove();
+				triggerTheEnd();
+				continue;
+			}
+
+			World world = s.quasar.worldObj;
+			boolean inMainPhase = remaining > KICK_DELAY_AFTER_BOOM_TICKS * TICK_NANOS;
+
+			boolean raiseBlocks = false;
+			if(inMainPhase) {
+				raiseBlocks = ++s.blockRaiseCounter >= BLOCK_RAISE_INTERVAL_TICKS;
+				if(raiseBlocks)
+					s.blockRaiseCounter = 0;
+			}
+
+			for(Object o : world.playerEntities) {
+				EntityPlayer live = (EntityPlayer) o;
+
+				live.fallDistance = 0F;
+
+				if(raiseBlocks)
+					raiseNearbyBlocks(world, live.posX, live.posY, live.posZ);
+			}
 
 			if(inMainPhase) {
-
-				EntityPlayerMP live = s.netHandler.playerEntity;
-				if(live != null && !live.isDead) {
-
-					live.motionY = 0.02D;
-					live.motionX *= 0.5D;
-					live.motionZ *= 0.5D;
-					live.fallDistance = 0F;
-
-					s.blockRaiseCounter++;
-					if(s.blockRaiseCounter >= BLOCK_RAISE_INTERVAL_TICKS) {
-						s.blockRaiseCounter = 0;
-						raiseNearbyBlocks(live.worldObj, live.posX, live.posY, live.posZ);
-					}
-				}
 
 				s.damageTickCounter++;
 				if(s.damageTickCounter >= AOE_DAMAGE_INTERVAL_TICKS) {
@@ -197,21 +296,11 @@ public class DigammaApocalypseHandler {
 							s.quasar.posX - r, s.quasar.posY - r, s.quasar.posZ - r,
 							s.quasar.posX + r, s.quasar.posY + r, s.quasar.posZ + r);
 
-					List<EntityPlayer> victims = s.quasar.worldObj.getEntitiesWithinAABB(EntityPlayer.class, box);
+					List<EntityPlayer> victims = world.getEntitiesWithinAABB(EntityPlayer.class, box);
 					for(EntityPlayer victim : victims) {
 						victim.attackEntityFrom(ModDamageSource.digamma, AOE_DAMAGE_PER_HIT);
 					}
 				}
-			}
-
-			s.ticksLeft--;
-
-			if(s.ticksLeft <= 0) {
-				if(s.chunkTicket != null) {
-					ForgeChunkManager.releaseTicket(s.chunkTicket);
-				}
-				it.remove();
-				triggerTheEnd();
 			}
 		}
 	}
@@ -293,44 +382,30 @@ public class DigammaApocalypseHandler {
 		}
 	}
 
-	private void tickRadiationZones(MinecraftServer currentServer) {
+	private void tickDigammaZones(MinecraftServer currentServer) {
 
-		Iterator<RadiationZone> it = radiationZones.iterator();
-		while(it.hasNext()) {
+		for(WorldServer world : currentServer.worldServers) {
 
-			RadiationZone z = it.next();
+			long now = world.getTotalWorldTime();
+			DigammaZoneSavedData zone = DigammaZoneSavedData.forWorld(world);
 
-			if(z.server != currentServer) {
-				it.remove();
-				continue;
-			}
-
-			WorldServer world = findWorldServer(currentServer, z.dimensionId);
-			if(world == null) {
-				it.remove();
+			if(!zone.isActive(now)) {
+				zone.clear();
 				continue;
 			}
 
 			for(Object o : world.playerEntities) {
+				ContaminationUtil.applyDigammaData((EntityPlayer) o, RADIATION_PER_TICK);
+			}
+
+			if(now % FIRE_PLACEMENT_INTERVAL_TICKS != 0)
+				continue;
+
+			for(Object o : world.playerEntities) {
 				EntityPlayer p = (EntityPlayer) o;
-				ContaminationUtil.applyDigammaData(p, RADIATION_PER_TICK);
-			}
-
-			z.fireTickCounter++;
-			if(z.fireTickCounter >= FIRE_PLACEMENT_INTERVAL_TICKS) {
-				z.fireTickCounter = 0;
-
-				for(Object o : world.playerEntities) {
-					EntityPlayer p = (EntityPlayer) o;
-					if(rand.nextFloat() > FIRE_PLACEMENT_CHANCE)
-						continue;
-					placeDigammaFireNear(world, p.posX, p.posY, p.posZ);
-				}
-			}
-
-			z.ticksLeft--;
-			if(z.ticksLeft <= 0) {
-				it.remove();
+				if(rand.nextFloat() > FIRE_PLACEMENT_CHANCE)
+					continue;
+				placeDigammaFireNear(world, p.posX, p.posY, p.posZ);
 			}
 		}
 	}
@@ -344,14 +419,6 @@ public class DigammaApocalypseHandler {
 		if(ModBlocks.fire_digamma.canPlaceBlockAt(world, x, y, z)) {
 			world.setBlock(x, y, z, ModBlocks.fire_digamma);
 		}
-	}
-
-	private static WorldServer findWorldServer(MinecraftServer server, int dimensionId) {
-		for(WorldServer w : server.worldServers) {
-			if(w.provider.dimensionId == dimensionId)
-				return w;
-		}
-		return null;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -392,6 +459,10 @@ public class DigammaApocalypseHandler {
 		if(server == null)
 			return;
 
+		for(CutsceneSession s : sessions) {
+			s.finished = true;
+		}
+
 		try {
 			List<EntityPlayerMP> all = new ArrayList<EntityPlayerMP>((List<EntityPlayerMP>) server.getConfigurationManager().playerEntityList);
 			for(EntityPlayerMP p : all) {
@@ -404,6 +475,8 @@ public class DigammaApocalypseHandler {
 	}
 
 	public static void onServerStopped() {
+
+		kickTargets.clear();
 
 		if(!pendingWorldDeletion)
 			return;

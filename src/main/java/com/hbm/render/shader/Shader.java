@@ -88,6 +88,10 @@ public class Shader {
 		}
 	}
 
+	public boolean isLoaded() {
+		return hasLoaded;
+	}
+
 	public void use() {
 		if(!hasLoaded) return;
 		previousProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);

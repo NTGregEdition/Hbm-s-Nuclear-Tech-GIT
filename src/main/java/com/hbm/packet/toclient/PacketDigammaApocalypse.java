@@ -13,15 +13,21 @@ public class PacketDigammaApocalypse implements IMessage {
 
 	private int suckTicks;
 	private int chargeTicks;
+	private int aftermathTicks;
+	private int elapsedTicks;
+	private int dimensionId;
 	private double quasarX;
 	private double quasarY;
 	private double quasarZ;
 
 	public PacketDigammaApocalypse() { }
 
-	public PacketDigammaApocalypse(int suckTicks, int chargeTicks, double quasarX, double quasarY, double quasarZ) {
+	public PacketDigammaApocalypse(int suckTicks, int chargeTicks, int aftermathTicks, int elapsedTicks, int dimensionId, double quasarX, double quasarY, double quasarZ) {
 		this.suckTicks = suckTicks;
 		this.chargeTicks = chargeTicks;
+		this.aftermathTicks = aftermathTicks;
+		this.elapsedTicks = elapsedTicks;
+		this.dimensionId = dimensionId;
 		this.quasarX = quasarX;
 		this.quasarY = quasarY;
 		this.quasarZ = quasarZ;
@@ -31,6 +37,9 @@ public class PacketDigammaApocalypse implements IMessage {
 	public void fromBytes(ByteBuf buf) {
 		suckTicks = buf.readInt();
 		chargeTicks = buf.readInt();
+		aftermathTicks = buf.readInt();
+		elapsedTicks = buf.readInt();
+		dimensionId = buf.readInt();
 		quasarX = buf.readDouble();
 		quasarY = buf.readDouble();
 		quasarZ = buf.readDouble();
@@ -40,6 +49,9 @@ public class PacketDigammaApocalypse implements IMessage {
 	public void toBytes(ByteBuf buf) {
 		buf.writeInt(suckTicks);
 		buf.writeInt(chargeTicks);
+		buf.writeInt(aftermathTicks);
+		buf.writeInt(elapsedTicks);
+		buf.writeInt(dimensionId);
 		buf.writeDouble(quasarX);
 		buf.writeDouble(quasarY);
 		buf.writeDouble(quasarZ);
@@ -50,7 +62,7 @@ public class PacketDigammaApocalypse implements IMessage {
 		@Override
 		@SideOnly(Side.CLIENT)
 		public IMessage onMessage(PacketDigammaApocalypse m, MessageContext ctx) {
-			DigammaApocalypseClient.begin(m.suckTicks, m.chargeTicks, m.quasarX, m.quasarY, m.quasarZ);
+			DigammaApocalypseClient.begin(m.suckTicks, m.chargeTicks, m.aftermathTicks, m.elapsedTicks, m.dimensionId, m.quasarX, m.quasarY, m.quasarZ);
 			return null;
 		}
 	}

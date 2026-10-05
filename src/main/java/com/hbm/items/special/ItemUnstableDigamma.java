@@ -12,7 +12,6 @@ import com.hbm.util.TrackerUtil;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -86,8 +85,8 @@ public class ItemUnstableDigamma extends Item {
 
 		DigammaApocalypseHandler.watchSingularity(quasar);
 
-		if(ServerConfig.DIGAMMA_APOCALYPSE_MODE.get() && holder instanceof EntityPlayerMP) {
-			DigammaApocalypseHandler.beginCutscene((EntityPlayerMP) holder, quasar);
+		if(ServerConfig.DIGAMMA_APOCALYPSE_MODE.get()) {
+			DigammaApocalypseHandler.beginCutscene(quasar);
 		}
 	}
 
