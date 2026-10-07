@@ -76,7 +76,7 @@ public class ItemUnstableDigamma extends Item {
 
 		holder.attackEntityFrom(ModDamageSource.nuclearBlast, 10000);
 
-		EntityQuasar quasar = new EntityQuasar(world, SINGULARITY_SIZE);
+		EntityQuasar quasar = new EntityQuasar(world, SINGULARITY_SIZE).anchor();
 		quasar.posX = x;
 		quasar.posY = y + 2;
 		quasar.posZ = z;

@@ -61,6 +61,7 @@ public class RenderDigammaApocalypse {
 
 	private static Shader singularityShader;
 	private static Shader inkShader;
+	private static Shader bodyShader;
 
 	private static int sceneTexture = 0;
 	private static int sceneTexWidth;
@@ -489,6 +490,50 @@ public class RenderDigammaApocalypse {
 			inkShader = new Shader(new ResourceLocation(RefStrings.MODID, "shaders/digamma_ink.frag"));
 		}
 		return inkShader;
+	}
+
+	/** Covers a body's sky quad (same layout the sky provider uses for its own overlays) with the spreading black. */
+	public static void drawBody(double size, float uvOffset, float time, float ink, float wave, float pulse, float boom, float flash, float originU, float originV, float visibility) {
+
+		Shader shader = getBodyShader();
+		if(!shader.isLoaded())
+			return;
+
+		saveState();
+
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		GL11.glColor4f(1F, 1F, 1F, 1F);
+
+		shader.use();
+		shader.setUniform1f("uTime", time);
+		shader.setUniform1f("uInk", ink);
+		shader.setUniform1f("uWave", wave);
+		shader.setUniform1f("uPulse", pulse);
+		shader.setUniform1f("uBoom", boom);
+		shader.setUniform1f("uFlash", flash);
+		shader.setUniform1f("uOffset", uvOffset);
+		shader.setUniform1f("uVisibility", visibility);
+		GL20.glUniform2f(shader.getUniformLocation("uOrigin"), originU, originV);
+
+		Tessellator tess = Tessellator.instance;
+		tess.startDrawingQuads();
+		tess.addVertexWithUV(-size, 100D, -size, 0D, 0D);
+		tess.addVertexWithUV(size, 100D, -size, 1D, 0D);
+		tess.addVertexWithUV(size, 100D, size, 1D, 1D);
+		tess.addVertexWithUV(-size, 100D, size, 0D, 1D);
+		tess.draw();
+
+		shader.stop();
+
+		restoreState();
+	}
+
+	private static Shader getBodyShader() {
+		if(bodyShader == null) {
+			bodyShader = new Shader(new ResourceLocation(RefStrings.MODID, "shaders/digamma_planet.frag"));
+		}
+		return bodyShader;
 	}
 
 	/** Jagged red lightning; both ends are relative to the camera. */

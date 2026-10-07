@@ -4,6 +4,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
 import com.hbm.config.ClientConfig;
+import com.hbm.dim.CelestialBody;
 import com.hbm.render.world.RenderDigammaApocalypse;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -36,7 +37,7 @@ public class DigammaApocalypseClient {
 	private static final int BLACKOUT_TICKS = 25;
 	private static final int SAFETY_TIMEOUT_TICKS = 20 * 30;
 
-	/** Blocks per tick the shockwave travels; it also decides when the boom reaches each player. */
+	/** Base blocks per tick the shockwave travels; it also decides when the boom reaches each player. */
 	private static final float SHOCK_SPEED = 25F;
 	private static final int SHOCK_MIN_TRAVEL_TICKS = 3;
 	/** The shockwave has to land at least this long before the server kicks everyone. */
@@ -60,9 +61,11 @@ public class DigammaApocalypseClient {
 	private static int chargeTicks = 1;
 	private static int aftermathTicks = 1;
 	private static int dimensionId;
+	private static CelestialBody eventBody;
 	private static double quasarX, quasarY, quasarZ;
 
 	private static int shockHitTick = -1;
+	private static float shockSpeed = SHOCK_SPEED;
 	private static int nextRumbleTick;
 	private static int nextChargeSoundTick;
 	private static int nextStrobeTick;
@@ -85,12 +88,14 @@ public class DigammaApocalypseClient {
 		chargeTicks = Math.max(1, chargeTicksIn);
 		aftermathTicks = Math.max(1, aftermathTicksIn);
 		dimensionId = dimensionIdIn;
+		eventBody = CelestialBody.getBodyOrNull(dimensionIdIn);
 		quasarX = qx;
 		quasarY = qy;
 		quasarZ = qz;
 
 		ticksElapsed = Math.max(0, elapsedTicks);
 		shockHitTick = -1;
+		shockSpeed = SHOCK_SPEED;
 		nextRumbleTick = ticksElapsed + 1;
 		nextChargeSoundTick = suckTicks;
 		nextStrobeTick = Math.max(ticksElapsed + 1, suckTicks / 4);
@@ -244,15 +249,28 @@ public class DigammaApocalypseClient {
 	private static int computeShockHitTick(EntityPlayer player, int total) {
 
 		int travel = 20;
+		double distance = 0D;
 
 		if(player.worldObj.provider.dimensionId == dimensionId) {
 			double dx = player.posX - quasarX;
 			double dy = player.posY - quasarY;
 			double dz = player.posZ - quasarZ;
-			travel = (int) (Math.sqrt(dx * dx + dy * dy + dz * dz) / SHOCK_SPEED);
+			distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+			travel = (int) (distance / SHOCK_SPEED);
 		}
 
-		return total + MathHelper.clamp_int(travel, SHOCK_MIN_TRAVEL_TICKS, Math.max(SHOCK_MIN_TRAVEL_TICKS, aftermathTicks - SHOCK_MARGIN_TICKS));
+		travel = MathHelper.clamp_int(travel, SHOCK_MIN_TRAVEL_TICKS, Math.max(SHOCK_MIN_TRAVEL_TICKS, aftermathTicks - SHOCK_MARGIN_TICKS));
+
+		// past the clamp the base speed would never reach the player before the kick, so the wave speeds up to land with the boom
+		shockSpeed = Math.max(SHOCK_SPEED, (float) (distance / travel));
+
+		return total + travel;
+	}
+
+	/** Radius of the shockwave in blocks, negative before the detonation. */
+	private static float shockRadius(float t) {
+		int total = suckTicks + chargeTicks;
+		return t >= total ? shockSpeed * (t - total) : -1F;
 	}
 
 	private static void flash(int style, int length, float peak) {
@@ -411,6 +429,37 @@ public class DigammaApocalypseClient {
 		return clamp01((t - (suckTicks + chargeTicks + aftermathTicks - BLACKOUT_TICKS)) / BLACKOUT_TICKS);
 	}
 
+	// ================= celestial bodies =================
+
+	private static float bodyInk(float t) {
+		return clamp01(t / ((suckTicks + chargeTicks) * 0.95F));
+	}
+
+	/** How far the black has spread over a body in the sky; 0 for every body except the one the event is on. */
+	public static float getBodyInk(CelestialBody body, float partialTicks) {
+		if(!active || body != eventBody)
+			return 0F;
+		return bodyInk(ticksElapsed + partialTicks);
+	}
+
+	/** Spreads the black over a body's sky quad, starting from a spot picked from where the singularity is. */
+	public static void drawBodyCorruption(CelestialBody body, double size, double uvOffset, float visibility, float partialTicks) {
+
+		float ink = getBodyInk(body, partialTicks);
+		if(ink <= 0F)
+			return;
+
+		float t = ticksElapsed + partialTicks;
+		int total = suckTicks + chargeTicks;
+		float soften = ClientConfig.DIGAMMA_REDUCED_EFFECTS.get() ? 0.5F : 1F;
+
+		int seed = (int) quasarX * 31 + (int) quasarZ;
+		float originU = 0.2F + 0.6F * RenderDigammaApocalypse.hash(seed);
+		float originV = 0.25F + 0.5F * RenderDigammaApocalypse.hash(seed + 1);
+
+		RenderDigammaApocalypse.drawBody(size, (float) uvOffset, t / 20F, ink, waveStrength(t), heartbeat(t) * soften, t >= total ? (t - total) / 20F : -1F, soften, originU, originV, visibility);
+	}
+
 	// ================= 2D overlay =================
 
 	@SubscribeEvent
@@ -504,10 +553,7 @@ public class DigammaApocalypseClient {
 		double camY = player.prevPosY + (player.posY - player.prevPosY) * pt;
 		double camZ = player.prevPosZ + (player.posZ - player.prevPosZ) * pt;
 
-		int total = suckTicks + chargeTicks;
-		float shock = t >= total ? SHOCK_SPEED * (t - total) : -1F;
-
-		RenderDigammaApocalypse.drawInk(camX - quasarX, camY - quasarY, camZ - quasarZ, t / 20F, inkProgress(t), waveStrength(t), shock, !ClientConfig.DIGAMMA_REDUCED_EFFECTS.get());
+		RenderDigammaApocalypse.drawInk(camX - quasarX, camY - quasarY, camZ - quasarZ, t / 20F, inkProgress(t), waveStrength(t), shockRadius(t), !ClientConfig.DIGAMMA_REDUCED_EFFECTS.get());
 	}
 
 	/** Red lightning striking the ground around the player, faster as the event builds. Skipped in reduced mode since it flashes. */
@@ -566,8 +612,7 @@ public class DigammaApocalypseClient {
 		}
 
 		if(t >= total) {
-			float radius = SHOCK_SPEED * (t - total);
-			RenderDigammaApocalypse.drawShell(dx, dy, dz, radius, 0.85F * (1F - 0.6F * aftermathProgress(t)));
+			RenderDigammaApocalypse.drawShell(dx, dy, dz, shockRadius(t), 0.85F * (1F - 0.6F * aftermathProgress(t)));
 		}
 	}
 }

@@ -15,6 +15,7 @@ import com.hbm.dim.trait.CBT_War;
 import com.hbm.dim.trait.CBT_Destroyed;
 import com.hbm.extprop.HbmLivingProps;
 import com.hbm.lib.RefStrings;
+import com.hbm.main.DigammaApocalypseClient;
 import com.hbm.main.ResourceManager;
 import com.hbm.render.shader.Shader;
 import com.hbm.render.util.AtmosphereRenderUtil;
@@ -1068,7 +1069,7 @@ public class SkyProviderCelestial extends IRenderHandler {
 
 					} else {
 
-						renderAtmosphereGlow(tessellator, mc, metric.body, size, 1.0F, metric.phase);
+						renderAtmosphereGlow(tessellator, mc, metric.body, size, 1.0F - DigammaApocalypseClient.getBodyInk(metric.body, partialTicks), metric.phase);
 
 						GL11.glDisable(GL11.GL_BLEND);
 						GL11.glColor4f(1.0F, 1.0F, 1.0F, visibility);
@@ -1215,12 +1216,14 @@ public class SkyProviderCelestial extends IRenderHandler {
 					List<CelestialNukeShockHandler.ShockStatus> flashShocks = CelestialNukeShockHandler.getClientShocks(metric.body);
 					double flashShockTime = world.getTotalWorldTime() + partialTicks;
 					renderNukeImpactOverlays(tessellator, mc, size, (float) -metric.phase, flashShocks, flashShockTime);
+					DigammaApocalypseClient.drawBodyCorruption(metric.body, size, uvOffset, visibility, partialTicks);
 				}
 
 				if(renderPoint) {
 					float alpha = MathHelper.clamp_float((float) size * 100.0F, 0.0F, 1.0F);
 					alpha *= 1 - BobMathUtil.remap01_clamp((float) size, (float) transitionMinSize, (float) transitionMaxSize);
-					GL11.glColor4f(metric.body.color[0], metric.body.color[1], metric.body.color[2], alpha * visibility);
+					float corruption = DigammaApocalypseClient.getBodyInk(metric.body, partialTicks);
+					GL11.glColor4f(metric.body.color[0] + (0.35F - metric.body.color[0]) * corruption, metric.body.color[1] * (1F - corruption), metric.body.color[2] * (1F - corruption), alpha * visibility);
 					mc.renderEngine.bindTexture(planetTexture);
 
 					tessellator.startDrawingQuads();

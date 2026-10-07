@@ -1,7 +1,8 @@
 #version 120
 
 // Spreads ink over every surface and rolls red waves through it. Works purely from the depth buffer,
-// so blocks, mobs and everything else that wrote depth are covered; the sky (depth 1.0) is left alone.
+// so blocks, mobs and everything else that wrote depth are covered. The shockwave floods everything it
+// passes with solid ink; the sky (depth 1.0) only shows the wave itself, as a dome that can be seen from any distance.
 
 uniform sampler2D uScene;
 uniform sampler2D uDepth;
@@ -12,6 +13,9 @@ uniform float uInk;		// 0 = clean, ~0.8 and up = everything covered
 uniform float uWave;	// strength of the red waves
 uniform float uShock;	// radius of the shockwave ring in blocks, negative when there is none
 uniform float uRumble;	// 1 = ripple the ground, 0 = keep the picture still
+
+#define STAIN 0.6	// how much of the ground the ink hides until the shockwave floods it
+#define PI 3.1415927
 
 float hash(vec3 p) {
 	p = fract(p * 0.3183099 + vec3(0.71, 0.113, 0.419));
@@ -48,6 +52,41 @@ float waves(float d, vec3 p) {
 	return clamp(a + b, 0.0, 1.0);
 }
 
+// The shockwave seen from outside is a black dome rising over the horizon towards the singularity.
+// Its rim is sized by angle rather than blocks, so it stays readable however far away it is.
+vec3 shockDome(vec3 scene, vec3 dir) {
+
+	if(uShock <= 0.0)
+		return scene;
+
+	float dc = max(length(uCamRel), 1.0);
+	float b = dot(uCamRel, dir);
+
+	// once the wave has passed the camera the rest of the sky goes dark as well
+	float engulf = smoothstep(0.0, 1.0, (uShock - dc) / (0.15 * dc + 50.0));
+
+	// angular distance past the silhouette of the dome, negative inside it
+	float gap = acos(clamp(-b / dc, -1.0, 1.0)) - asin(clamp(uShock / dc, 0.0, 1.0)) - engulf * PI;
+
+	// only the half above the singularity's height, the rest would be under the ground
+	float hit = -b - sqrt(max(b * b - dc * dc + uShock * uShock, 0.0));
+	float height = uCamRel.y + dir.y * hit;
+	float up = max(smoothstep(-0.03 * uShock, 0.03 * uShock, height), engulf);
+
+	float body = (1.0 - smoothstep(0.0, 0.004, gap)) * up;
+	float rim = exp(-pow(abs(gap) / 0.012, 2.0)) * 1.3 + exp(-max(gap, 0.0) * 25.0) * smoothstep(-0.03, 0.0, gap) * 0.35;
+	float glow = clamp(rim * up * (1.0 - engulf), 0.0, 1.0);
+
+	vec3 dome = vec3(0.010, 0.004, 0.013);
+	if(body > 0.0) {
+		float n = fbm((uCamRel + dir * max(hit, 0.0)) / uShock * 6.0 + vec3(0.0, 0.0, uTime * 0.1));
+		dome += vec3(0.07, 0.0, 0.012) * smoothstep(0.35, 0.75, n);
+	}
+
+	vec3 col = mix(scene, dome, body);
+	return mix(col, vec3(1.0, 0.05, 0.02), glow);
+}
+
 void main() {
 
 	vec2 uv = gl_TexCoord[0].xy;
@@ -63,7 +102,7 @@ void main() {
 
 	vec4 scene = texture2D(uScene, uv);
 	if(depth >= 0.99999) {
-		gl_FragColor = scene;
+		gl_FragColor = vec4(shockDome(scene.rgb, normalize(rel)), scene.a);
 		return;
 	}
 
@@ -73,8 +112,17 @@ void main() {
 	// thin crests and fine noise alias badly at a distance, so settle them down there
 	float far = smoothstep(120.0, 380.0, length(rel));
 
+	// stretched along y: blobs on floors, drips down walls
+	vec3 q = p * vec3(0.16, 0.055, 0.16) + vec3(0.0, uTime * 0.05, 0.0);
+	float n = mix(fbm(q), 0.44, far);
+
+	// the front has a ragged edge and grows wider with distance so it never thins out to nothing; negative x is behind it
+	float x = (dist - uShock - (n - 0.44) * 70.0) / (9.0 + 0.06 * length(rel));
+	float reached = step(0.0, uShock);
+	float ring = exp(-x * x) * reached;
+	float flood = smoothstep(0.0, 1.0, -x) * reached;
+
 	float crest = waves(dist, p) * uWave * (1.0 - 0.7 * far);
-	float ring = exp(-pow((dist - uShock) / 9.0, 2.0)) * step(0.0, uShock);
 	float heave = crest + ring * 1.5;
 
 	// the ground heaves under the crests
@@ -85,15 +133,13 @@ void main() {
 	}
 	vec3 col = texture2D(uScene, uv2).rgb;
 
-	// stretched along y: blobs on floors, drips down walls
-	vec3 q = p * vec3(0.16, 0.055, 0.16) + vec3(0.0, uTime * 0.05, 0.0);
-	float n = mix(fbm(q), 0.44, far);
 	float gate = smoothstep(0.0, 0.1, uInk);
 	float near = 1.0 - clamp(dist / 900.0, 0.0, 1.0);
 	float level = uInk * 1.35 - 0.15 + (near * 0.3 + crest * 0.1) * gate - n;
 
-	float m = smoothstep(0.0, 0.1, level);
-	float rim = smoothstep(0.0, 0.02, level) * (1.0 - smoothstep(0.02, 0.08, level)) * (1.0 - far);
+	// until the shockwave arrives the ink only stains the ground; behind the front it is solid
+	float m = max(smoothstep(0.0, 0.1, level) * STAIN, flood);
+	float rim = smoothstep(0.0, 0.02, level) * (1.0 - smoothstep(0.02, 0.08, level)) * (1.0 - far) * (1.0 - flood);
 
 	vec3 nrm = normalize(cross(dx, dy) + vec3(0.0, 0.0001, 0.0));
 	vec3 view = normalize(rel);

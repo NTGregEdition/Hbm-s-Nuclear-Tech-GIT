@@ -144,7 +144,7 @@ public class EntityBlackHole extends Entity {
 					EntityItem item = (EntityItem) e;
 					ItemStack stack = item.getEntityItem();
 					
-					if(stack.getItem() == ModItems.pellet_antimatter || stack.getItem() == ModItems.flame_pony) {
+					if((stack.getItem() == ModItems.pellet_antimatter || stack.getItem() == ModItems.flame_pony) && canBeDestroyedByAntimatter()) {
 						this.setDead();
 						worldObj.createExplosion(null, this.posX, this.posY, this.posZ, 5.0F, true);
 						return;
@@ -158,6 +158,10 @@ public class EntityBlackHole extends Entity {
 		this.motionX *= 0.99D;
 		this.motionY *= 0.99D;
 		this.motionZ *= 0.99D;
+	}
+
+	protected boolean canBeDestroyedByAntimatter() {
+		return true;
 	}
 
 	@Override

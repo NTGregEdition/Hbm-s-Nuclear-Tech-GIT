@@ -346,7 +346,7 @@ public class DigammaApocalypseHandler {
 			if(w.singularity == null || w.singularity.isDead) {
 
 				if(w.ticksLeft > 0) {
-					EntityQuasar replacement = new EntityQuasar(w.world, w.size);
+					EntityQuasar replacement = new EntityQuasar(w.world, w.size).anchor();
 					replacement.posX = w.spawnX;
 					replacement.posY = w.spawnY;
 					replacement.posZ = w.spawnZ;
