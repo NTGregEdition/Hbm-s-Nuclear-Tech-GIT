@@ -20,7 +20,9 @@ public final class VoltageTier {
 	public static final long UIV = 33554432L;
 	public static final long UMV = 134217728L;
 	public static final long UXV = 536870912L;
-	public static final long UNKNOWN = 2147483648L;
+	public static final long MAX = 2147483648L;
+
+	public static final long[] TIERS = { LV, MV, HV, EV, IV, LUV, ZPM, UV, UHV, UEV, UIV, UMV, UXV, MAX};
 
 	public static final long DEFAULT = 0L;
 	public static final float DEFAULT_EXPLOSION_STRENGTH = 4.0F;
@@ -47,8 +49,17 @@ public final class VoltageTier {
 		if(voltage == UIV) return "UIV";
 		if(voltage == UMV) return "UMV";
 		if(voltage == UXV) return "UXV";
-		if(voltage == UNKNOWN) return "UNKNOWN";
+		if(voltage == MAX) return "MAX";
 		return null;
+	}
+
+	public static int wrapIndex(int meta) {
+		return Math.abs(meta % TIERS.length);
+	}
+
+	public static String getTierKey(long voltage) {
+		String name = getTierName(voltage);
+		return name != null ? name.toLowerCase(Locale.US) : null;
 	}
 
 	public static String format(long voltage) {

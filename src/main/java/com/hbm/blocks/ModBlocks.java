@@ -864,6 +864,8 @@ public class ModBlocks {
 	public static Block transformer_mv_lv;
 	public static Block transformer_mv_hv;
 	public static Block transformer_hv_mv;
+	public static Block machine_casing;
+	public static Block machine_hull;
 	public static Block red_connector;
 	public static Block red_connector_super;
 	public static Block red_pylon;
@@ -2229,6 +2231,8 @@ public class ModBlocks {
 		transformer_mv_lv = new BlockVoltageTransformer(Material.iron, new TransformerProperties("mv_lv", VoltageTier.MV, VoltageTier.LV, 32L)).setBlockName("transformer_mv_lv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 		transformer_mv_hv = new BlockVoltageTransformer(Material.iron, new TransformerProperties("mv_hv", VoltageTier.MV, VoltageTier.HV, 512L)).setBlockName("transformer_mv_hv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 		transformer_hv_mv = new BlockVoltageTransformer(Material.iron, new TransformerProperties("hv_mv", VoltageTier.HV, VoltageTier.MV, 128L)).setBlockName("transformer_hv_mv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
+		machine_hull = new BlockVoltage(Material.iron).setBlockName("machine_hull").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
+		machine_casing = new BlockVoltage(Material.iron).setBlockName("machine_casing").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 		red_connector = new ConnectorRedWire(Material.iron).setBlockName("red_connector").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":red_connector");
 		red_connector_super = new ConnectorRedWireSuper(Material.iron).setBlockName("red_connector_super").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":red_connector");
 		red_pylon = new PylonRedWire(Material.iron).setBlockName("red_pylon").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":red_pylon");
@@ -3719,6 +3723,8 @@ public class ModBlocks {
 		register(transformer_mv_lv);
 		register(transformer_mv_hv);
 		register(transformer_hv_mv);
+		register(machine_casing);
+		register(machine_hull);
 		register(red_wire_coated);
 		register(red_connector);
 		register(red_connector_super);

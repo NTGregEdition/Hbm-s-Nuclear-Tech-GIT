@@ -25,7 +25,7 @@ public final class MachineVoltageConfig {
 	private static final long UIV = VoltageTier.UIV;
 	private static final long UMV = VoltageTier.UMV;
 	private static final long UXV = VoltageTier.UXV;
-	private static final long UNKNOWN = VoltageTier.UNKNOWN;
+	private static final long MAX = VoltageTier.MAX;
 	private static final Set<Block> HIDDEN_VOLTAGE_TOOLTIPS = new HashSet<Block>();
 
 	private MachineVoltageConfig() { }
