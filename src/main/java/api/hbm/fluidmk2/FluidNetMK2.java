@@ -1,9 +1,12 @@
 package api.hbm.fluidmk2;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.hbm.inventory.fluid.FluidType;
 import com.hbm.uninos.NodeNet;
@@ -27,6 +30,21 @@ public class FluidNetMK2 extends NodeNet<IFluidReceiverMK2, IFluidProviderMK2, F
 
 	@Override public void resetTrackers() { this.fluidTracker = 0; }
 
+	public int getPumpStrength() {
+
+		Set<IFluidPumpMK2> pumps = Collections.newSetFromMap(new IdentityHashMap<IFluidPumpMK2, Boolean>());
+		for(IFluidProviderMK2 provider : providerEntries.keySet()) if(provider instanceof IFluidPumpMK2) pumps.add((IFluidPumpMK2) provider);
+		for(IFluidReceiverMK2 receiver : receiverEntries.keySet()) if(receiver instanceof IFluidPumpMK2) pumps.add((IFluidPumpMK2) receiver);
+
+		int strength = 0;
+		for(IFluidPumpMK2 pump : pumps) strength += pump.getPumpStrength();
+		return strength;
+	}
+
+	public boolean isPumped() {
+		return this.getPumpStrength() >= this.links.size();
+	}
+
 	@Override
 	public void update() {
 
@@ -36,7 +54,7 @@ public class FluidNetMK2 extends NodeNet<IFluidReceiverMK2, IFluidProviderMK2, F
 
 		setupFluidProviders();
 		setupFluidReceivers();
-		transferFluid();
+		if(this.isPumped()) transferFluid();
 
 		cleanUp();
 	}

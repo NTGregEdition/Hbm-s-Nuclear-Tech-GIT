@@ -47,6 +47,7 @@ import com.hbm.blocks.network.FluidDuctGauge.TileEntityPipeGauge;
 import com.hbm.blocks.network.FluidDuctPaintable.TileEntityPipePaintable;
 import com.hbm.blocks.network.FluidDuctPaintableBlockExhaust.TileEntityPipeExhaustPaintable;
 import com.hbm.blocks.network.FluidPump.TileEntityFluidPump;
+import com.hbm.blocks.network.VoltagePump.TileEntityVoltagePump;
 import com.hbm.blocks.network.pneumatic.PneumoTubePaintableBlock.TileEntityPneumoTubePaintable;
 import com.hbm.blocks.rail.RailStandardSwitch.TileEntityRailSwitch;
 import com.hbm.blocks.test.TestEventTester.TileEntityTestStorage;
@@ -519,6 +520,7 @@ public class TileMappings {
 		put(TileEntityFluidValve.class, "tileentity_pipe_valve");
 		put(TileEntityFluidCounterValve.class, "tileentity_pipe_counter_valve");
 		put(TileEntityFluidPump.class, "tileentity_pipe_pump");
+		put(TileEntityVoltagePump.class, "tileentity_voltage_pump");
 
 		put(TileEntityPipeAnchor.class, "tileentity_pioe_anchor");
 

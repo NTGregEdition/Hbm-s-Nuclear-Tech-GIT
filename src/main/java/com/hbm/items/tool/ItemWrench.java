@@ -6,6 +6,9 @@ import com.hbm.blocks.BlockDummyable;
 import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.network.TileEntityPipelineBase;
 
+import api.hbm.block.IToolable;
+import api.hbm.block.IToolable.ToolType;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -89,6 +92,14 @@ public class ItemWrench extends ItemSword {
 
 				player.swingItem();
 				return true;
+			}
+		}
+
+		if(player.isSneaking()) {
+			Block block = world.getBlock(x, y, z);
+
+			if(block instanceof IToolable) {
+				return ((IToolable) block).onScrew(world, player, x, y, z, p_77648_7_, p_77648_8_, p_77648_9_, p_77648_10_, ToolType.WRENCH);
 			}
 		}
 

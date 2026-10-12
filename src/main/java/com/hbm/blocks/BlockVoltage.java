@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.StatCollector;
 
-public class BlockVoltage extends BlockMulti {
+public class BlockVoltage extends BlockMulti implements IBlockMultiPass {
 
 	private IIcon[] icons;
 

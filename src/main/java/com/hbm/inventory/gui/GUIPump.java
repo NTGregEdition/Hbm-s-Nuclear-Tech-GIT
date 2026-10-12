@@ -3,9 +3,12 @@ package com.hbm.inventory.gui;
 import org.lwjgl.input.Keyboard;
 
 import com.hbm.blocks.network.FluidPump.TileEntityFluidPump;
+import com.hbm.blocks.network.PumpUpgrades;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.packet.toserver.NBTControlPacket;
+import com.hbm.util.BobMathUtil;
 import com.hbm.util.EnumUtil;
+import com.hbm.util.i18n.I18nUtil;
 
 import api.hbm.energymk2.IEnergyReceiverMK2.ConnectionPriority;
 import cpw.mods.fml.relauncher.Side;
@@ -40,7 +43,7 @@ public class GUIPump extends GuiScreen {
 
 		textPlacementPriority = new GuiTextField(fontRendererObj, this.width / 2 - 150, 100, 90, 20);
 		textPlacementPriority.setText("" + pump.bufferSize);
-		textPlacementPriority.setMaxStringLength(5);
+		textPlacementPriority.setMaxStringLength(7);
 
 		buttonPressure = new GuiButton(0, this.width / 2 - 50, 100, 90, 20, pressure + " PU");
 
@@ -52,7 +55,7 @@ public class GUIPump extends GuiScreen {
 		drawDefaultBackground();
 
 		drawString(fontRendererObj, "Throughput:", this.width / 2 - 150, 80, 0xA0A0A0);
-		drawString(fontRendererObj, "(max. 10,000mB)", this.width / 2 - 150, 90, 0xA0A0A0);
+		drawString(fontRendererObj, "(max. " + BobMathUtil.format(pump.getMaxFlow()) + "mB/t)", this.width / 2 - 150, 90, 0xA0A0A0);
 		textPlacementPriority.drawTextBox();
 
 		drawString(fontRendererObj, "Pressure:", this.width / 2 - 50, 80, 0xA0A0A0);
@@ -60,6 +63,17 @@ public class GUIPump extends GuiScreen {
 
 		drawString(fontRendererObj, "Priority:", this.width / 2 + 50, 80, 0xA0A0A0);
 		buttonPriority.drawButton(mc, mouseX, mouseY);
+
+		int colour = pump.regulator == PumpUpgrades.NONE ? 0xFF5555 : 0xA0A0A0;
+		String regulator = pump.regulator == PumpUpgrades.NONE ? I18nUtil.resolveKey("hbm.pump.noRegulator") : I18nUtil.resolveKey("hbm.pump.regulator", PumpUpgrades.tierName(pump.regulator), BobMathUtil.format(pump.getMaxFlow()));
+		drawString(fontRendererObj, regulator, this.width / 2 - 150, 140, colour);
+
+		if(pump.regulator != PumpUpgrades.NONE) {
+			boolean withinLimit = pump.isWithinPipeLimit();
+			drawString(fontRendererObj, I18nUtil.resolveKey("hbm.pump.pipes", BobMathUtil.format(pump.getPipes()), BobMathUtil.format(pump.getPipeLimit())), this.width / 2 - 150, 150, withinLimit ? 0x55FF55 : 0xFF5555);
+			drawString(fontRendererObj, I18nUtil.resolveKey("hbm.pump.buffer", BobMathUtil.format(pump.power), BobMathUtil.format(pump.getMaxPower())), this.width / 2 - 150, 160, pump.running ? 0x55FF55 : 0xFF5555);
+			drawString(fontRendererObj, I18nUtil.resolveKey("hbm.pump.draw", BobMathUtil.format(pump.getEnergyDemand())), this.width / 2 - 150, 170, 0xA0A0A0);
+		}
 
 		super.drawScreen(mouseX, mouseY, partialTicks);
 	}
