@@ -50,6 +50,10 @@ public class ItemAutogen extends Item {
 		return this;
 	}
 
+	public MaterialShapes getShape(){
+		return this.shape;
+	}
+
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IIconRegister reg) {
 		super.registerIcons(reg);

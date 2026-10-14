@@ -2,6 +2,7 @@ package com.hbm.inventory.gui;
 
 import org.lwjgl.input.Keyboard;
 
+import com.hbm.blocks.network.FlowControlPump.TileEntityFlowControlPump;
 import com.hbm.blocks.network.FluidPump.TileEntityFluidPump;
 import com.hbm.blocks.network.PumpUpgrades;
 import com.hbm.packet.PacketDispatcher;
@@ -23,7 +24,7 @@ import net.minecraft.util.ResourceLocation;
 @SideOnly(Side.CLIENT)
 public class GUIPump extends GuiScreen {
 
-	protected final TileEntityFluidPump pump;
+	protected final TileEntityFlowControlPump pump;
 
 	private GuiTextField textPlacementPriority;
 	private GuiButton buttonPressure;
@@ -31,7 +32,7 @@ public class GUIPump extends GuiScreen {
 	private int pressure;
 	private int priority;
 
-	public GUIPump(TileEntityFluidPump pump) {
+	public GUIPump(TileEntityFlowControlPump pump) {
 		this.pump = pump;
 		this.pressure = pump.tank[0].getPressure();
 		this.priority = pump.priority.ordinal();

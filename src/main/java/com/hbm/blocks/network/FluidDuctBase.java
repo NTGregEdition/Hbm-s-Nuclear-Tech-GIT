@@ -12,6 +12,7 @@ import com.hbm.util.i18n.I18nUtil;
 
 import api.hbm.fluidmk2.FluidNetMK2;
 import api.hbm.fluidmk2.FluidNode;
+import api.hbm.fluidmk2.IFluidPipeSingle;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -37,6 +38,20 @@ public class FluidDuctBase extends BlockContainer implements IBlockFluidDuct, IA
 
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float fX, float fY, float fZ) {
+		return handleActivation(world, x, y, z, player, this);
+	}
+
+	@Override
+	public void changeTypeRecursively(World world, int x, int y, int z, FluidType prevType, FluidType type, int loopsRemaining) {
+		changeTypeStandard(world, x, y, z, prevType, type, loopsRemaining);
+	}
+
+	@Override
+	public List<String> getDebugInfo(World world, int x, int y, int z) {
+		return getDuctDebugInfo(world, x, y, z);
+	}
+
+	public static boolean handleActivation(World world, int x, int y, int z, EntityPlayer player, IBlockFluidDuct duct) {
 
 		if(player.getHeldItem() != null && player.getHeldItem().getItem() instanceof IItemFluidIdentifier) {
 			IItemFluidIdentifier id = (IItemFluidIdentifier) player.getHeldItem().getItem();
@@ -46,8 +61,8 @@ public class FluidDuctBase extends BlockContainer implements IBlockFluidDuct, IA
 
 				TileEntity te = world.getTileEntity(x, y, z);
 
-				if(te instanceof TileEntityPipeBaseNT) {
-					TileEntityPipeBaseNT pipe = (TileEntityPipeBaseNT) te;
+				if(te instanceof IFluidPipeSingle) {
+					IFluidPipeSingle pipe = (IFluidPipeSingle) te;
 
 					if(HbmPlayerProps.getData(player).getKeyPressed(HbmKeybinds.EnumKeybind.TOOL_ALT)) {
 						Item item = player.getHeldItem().getItem();
@@ -69,8 +84,8 @@ public class FluidDuctBase extends BlockContainer implements IBlockFluidDuct, IA
 
 				TileEntity te = world.getTileEntity(x, y, z);
 
-				if(te instanceof TileEntityPipeBaseNT) {
-					TileEntityPipeBaseNT pipe = (TileEntityPipeBaseNT) te;
+				if(te instanceof IFluidPipeSingle) {
+					IFluidPipeSingle pipe = (IFluidPipeSingle) te;
 
 					if(HbmPlayerProps.getData(player).getKeyPressed(HbmKeybinds.EnumKeybind.TOOL_ALT)) {
 						Item item = player.getHeldItem().getItem();
@@ -83,7 +98,7 @@ public class FluidDuctBase extends BlockContainer implements IBlockFluidDuct, IA
 						}
 					}
 
-					changeTypeRecursively(world, x, y, z, pipe.getType(), type, 64);
+					duct.changeTypeRecursively(world, x, y, z, pipe.getType(), type, 64);
 					return true;
 				}
 			}
@@ -92,13 +107,12 @@ public class FluidDuctBase extends BlockContainer implements IBlockFluidDuct, IA
 		return false;
 	}
 
-	@Override
-	public void changeTypeRecursively(World world, int x, int y, int z, FluidType prevType, FluidType type, int loopsRemaining) {
+	public static void changeTypeStandard(World world, int x, int y, int z, FluidType prevType, FluidType type, int loopsRemaining) {
 
 		TileEntity te = world.getTileEntity(x, y, z);
 
-		if(te instanceof TileEntityPipeBaseNT) {
-			TileEntityPipeBaseNT pipe = (TileEntityPipeBaseNT) te;
+		if(te instanceof IFluidPipeSingle) {
+			IFluidPipeSingle pipe = (IFluidPipeSingle) te;
 
 			if(pipe.getType() == prevType && pipe.getType() != type) {
 				pipe.setType(type);
@@ -116,13 +130,12 @@ public class FluidDuctBase extends BlockContainer implements IBlockFluidDuct, IA
 		}
 	}
 
-	@Override
-	public List<String> getDebugInfo(World world, int x, int y, int z) {
+	public static List<String> getDuctDebugInfo(World world, int x, int y, int z) {
 
 		TileEntity te = world.getTileEntity(x, y, z);
 
-		if(te instanceof TileEntityPipeBaseNT) {
-			TileEntityPipeBaseNT pipe = (TileEntityPipeBaseNT) te;
+		if(te instanceof IFluidPipeSingle) {
+			IFluidPipeSingle pipe = (IFluidPipeSingle) te;
 			FluidType type = pipe.getType();
 
 			if(type != null) {

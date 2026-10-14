@@ -5,6 +5,7 @@ import api.hbm.energymk2.IEnergyProviderMK2;
 import api.hbm.energymk2.IEnergyReceiverMK2;
 import api.hbm.energymk2.Nodespace;
 import api.hbm.energymk2.Nodespace.PowerNode;
+import api.hbm.energymk2.PowerNetMK2;
 import api.hbm.energymk2.TransformerProperties;
 import com.hbm.blocks.network.BlockVoltageTransformer;
 import com.hbm.tileentity.TileEntityLoadedBase;
@@ -18,6 +19,8 @@ import net.minecraftforge.common.util.ForgeDirection;
 public class TileEntityVoltageTransformer extends TileEntityLoadedBase implements IEnergyReceiverMK2, IEnergyProviderMK2, IEnergyConductorMK2 {
 
 	private PowerNode outputNode;
+	private PowerNetMK2 inputNet;
+	private PowerNetMK2 outputNet;
 	private long pendingInput;
 	private long pendingOutput;
 	private long conversionRemainder;
@@ -54,17 +57,42 @@ public class TileEntityVoltageTransformer extends TileEntityLoadedBase implement
 		if(worldObj.getTotalWorldTime() % 20L == 0L) subscribeInput();
 		convertPendingInput();
 
+		provideOutput();
+	}
+
+	/** Registers this transformer as a provider on the net of the cable attached to its output side, dropping out of the previous net if that changed */
+	private void provideOutput() {
 		ForgeDirection output = getOutputDirection();
-		tryProvide(worldObj, xCoord + output.offsetX, yCoord + output.offsetY, zCoord + output.offsetZ, output);
+		int x = xCoord + output.offsetX, y = yCoord + output.offsetY, z = zCoord + output.offsetZ;
+		PowerNetMK2 target = null;
+
+		TileEntity outputTile = worldObj.getTileEntity(x, y, z);
+		if(outputTile instanceof IEnergyConductorMK2 && ((IEnergyConductorMK2) outputTile).canConnect(output.getOpposite())) {
+			PowerNode node = Nodespace.getNode(worldObj, x, y, z);
+			if(node != null && node.net != null) target = node.net;
+		}
+
+		if(outputNet != null && outputNet != target) outputNet.removeProvider(this);
+		outputNet = target;
+		if(target != null) target.addProviderAt(this, x, y, z, output.getOpposite());
 	}
 
 	private void subscribeInput() {
 		ForgeDirection input = getInputDirection();
-		TileEntity inputTile = worldObj.getTileEntity(xCoord + input.offsetX, yCoord + input.offsetY, zCoord + input.offsetZ);
-		if(inputTile instanceof TileEntityVoltageCable
-				&& ((TileEntityVoltageCable) inputTile).getCableProperties().voltage != getProperties().inputVoltage) return;
-		PowerNode node = Nodespace.getNode(worldObj, xCoord + input.offsetX, yCoord + input.offsetY, zCoord + input.offsetZ);
-		if(node != null && node.net != null) node.net.addReceiver(this);
+		int x = xCoord + input.offsetX, y = yCoord + input.offsetY, z = zCoord + input.offsetZ;
+		PowerNetMK2 target = null;
+
+		TileEntity inputTile = worldObj.getTileEntity(x, y, z);
+		boolean wrongVoltage = inputTile instanceof TileEntityVoltageCable
+				&& ((TileEntityVoltageCable) inputTile).getCableProperties().voltage != getProperties().inputVoltage;
+		if(!wrongVoltage) {
+			PowerNode node = Nodespace.getNode(worldObj, x, y, z);
+			if(node != null && node.net != null) target = node.net;
+		}
+
+		if(inputNet != null && inputNet != target) inputNet.removeReceiver(this);
+		inputNet = target;
+		if(target != null) target.addReceiverAt(this, x, y, z, input.getOpposite());
 	}
 
 	private void convertPendingInput() {
@@ -130,6 +158,8 @@ public class TileEntityVoltageTransformer extends TileEntityLoadedBase implement
 	@Override
 	public void invalidate() {
 		super.invalidate();
+		if(inputNet != null) inputNet.removeReceiver(this);
+		if(outputNet != null) outputNet.removeProvider(this);
 		if(worldObj != null && !worldObj.isRemote && outputNode != null) {
 			Nodespace.destroyNode(worldObj, xCoord, yCoord, zCoord);
 		}

@@ -16,13 +16,14 @@ import com.hbm.main.MainRegistry;
 import com.hbm.sound.AudioWrapper;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.TileEntityMachineBase;
+import com.hbm.tileentity.TilePortShapes;
+import com.hbm.tileentity.TilePort.PortDef;
 import com.hbm.util.BufferUtil;
 import com.hbm.util.CompatEnergyControl;
 import com.hbm.util.InventoryUtil;
-import com.hbm.util.fauxpointtwelve.DirPos;
 
 import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.fluid.IFluidStandardReceiver;
+import api.hbm.fluidmk2.IFluidStandardReceiverMK2;
 import api.hbm.tile.IInfoProviderEC;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -38,7 +39,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 //epic!
-public class TileEntityMachineGasCent extends TileEntityMachineBase implements IEnergyReceiverMK2, IFluidStandardReceiver, IGUIProvider, IInfoProviderEC {
+public class TileEntityMachineGasCent extends TileEntityMachineBase implements IEnergyReceiverMK2, IFluidStandardReceiverMK2, IGUIProvider, IInfoProviderEC {
 
 	public long power;
 	public int progress;
@@ -173,12 +174,16 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
 		return false;
 	}
 
+	protected PortDef[] cachedPorts;
+	public PortDef[] getPorts() { if(cachedPorts == null) cachedPorts = TilePortShapes.around(xCoord, yCoord, zCoord); return cachedPorts; }
+
 	@Override
 	public void updateEntity() {
 
 		if(!worldObj.isRemote) {
 
-			updateConnections();
+			this.setupAllPorts(getPorts());
+			this.updatePortPIFIFO();
 
 			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 4, power, maxPower);
 			setTankType(5);
@@ -314,26 +319,6 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
 		outputTank.setTankType(PseudoFluidType.types.get(BufferUtil.readString(buf)));
 
 		tank.deserialize(buf);
-	}
-
-	private void updateConnections() {
-		for(DirPos pos : getConPos()) {
-			this.trySubscribe(worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-
-			if(GasCentrifugeRecipes.fluidConversions.containsValue(inputTank.getTankType())) {
-				this.trySubscribe(tank.getTankType(), worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-			}
-		}
-	}
-
-	private DirPos[] getConPos() {
-		return new DirPos[] {
-			new DirPos(xCoord, yCoord - 1, zCoord, Library.NEG_Y),
-			new DirPos(xCoord + 1, yCoord, zCoord, Library.POS_X),
-			new DirPos(xCoord - 1, yCoord, zCoord, Library.NEG_X),
-			new DirPos(xCoord, yCoord, zCoord + 1, Library.POS_Z),
-			new DirPos(xCoord, yCoord, zCoord - 1, Library.NEG_Z)
-		};
 	}
 
 	@Override public void setPower(long i) { power = i; }

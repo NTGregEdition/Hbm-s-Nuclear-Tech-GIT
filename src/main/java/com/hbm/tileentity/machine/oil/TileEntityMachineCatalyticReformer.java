@@ -2,7 +2,6 @@ package com.hbm.tileentity.machine.oil;
 import api.hbm.energymk2.VoltageCheckedCharging;
 
 import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.fluid.IFluidStandardTransceiver;
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.inventory.FluidStack;
 import com.hbm.inventory.container.ContainerMachineCatalyticReformer;
@@ -16,7 +15,11 @@ import com.hbm.tileentity.IFluidCopiable;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.IPersistentNBT;
 import com.hbm.tileentity.TileEntityMachineBase;
+import com.hbm.tileentity.TilePort.PortDef;
 import com.hbm.util.Tuple.Triplet;
+
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluidmk2.IFluidStandardTransceiverMK2;
 import com.hbm.util.fauxpointtwelve.DirPos;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -28,7 +31,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-public class TileEntityMachineCatalyticReformer extends TileEntityMachineBase implements IEnergyReceiverMK2, IFluidStandardTransceiver, IPersistentNBT, IGUIProvider, IFluidCopiable {
+public class TileEntityMachineCatalyticReformer extends TileEntityMachineBase implements IEnergyReceiverMK2, IFluidStandardTransceiverMK2, IPersistentNBT, IGUIProvider, IFluidCopiable {
 
 	public long power;
 	public static final long maxPower = 1_000_000;
@@ -55,7 +58,9 @@ public class TileEntityMachineCatalyticReformer extends TileEntityMachineBase im
 
 		if(!worldObj.isRemote) {
 
-			if(this.worldObj.getTotalWorldTime() % 20 == 0) this.updateConnections();
+			this.setupAllPorts(getPorts());
+			this.updatePortPIFIFO();
+			
 			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, maxPower);
 			tanks[0].setType(9, slots);
 			tanks[0].loadTank(1, 2, slots);
@@ -65,14 +70,6 @@ public class TileEntityMachineCatalyticReformer extends TileEntityMachineBase im
 			tanks[1].unloadTank(3, 4, slots);
 			tanks[2].unloadTank(5, 6, slots);
 			tanks[3].unloadTank(7, 8, slots);
-
-			for(DirPos pos : getConPos()) {
-				for(int i = 1; i < 4; i++) {
-					if(tanks[i].getFill() > 0) {
-						this.sendFluid(tanks[i], worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-					}
-				}
-			}
 
 			this.networkPackNT(150);
 		}
@@ -122,25 +119,23 @@ public class TileEntityMachineCatalyticReformer extends TileEntityMachineBase im
 		power -= 20_000;
 	}
 
-	private void updateConnections() {
-		for(DirPos pos : getConPos()) {
-			this.trySubscribe(worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-			this.trySubscribe(tanks[0].getTankType(), worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-		}
-	}
+	protected PortDef[] cachedPorts;
 
-	public DirPos[] getConPos() {
+	public PortDef[] getPorts() {
+		if(cachedPorts == null) {
 		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);
 		ForgeDirection rot = dir.getRotation(ForgeDirection.UP);
 
-		return new DirPos[] {
-				new DirPos(xCoord + dir.offsetX * 2 + rot.offsetX, yCoord, zCoord + dir.offsetZ * 2 + rot.offsetZ, dir),
-				new DirPos(xCoord + dir.offsetX * 2 - rot.offsetX, yCoord, zCoord + dir.offsetZ * 2 - rot.offsetZ, dir),
-				new DirPos(xCoord - dir.offsetX * 2 + rot.offsetX, yCoord, zCoord - dir.offsetZ * 2 + rot.offsetZ, dir.getOpposite()),
-				new DirPos(xCoord - dir.offsetX * 2 - rot.offsetX, yCoord, zCoord - dir.offsetZ * 2 - rot.offsetZ, dir.getOpposite()),
-				new DirPos(xCoord + rot.offsetX * 3, yCoord, zCoord + rot.offsetZ * 3, rot),
-				new DirPos(xCoord - rot.offsetX * 3, yCoord, zCoord - rot.offsetZ * 3, rot.getOpposite())
+			cachedPorts = new PortDef[] {
+					PortDef.make(xCoord + dir.offsetX * 1 + rot.offsetX, yCoord, zCoord + dir.offsetZ * 1 + rot.offsetZ, dir),
+					PortDef.make(xCoord + dir.offsetX * 1 - rot.offsetX, yCoord, zCoord + dir.offsetZ * 1 - rot.offsetZ, dir),
+					PortDef.make(xCoord - dir.offsetX * 1 + rot.offsetX, yCoord, zCoord - dir.offsetZ * 1 + rot.offsetZ, dir.getOpposite()),
+					PortDef.make(xCoord - dir.offsetX * 1 - rot.offsetX, yCoord, zCoord - dir.offsetZ * 1 - rot.offsetZ, dir.getOpposite()),
+					PortDef.make(xCoord + rot.offsetX * 2, yCoord, zCoord + rot.offsetZ * 2, rot),
+					PortDef.make(xCoord - rot.offsetX * 2, yCoord, zCoord - rot.offsetZ * 2, rot.getOpposite()),
 		};
+	}
+		return cachedPorts;
 	}
 
 	@Override

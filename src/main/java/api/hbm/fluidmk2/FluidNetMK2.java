@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
+
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -19,7 +20,6 @@ public class FluidNetMK2 extends NodeNet<IFluidReceiverMK2, IFluidProviderMK2, F
 	public long fluidTracker = 0L;
 
 	protected static int timeout = 3_000;
-	protected static long currentTime = 0;
 	protected FluidType type;
 
 	public FluidNetMK2(FluidType type) {
@@ -33,8 +33,8 @@ public class FluidNetMK2 extends NodeNet<IFluidReceiverMK2, IFluidProviderMK2, F
 	public int getPumpStrength() {
 
 		Set<IFluidPumpMK2> pumps = Collections.newSetFromMap(new IdentityHashMap<IFluidPumpMK2, Boolean>());
-		for(IFluidProviderMK2 provider : providerEntries.keySet()) if(provider instanceof IFluidPumpMK2) pumps.add((IFluidPumpMK2) provider);
-		for(IFluidReceiverMK2 receiver : receiverEntries.keySet()) if(receiver instanceof IFluidPumpMK2) pumps.add((IFluidPumpMK2) receiver);
+		for(IFluidProviderMK2 provider : providerEntries) if(provider instanceof IFluidPumpMK2) pumps.add((IFluidPumpMK2) provider);
+		for(IFluidReceiverMK2 receiver : receiverEntries) if(receiver instanceof IFluidPumpMK2) pumps.add((IFluidPumpMK2) receiver);
 
 		int strength = 0;
 		for(IFluidPumpMK2 pump : pumps) strength += pump.getPumpStrength();
@@ -50,7 +50,6 @@ public class FluidNetMK2 extends NodeNet<IFluidReceiverMK2, IFluidProviderMK2, F
 
 		if(providerEntries.isEmpty()) return;
 		if(receiverEntries.isEmpty()) return;
-		currentTime = System.currentTimeMillis();
 
 		setupFluidProviders();
 		setupFluidReceivers();
@@ -60,6 +59,7 @@ public class FluidNetMK2 extends NodeNet<IFluidReceiverMK2, IFluidProviderMK2, F
 	}
 
 	//this sucks ass, but it makes the code just a smidge more structured
+	public long totalFluidInNetwork;
 	public long[] fluidAvailable = new long[IFluidUserMK2.HIGHEST_VALID_PRESSURE + 1];
 	public List<Pair<IFluidProviderMK2, Long>>[] providers = new ArrayList[IFluidUserMK2.HIGHEST_VALID_PRESSURE + 1];
 	public long[][] fluidDemand = new long[IFluidUserMK2.HIGHEST_VALID_PRESSURE + 1][ConnectionPriority.values().length];
@@ -67,28 +67,30 @@ public class FluidNetMK2 extends NodeNet<IFluidReceiverMK2, IFluidProviderMK2, F
 	public long[] transfered = new long[IFluidUserMK2.HIGHEST_VALID_PRESSURE + 1];
 
 	public void setupFluidProviders() {
-		Iterator<Entry<IFluidProviderMK2, Long>> iterator = providerEntries.entrySet().iterator();
+		
+		totalFluidInNetwork = 0;
+		
+		Iterator<IFluidProviderMK2> iterator = providerEntries.iterator();
 
 		while(iterator.hasNext()) {
-			Entry<IFluidProviderMK2, Long> entry = iterator.next();
-			if(currentTime - entry.getValue() > timeout || isBadLink(entry.getKey())) { iterator.remove(); continue; }
-			IFluidProviderMK2 provider = entry.getKey();
+			IFluidProviderMK2 provider = iterator.next();
+			if(isBadLink(provider)) { iterator.remove(); continue; }
 			int[] pressureRange = provider.getProvidingPressureRange(type);
 			for(int p = pressureRange[0]; p <= pressureRange[1]; p++) {
 				long available = Math.min(provider.getFluidAvailable(type, p), provider.getProviderSpeed(type, p));
 				providers[p].add(new Pair(provider, available));
 				fluidAvailable[p] += available;
+				totalFluidInNetwork += provider.getFluidAvailable(type, p);
 			}
 		}
 	}
 
 	public void setupFluidReceivers() {
-		Iterator<Entry<IFluidReceiverMK2, Long>> iterator = receiverEntries.entrySet().iterator();
+		Iterator<IFluidReceiverMK2> iterator = receiverEntries.iterator();
 
 		while(iterator.hasNext()) {
-			Entry<IFluidReceiverMK2, Long> entry = iterator.next();
-			if(currentTime - entry.getValue() > timeout || isBadLink(entry.getKey())) { iterator.remove(); continue; }
-			IFluidReceiverMK2 receiver = entry.getKey();
+			IFluidReceiverMK2 receiver = iterator.next();
+			if(isBadLink(receiver)) { iterator.remove(); continue; }
 			int[] pressureRange = receiver.getReceivingPressureRange(type);
 			for(int p = pressureRange[0]; p <= pressureRange[1]; p++) {
 				long required = Math.min(receiver.getDemand(type, p), receiver.getReceiverSpeed(type, p));
@@ -120,7 +122,6 @@ public class FluidNetMK2 extends NodeNet<IFluidReceiverMK2, IFluidProviderMK2, F
 					long toSend = (long) Math.max(toTransfer * weight, 0D);
 					toSend -= entry.getKey().transferFluid(type, p, toSend);
 					received[p] += toSend;
-					fluidTracker += toSend;
 				}
 
 				totalAvailable -= received[p];
@@ -153,6 +154,18 @@ public class FluidNetMK2 extends NodeNet<IFluidReceiverMK2, IFluidProviderMK2, F
 				notAccountedFor[p] -= toUse;
 			}
 		}
+		
+		Iterator<IFluidProviderMK2> iterator = providerEntries.iterator();
+		long totalAfterTransfer = 0;
+		
+		while(iterator.hasNext()) {
+			IFluidProviderMK2 provider = iterator.next();
+			for(int p = 0; p <= IFluidUserMK2.HIGHEST_VALID_PRESSURE; p++) {
+				totalAfterTransfer += provider.getFluidAvailable(type, p);
+			}
+		}
+		
+		this.fluidTracker += this.totalFluidInNetwork - totalAfterTransfer;
 	}
 
 	public void cleanUp() {

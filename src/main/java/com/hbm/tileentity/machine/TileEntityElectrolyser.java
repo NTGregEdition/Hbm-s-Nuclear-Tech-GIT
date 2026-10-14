@@ -2,7 +2,6 @@ package com.hbm.tileentity.machine;
 import api.hbm.energymk2.VoltageCheckedCharging;
 
 import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.fluid.IFluidStandardTransceiver;
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.handler.threading.PacketThreading;
@@ -23,12 +22,18 @@ import com.hbm.inventory.recipes.ElectrolyserMetalRecipes;
 import com.hbm.inventory.recipes.ElectrolyserMetalRecipes.ElectrolysisMetalRecipe;
 import com.hbm.items.machine.ItemMachineUpgrade.UpgradeType;
 import com.hbm.main.MainRegistry;
+import com.hbm.module.portmanager.ModulePortManFluidAdaptive;
+import com.hbm.module.portmanager.ModulePortManPower;
+import com.hbm.tileentity.*;
+import com.hbm.tileentity.TilePort.PortDef;
 import com.hbm.packet.toclient.AuxParticlePacketNT;
 import com.hbm.tileentity.*;
 import com.hbm.util.BobMathUtil;
 import com.hbm.util.CrucibleUtil;
-import com.hbm.util.fauxpointtwelve.DirPos;
 import com.hbm.util.i18n.I18nUtil;
+
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluidmk2.IFluidStandardTransceiverMK2;
 import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 import cpw.mods.fml.common.network.internal.FMLNetworkHandler;
 import cpw.mods.fml.relauncher.Side;
@@ -47,8 +52,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-public class TileEntityElectrolyser extends TileEntityMachineBase implements IEnergyReceiverMK2, IFluidStandardTransceiver, IControlReceiver, IGUIProvider, IUpgradeInfoProvider, IFluidCopiable, IMetalCopiable {
+public class TileEntityElectrolyser extends TileEntityMachineBase implements IEnergyReceiverMK2, IFluidStandardTransceiverMK2, IControlReceiver, IGUIProvider, IUpgradeInfoProvider, IFluidCopiable, IMetalCopiable {
 
 	public long power;
 	public static final long maxPower = 20000000;
@@ -72,6 +76,9 @@ public class TileEntityElectrolyser extends TileEntityMachineBase implements IEn
 
 	public UpgradeManagerNT upgradeManager = new UpgradeManagerNT();
 
+	protected ModulePortManFluidAdaptive moduleFluidPorts;
+	protected ModulePortManPower modulePowerPorts;
+
 	public TileEntityElectrolyser() {
 		//0: Battery
 		//1-2: Upgrades
@@ -88,6 +95,9 @@ public class TileEntityElectrolyser extends TileEntityMachineBase implements IEn
 		tanks[1] = new FluidTank(Fluids.HYDROGEN, 16000);
 		tanks[2] = new FluidTank(Fluids.OXYGEN, 16000);
 		tanks[3] = new FluidTank(Fluids.NITRIC_ACID, 16000);
+
+		moduleFluidPorts = new ModulePortManFluidAdaptive(this).setInputTanks(getReceivingTanks()).setOutputTanks(getSendingTanks());
+		modulePowerPorts = new ModulePortManPower(this);
 	}
 
 	@Override
@@ -111,27 +121,52 @@ public class TileEntityElectrolyser extends TileEntityMachineBase implements IEn
 		return "container.machineElectrolyser";
 	}
 
+	protected PortDef[] cachedPorts;
+
+	public PortDef[] getPorts() {
+		if(cachedPorts == null) {
+			
+			ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - 10);
+			ForgeDirection rot = dir.getRotation(ForgeDirection.UP);
+			
+			cachedPorts = new PortDef[] {
+					PortDef.make(xCoord - dir.offsetX * 5 - rot.offsetX * 1, yCoord, zCoord - dir.offsetZ * 5 - rot.offsetZ * 1, dir.getOpposite()),
+					PortDef.make(xCoord - dir.offsetX * 5 + rot.offsetX * 0, yCoord, zCoord - dir.offsetZ * 5 + rot.offsetZ * 0, dir.getOpposite()),
+					PortDef.make(xCoord - dir.offsetX * 5 + rot.offsetX * 1, yCoord, zCoord - dir.offsetZ * 5 + rot.offsetZ * 1, dir.getOpposite()),
+					
+					PortDef.make(xCoord - dir.offsetX * 4 + rot.offsetX * 1, yCoord, zCoord - dir.offsetZ * 4 + rot.offsetZ * 1, rot),
+					PortDef.make(xCoord - dir.offsetX * 2 + rot.offsetX * 1, yCoord, zCoord - dir.offsetZ * 2 + rot.offsetZ * 1, rot),
+					PortDef.make(xCoord + dir.offsetX * 0 + rot.offsetX * 1, yCoord, zCoord + dir.offsetZ * 0 + rot.offsetZ * 1, rot),
+					PortDef.make(xCoord + dir.offsetX * 2 + rot.offsetX * 1, yCoord, zCoord + dir.offsetZ * 2 + rot.offsetZ * 1, rot),
+					PortDef.make(xCoord + dir.offsetX * 4 + rot.offsetX * 1, yCoord, zCoord + dir.offsetZ * 4 + rot.offsetZ * 1, rot),
+					
+					PortDef.make(xCoord - dir.offsetX * 4 - rot.offsetX * 3, yCoord, zCoord - dir.offsetZ * 4 - rot.offsetZ * 3, rot.getOpposite()),
+					PortDef.make(xCoord - dir.offsetX * 2 - rot.offsetX * 3, yCoord, zCoord - dir.offsetZ * 2 - rot.offsetZ * 3, rot.getOpposite()),
+					PortDef.make(xCoord + dir.offsetX * 0 - rot.offsetX * 3, yCoord, zCoord + dir.offsetZ * 0 - rot.offsetZ * 3, rot.getOpposite()),
+					PortDef.make(xCoord + dir.offsetX * 2 - rot.offsetX * 3, yCoord, zCoord + dir.offsetZ * 2 - rot.offsetZ * 3, rot.getOpposite()),
+					PortDef.make(xCoord + dir.offsetX * 4 - rot.offsetX * 3, yCoord, zCoord + dir.offsetZ * 4 - rot.offsetZ * 3, rot.getOpposite()),
+					
+					PortDef.make(xCoord + dir.offsetX * 5 - rot.offsetX * 1, yCoord, zCoord + dir.offsetZ * 5 - rot.offsetZ * 1, dir),
+					PortDef.make(xCoord + dir.offsetX * 5 + rot.offsetX * 0, yCoord, zCoord + dir.offsetZ * 5 + rot.offsetZ * 0, dir),
+					PortDef.make(xCoord + dir.offsetX * 5 + rot.offsetX * 1, yCoord, zCoord + dir.offsetZ * 5 + rot.offsetZ * 1, dir),
+			};
+		}
+		return cachedPorts;
+	}
+
 	@Override
 	public void updateEntity() {
 
 		if(!worldObj.isRemote) {
+
+			moduleFluidPorts.update(getPorts());
+			modulePowerPorts.update(getPorts());
 
 			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, maxPower);
 			this.tanks[0].setType(3, 4, slots);
 			this.tanks[0].loadTank(5, 6, slots);
 			this.tanks[1].unloadTank(7, 8, slots);
 			this.tanks[2].unloadTank(9, 10, slots);
-
-			if(worldObj.getTotalWorldTime() % 20 == 0) {
-				for(DirPos pos : this.getConPos()) {
-					this.trySubscribe(worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-					this.trySubscribe(tanks[0].getTankType(), worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-					this.trySubscribe(tanks[3].getTankType(), worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-
-					if(tanks[1].getFill() > 0) this.sendFluid(tanks[1], worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-					if(tanks[2].getFill() > 0) this.sendFluid(tanks[2], worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-				}
-			}
 
 			upgradeManager.checkSlots(this, slots, 1, 2);
 			int speedLevel = upgradeManager.getLevel(UpgradeType.SPEED);
@@ -212,24 +247,6 @@ public class TileEntityElectrolyser extends TileEntityMachineBase implements IEn
 
 			this.networkPackNT(50);
 		}
-	}
-
-	public DirPos[] getConPos() {
-		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - 10);
-		ForgeDirection rot = dir.getRotation(ForgeDirection.UP);
-
-		return new DirPos[] {
-				new DirPos(xCoord - dir.offsetX * 6, yCoord, zCoord - dir.offsetZ * 6, dir.getOpposite()),
-				new DirPos(xCoord - dir.offsetX * 6 + rot.offsetX, yCoord, zCoord - dir.offsetZ * 6 + rot.offsetZ, dir.getOpposite()),
-				new DirPos(xCoord - dir.offsetX * 6 - rot.offsetX, yCoord, zCoord - dir.offsetZ * 6 - rot.offsetZ, dir.getOpposite()),
-				new DirPos(xCoord + dir.offsetX * 6, yCoord, zCoord + dir.offsetZ * 6, dir),
-				new DirPos(xCoord + dir.offsetX * 6 + rot.offsetX, yCoord, zCoord + dir.offsetZ * 6 + rot.offsetZ, dir),
-				new DirPos(xCoord + dir.offsetX * 6 - rot.offsetX, yCoord, zCoord + dir.offsetZ * 6 - rot.offsetZ, dir),
-				new DirPos(xCoord - rot.offsetX * 4, yCoord, zCoord - rot.offsetZ * 4, rot.getOpposite()),
-				new DirPos(xCoord + rot.offsetX * 2, yCoord, zCoord + rot.offsetZ * 2, rot),
-				new DirPos(xCoord - dir.offsetX * 5 + rot.offsetX * 2, yCoord, zCoord - dir.offsetZ * 5 + rot.offsetZ * 2, rot),
-				new DirPos(xCoord + dir.offsetX * 5 + rot.offsetX * 2, yCoord, zCoord + dir.offsetZ * 5 + rot.offsetZ * 2, rot),
-		};
 	}
 
 	@Override
@@ -521,9 +538,6 @@ public class TileEntityElectrolyser extends TileEntityMachineBase implements IEn
 		if(ID == 0) return new GUIElectrolyserFluid(player.inventory, this);
 		return new GUIElectrolyserMetal(player.inventory, this);
 	}
-
-	@Override
-	public void receiveControl(NBTTagCompound data) { }
 
 	@Override
 	public void receiveControl(EntityPlayer player, NBTTagCompound data) {

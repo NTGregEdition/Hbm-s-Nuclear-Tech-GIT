@@ -1,5 +1,6 @@
 package com.hbm.blocks.network;
 
+import com.hbm.tileentity.TilePort.PortDef;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -181,6 +182,8 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 
 		public boolean running;
 
+		protected PortDef inPort, outPort, powerPort;
+
 		public int getFlow() {
 			return PumpUpgrades.flow(PumpUpgrades.ELECTRIC_PUMP, this.pump);
 		}
@@ -235,24 +238,29 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 			if(this.running) this.power -= demand;
 			this.moved = 0L;
 
-			for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-				this.trySubscribe(this.worldObj, this.xCoord + dir.offsetX, this.yCoord + dir.offsetY, this.zCoord + dir.offsetZ, dir);
-			}
-
 			ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata());
 			ForgeDirection in = dir.getRotation(ForgeDirection.UP);
 			ForgeDirection out = in.getOpposite();
+
+			/* ports are built from the full tank array, the sending/receiving getters gate them. an uninstalled
+			 * or unpowered pump therefore never joins a fluid network and must not count as a pump */
+			if(this.inPort == null) {
+				this.inPort = PortDef.make(this.xCoord, this.yCoord, this.zCoord, in);
+				this.outPort = PortDef.make(this.xCoord, this.yCoord, this.zCoord, out);
+				List<ForgeDirection> powerDirs = new ArrayList<ForgeDirection>();
+				for(ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) if(d != in && d != out) powerDirs.add(d);
+				this.powerPort = PortDef.make(this.xCoord, this.yCoord, this.zCoord, powerDirs.toArray(new ForgeDirection[0]));
+			}
+			this.setupFluidInPorts(this.tank, this.inPort);
+			this.setupFluidOutPorts(this.tank, this.outPort);
+			this.setupPowerPorts(new PortDef[] {this.powerPort});
 
 			FluidNetMK2 pullNet = this.getNetwork(in);
 			FluidNetMK2 pushNet = this.getNetwork(out);
 			this.pullSize = pullNet == null ? 0 : pullNet.links.size();
 			this.pushSize = pushNet == null || pushNet == pullNet ? 0 : pushNet.links.size();
 
-			/* only join the fluid networks while running, an uninstalled or unpowered pump must not count as one */
-			if(this.running) {
-				this.trySubscribe(this.tank[0].getTankType(), this.worldObj, this.xCoord + in.offsetX, this.yCoord, this.zCoord + in.offsetZ, in);
-				this.tryProvide(this.tank[0], this.worldObj, this.xCoord + out.offsetX, this.yCoord, this.zCoord + out.offsetZ, out);
-			}
+			this.updatePortPIFIFO();
 
 			this.networkPackNT(20);
 		}

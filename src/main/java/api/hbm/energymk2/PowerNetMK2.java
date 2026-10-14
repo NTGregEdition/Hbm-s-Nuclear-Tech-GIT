@@ -62,8 +62,6 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 	private final Map<IEnergyProviderMK2, List<DirPos>> providerCablePorts = new HashMap<IEnergyProviderMK2, List<DirPos>>();
 	private final Map<IEnergyReceiverMK2, List<DirPos>> receiverCablePorts = new HashMap<IEnergyReceiverMK2, List<DirPos>>();
 
-	protected static int timeout = 3_000;
-
 	@Override public void resetTrackers() { this.energyTracker = 0; }
 
 	public void addProviderAt(IEnergyProviderMK2 provider, int x, int y, int z, ForgeDirection cableFace) {
@@ -108,6 +106,18 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 	}
 
 	@Override
+	public void removeProvider(IEnergyProviderMK2 provider) {
+		super.removeProvider(provider);
+		providerCablePorts.remove(provider);
+	}
+
+	@Override
+	public void removeReceiver(IEnergyReceiverMK2 receiver) {
+		super.removeReceiver(receiver);
+		receiverCablePorts.remove(receiver);
+	}
+
+	@Override
 	public void destroy() {
 		super.destroy();
 		providerCablePorts.clear();
@@ -126,20 +136,20 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 			return;
 		}
 
-		long timestamp = System.currentTimeMillis();
-
 		List<Pair<IEnergyProviderMK2, Long>> providers = new ArrayList();
 		long powerAvailable = 0;
+		long totalPowerInNetwork = 0;
 
 		// sum up available power
-		Iterator<Entry<IEnergyProviderMK2, Long>> provIt = providerEntries.entrySet().iterator();
+		Iterator<IEnergyProviderMK2> provIt = providerEntries.iterator();
 		while(provIt.hasNext()) {
-			Entry<IEnergyProviderMK2, Long> entry = provIt.next();
-			if(timestamp - entry.getValue() > timeout || isBadLink(entry.getKey())) { providerCablePorts.remove(entry.getKey()); provIt.remove(); continue; }
-			long src = Math.min(entry.getKey().getProviderPower(), entry.getKey().getProviderSpeed());
+			IEnergyProviderMK2 entry = provIt.next();
+			if(isBadLink(entry)) { providerCablePorts.remove(entry); provIt.remove(); continue; }
+			long src = Math.min(entry.getProviderPower(), entry.getProviderSpeed());
 			if(src > 0) {
-				providers.add(new Pair(entry.getKey(), src));
+				providers.add(new Pair(entry, src));
 				powerAvailable += src;
+				totalPowerInNetwork += entry.getProviderPower();
 			}
 		}
 
@@ -149,15 +159,15 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 		long[] demand = new long[ConnectionPriority.values().length];
 		long totalDemand = 0;
 
-		Iterator<Entry<IEnergyReceiverMK2, Long>> recIt = receiverEntries.entrySet().iterator();
+		Iterator<IEnergyReceiverMK2> recIt = receiverEntries.iterator();
 
 		while(recIt.hasNext()) {
-			Entry<IEnergyReceiverMK2, Long> entry = recIt.next();
-			if(timestamp - entry.getValue() > timeout || isBadLink(entry.getKey())) { receiverCablePorts.remove(entry.getKey()); recIt.remove(); continue; }
-			long rec = Math.min(entry.getKey().getReceiverMaxPower() - entry.getKey().getReceiverPower(), entry.getKey().getReceiverSpeed());
+			IEnergyReceiverMK2 entry = recIt.next();
+			if(isBadLink(entry)) { receiverCablePorts.remove(entry); recIt.remove(); continue; }
+			long rec = Math.min(entry.getReceiverMaxPower() - entry.getReceiverPower(), entry.getReceiverSpeed());
 			if(rec > 0) {
-				int p = entry.getKey().getPriority().ordinal();
-				receivers[p].add(new Pair(entry.getKey(), rec));
+				int p = entry.getPriority().ordinal();
+				receivers[p].add(new Pair(entry, rec));
 				demand[p] += rec;
 				totalDemand += rec;
 			}
@@ -184,7 +194,6 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 			toTransfer -= energyUsed;
 		}
 
-		this.energyTracker += energyUsed;
 		long leftover = energyUsed;
 
 		// remove power from providers
@@ -207,27 +216,30 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 			scapegoat.usePower(toUse);
 			leftover -= toUse;
 		}
+
+		long powerAvailableAfter = 0;
+		for(IEnergyProviderMK2 entry : providerEntries) powerAvailableAfter += Math.max(entry.getProviderPower(), 0);
+
+		this.energyTracker += totalPowerInNetwork - powerAvailableAfter;
 	}
 
 	public long sendPowerDiode(long power) {
 
 		if(receiverEntries.isEmpty()) return power;
 
-		long timestamp = System.currentTimeMillis();
-
 		List<Pair<IEnergyReceiverMK2, Long>>[] receivers = new ArrayList[ConnectionPriority.values().length];
 		for(int i = 0; i < receivers.length; i++) receivers[i] = new ArrayList();
 		long[] demand = new long[ConnectionPriority.values().length];
 		long totalDemand = 0;
 
-		Iterator<Entry<IEnergyReceiverMK2, Long>> recIt = receiverEntries.entrySet().iterator();
+		Iterator<IEnergyReceiverMK2> recIt = receiverEntries.iterator();
 
 		while(recIt.hasNext()) {
-			Entry<IEnergyReceiverMK2, Long> entry = recIt.next();
-			if(timestamp - entry.getValue() > timeout) { receiverCablePorts.remove(entry.getKey()); recIt.remove(); continue; }
-			long rec = Math.min(entry.getKey().getReceiverMaxPower() - entry.getKey().getReceiverPower(), entry.getKey().getReceiverSpeed());
-			int p = entry.getKey().getPriority().ordinal();
-			receivers[p].add(new Pair(entry.getKey(), rec));
+			IEnergyReceiverMK2 entry = recIt.next();
+			if(isBadLink(entry)) { receiverCablePorts.remove(entry); recIt.remove(); continue; }
+			long rec = Math.min(entry.getReceiverMaxPower() - entry.getReceiverPower(), entry.getReceiverSpeed());
+			int p = entry.getPriority().ordinal();
+			receivers[p].add(new Pair(entry, rec));
 			demand[p] += rec;
 			totalDemand += rec;
 		}
@@ -254,13 +266,12 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 	}
 
 	private void updateVoltageCableNetwork(World world) {
-		long timestamp = System.currentTimeMillis();
 		List<IEnergyProviderMK2> providers = new ArrayList<IEnergyProviderMK2>();
-		Iterator<Entry<IEnergyProviderMK2, Long>> provIt = providerEntries.entrySet().iterator();
+		Iterator<IEnergyProviderMK2> provIt = providerEntries.iterator();
 		while(provIt.hasNext()) {
-			Entry<IEnergyProviderMK2, Long> entry = provIt.next();
-			if(timestamp - entry.getValue() > timeout || isBadLink(entry.getKey())) { providerCablePorts.remove(entry.getKey()); provIt.remove(); continue; }
-			providers.add(entry.getKey());
+			IEnergyProviderMK2 entry = provIt.next();
+			if(isBadLink(entry)) { providerCablePorts.remove(entry); provIt.remove(); continue; }
+			providers.add(entry);
 		}
 
 		for(PowerNode node : this.links) {
@@ -273,11 +284,11 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 		@SuppressWarnings("unchecked")
 		List<IEnergyReceiverMK2>[] receivers = new ArrayList[ConnectionPriority.values().length];
 		for(int i = 0; i < receivers.length; i++) receivers[i] = new ArrayList<IEnergyReceiverMK2>();
-		Iterator<Entry<IEnergyReceiverMK2, Long>> recIt = receiverEntries.entrySet().iterator();
+		Iterator<IEnergyReceiverMK2> recIt = receiverEntries.iterator();
 		while(recIt.hasNext()) {
-			Entry<IEnergyReceiverMK2, Long> entry = recIt.next();
-			if(timestamp - entry.getValue() > timeout || isBadLink(entry.getKey())) { receiverCablePorts.remove(entry.getKey()); recIt.remove(); continue; }
-			receivers[entry.getKey().getPriority().ordinal()].add(entry.getKey());
+			IEnergyReceiverMK2 entry = recIt.next();
+			if(isBadLink(entry)) { receiverCablePorts.remove(entry); recIt.remove(); continue; }
+			receivers[entry.getPriority().ordinal()].add(entry);
 		}
 
 		for(int priority = receivers.length - 1; priority >= 0; priority--) {
@@ -344,10 +355,10 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 	}
 
 	private World getNetworkWorld() {
-		for(IEnergyProviderMK2 provider : providerEntries.keySet()) {
+		for(IEnergyProviderMK2 provider : providerEntries) {
 			if(provider instanceof TileEntity && ((TileEntity) provider).getWorldObj() != null) return ((TileEntity) provider).getWorldObj();
 		}
-		for(IEnergyReceiverMK2 receiver : receiverEntries.keySet()) {
+		for(IEnergyReceiverMK2 receiver : receiverEntries) {
 			if(receiver instanceof TileEntity && ((TileEntity) receiver).getWorldObj() != null) return ((TileEntity) receiver).getWorldObj();
 		}
 		return null;

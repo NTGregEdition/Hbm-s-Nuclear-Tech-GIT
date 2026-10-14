@@ -11,6 +11,8 @@ import com.hbm.module.ModulePatternMatcher;
 import com.hbm.tileentity.IControlReceiverFilter;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.TileEntityMachineBase;
+import com.hbm.tileentity.TilePortShapes;
+import com.hbm.tileentity.TilePort.PortDef;
 
 import api.hbm.energymk2.IEnergyReceiverMK2;
 import cpw.mods.fml.relauncher.Side;
@@ -27,7 +29,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
 public class TileEntityMachineAutocrafter extends TileEntityMachineBase implements IEnergyReceiverMK2, IGUIProvider, IControlReceiverFilter {
 
@@ -64,6 +65,9 @@ public class TileEntityMachineAutocrafter extends TileEntityMachineBase implemen
 		}
 	}
 
+	protected PortDef[] cachedPorts;
+	public PortDef[] getPorts() { if(cachedPorts == null) cachedPorts = TilePortShapes.around(xCoord, yCoord, zCoord); return cachedPorts; }
+
 	@Override
 	public String getName() {
 		return "container.autocrafter";
@@ -76,8 +80,10 @@ public class TileEntityMachineAutocrafter extends TileEntityMachineBase implemen
 
 		if(!worldObj.isRemote) {
 
+			this.setupPowerPorts(getPorts());
+			this.updatePortPIFIFO();
+			
 			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 20, power, maxPower);
-			for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) this.trySubscribe(worldObj, xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ, dir);
 
 			if(!this.recipes.isEmpty() && this.power >= this.consumption) {
 				IRecipe recipe = this.recipes.get(recipeIndex);

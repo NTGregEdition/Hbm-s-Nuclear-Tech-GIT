@@ -19,9 +19,9 @@ import com.hbm.tileentity.IFluidCopiable;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.IUpgradeInfoProvider;
 import com.hbm.tileentity.TileEntityMachineBase;
+import com.hbm.tileentity.TilePort.PortDef;
 import com.hbm.util.BobMathUtil;
 import com.hbm.util.Tuple.Pair;
-import com.hbm.util.fauxpointtwelve.DirPos;
 import com.hbm.util.i18n.I18nUtil;
 
 import api.hbm.energymk2.IEnergyReceiverMK2;
@@ -66,9 +66,8 @@ public abstract class TileEntityMachineCompressorBase extends TileEntityMachineB
 
 		if(!worldObj.isRemote) {
 
-			if(worldObj.getTotalWorldTime() % 20 == 0) {
-				this.updateConnections();
-			}
+			this.setupAllPorts(getPorts());
+			this.updatePortPIFIFO();
 
 			this.power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 1, power, maxPower);
 			this.tanks[0].setType(0, slots);
@@ -110,10 +109,6 @@ public abstract class TileEntityMachineCompressorBase extends TileEntityMachineB
 				this.isOn = false;
 			}
 
-			for(DirPos pos : getConPos()) {
-				this.tryProvide(tanks[1], worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-			}
-
 			this.networkPackNT(100);
 
 		}
@@ -143,14 +138,7 @@ public abstract class TileEntityMachineCompressorBase extends TileEntityMachineB
 		this.isOn = buf.readBoolean();
 	}
 
-	protected void updateConnections() {
-		for(DirPos pos : getConPos()) {
-			this.trySubscribe(worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-			this.trySubscribe(tanks[0].getTankType(), worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-		}
-	}
-
-	public abstract DirPos[] getConPos();
+	public abstract PortDef[] getPorts();
 
 	public boolean canProcess() {
 
@@ -224,7 +212,7 @@ public abstract class TileEntityMachineCompressorBase extends TileEntityMachineB
 	}
 
 	@Override
-	public void receiveControl(NBTTagCompound data) {
+	public void receiveControl(EntityPlayer player, NBTTagCompound data) {
 		int compression = data.getInteger("compression");
 
 		if(compression != tanks[0].getPressure()) {
@@ -242,35 +230,12 @@ public abstract class TileEntityMachineCompressorBase extends TileEntityMachineB
 		}
 	}
 
-	@Override
-	public long getPower() {
-		return power;
-	}
-
-	@Override
-	public void setPower(long power) {
-		this.power = power;
-	}
-
-	@Override
-	public long getMaxPower() {
-		return maxPower;
-	}
-
-	@Override
-	public FluidTank[] getAllTanks() {
-		return tanks;
-	}
-
-	@Override
-	public FluidTank[] getSendingTanks() {
-		return new FluidTank[] {tanks[1]};
-	}
-
-	@Override
-	public FluidTank[] getReceivingTanks() {
-		return new FluidTank[] {tanks[0]};
-	}
+	@Override public long getPower() { return power; }
+	@Override public void setPower(long power) { this.power = power; }
+	@Override public long getMaxPower() { return maxPower; }
+	@Override public FluidTank[] getAllTanks() { return tanks; }
+	@Override public FluidTank[] getSendingTanks() { return new FluidTank[] {tanks[1]}; }
+	@Override public FluidTank[] getReceivingTanks() { return new FluidTank[] {tanks[0]}; }
 
 	@Override
 	@SideOnly(Side.CLIENT)

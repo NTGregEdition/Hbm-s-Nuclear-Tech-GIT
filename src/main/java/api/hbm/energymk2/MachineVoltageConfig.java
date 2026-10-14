@@ -50,7 +50,6 @@ public final class MachineVoltageConfig {
 		set(ModBlocks.machine_stirling_steel, LV);
 		set(ModBlocks.machine_stirling_creative, LV);
 		set(ModBlocks.machine_steam_engine, LV);
-		set(ModBlocks.machine_turbine, LV);
 		set(ModBlocks.machine_turbofan, LV);
 		set(ModBlocks.machine_turbinegas, LV);
 		set(ModBlocks.machine_converter_he_rf, LV);

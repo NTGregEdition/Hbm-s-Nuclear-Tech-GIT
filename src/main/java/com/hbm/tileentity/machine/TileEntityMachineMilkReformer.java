@@ -7,16 +7,17 @@ import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.fluid.tank.FluidTank;
 import com.hbm.inventory.gui.GUIMilkReformer;
 import com.hbm.lib.Library;
+import com.hbm.module.portmanager.ModulePortManFluidAdaptive;
+import com.hbm.module.portmanager.ModulePortManPower;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.TileEntityMachineBase;
-import com.hbm.util.fauxpointtwelve.DirPos;
+import com.hbm.tileentity.TilePort.PortDef;
 
 import api.hbm.energymk2.IEnergyReceiverMK2;
-import api.hbm.fluid.IFluidStandardTransceiver;
+import api.hbm.fluidmk2.IFluidStandardTransceiverMK2;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.nbt.NBTTagCompound;
@@ -25,12 +26,15 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 
-public class TileEntityMachineMilkReformer extends TileEntityMachineBase implements IGUIProvider, IFluidStandardTransceiver, IEnergyReceiverMK2 {
+public class TileEntityMachineMilkReformer extends TileEntityMachineBase implements IGUIProvider, IFluidStandardTransceiverMK2, IEnergyReceiverMK2 {
 
 	public FluidTank tanks[];
 	public long power;
 	public static final long maxPower = 1_000_000;
 
+	protected ModulePortManFluidAdaptive moduleFluidPorts;
+	protected ModulePortManPower modulePowerPorts;
+	
 	public TileEntityMachineMilkReformer() {
 		super(11);
 
@@ -39,6 +43,9 @@ public class TileEntityMachineMilkReformer extends TileEntityMachineBase impleme
 		this.tanks[1] = new FluidTank(Fluids.EMILK, 32_000);
 		this.tanks[2] = new FluidTank(Fluids.CMILK, 32_000);
 		this.tanks[3] = new FluidTank(Fluids.CREAM, 32_000);
+
+		moduleFluidPorts = new ModulePortManFluidAdaptive(this).setInputTanks(getReceivingTanks()).setOutputTanks(getSendingTanks());
+		modulePowerPorts = new ModulePortManPower(this);
 	}
 
 	@Override
@@ -91,8 +98,9 @@ public class TileEntityMachineMilkReformer extends TileEntityMachineBase impleme
 	public void updateEntity() {
 
 		if(!worldObj.isRemote) {
+			moduleFluidPorts.update(getPorts());
+			modulePowerPorts.update(getPorts());
 
-			this.updateConnections();
 			power = VoltageCheckedCharging.chargeTEFromItems(this, slots, 0, power, maxPower);
 			tanks[0].loadTank(1, 2, slots);
 
@@ -101,14 +109,6 @@ public class TileEntityMachineMilkReformer extends TileEntityMachineBase impleme
 			tanks[1].unloadTank(3, 4, slots);
 			tanks[2].unloadTank(5, 6, slots);
 			tanks[3].unloadTank(7, 8, slots);
-
-			for(DirPos pos : getConPos()) {
-				for(int i = 1; i < 4; i++) {
-					if(tanks[i].getFill() > 0) {
-						this.sendFluid(tanks[i], worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-					}
-				}
-			}
 
 			this.networkPackNT(150);
 		}
@@ -129,7 +129,6 @@ public class TileEntityMachineMilkReformer extends TileEntityMachineBase impleme
 	}
 
 	private void refine() {
-
 		if(power < 10_000) return;
 		if(tanks[0].getFill() < 100) return;
 		if(tanks[1].getFill() + 50 > tanks[1].getMaxFill()) return;
@@ -143,25 +142,25 @@ public class TileEntityMachineMilkReformer extends TileEntityMachineBase impleme
 		tanks[3].setFill(tanks[3].getFill() + 15);
 	}
 
-	private void updateConnections() {
-		for(DirPos pos : getConPos()) {
-			this.trySubscribe(worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-			this.trySubscribe(tanks[0].getTankType(), worldObj, pos.getX(), pos.getY(), pos.getZ(), pos.getDir());
-		}
-	}
+	protected PortDef[] cachedPorts;
 
-	public DirPos[] getConPos() {
-		return new DirPos[] {
-			new DirPos(xCoord + 2, yCoord, zCoord + 1, Library.POS_X),
-			new DirPos(xCoord + 2, yCoord, zCoord - 1, Library.POS_X),
-			new DirPos(xCoord - 2, yCoord, zCoord + 1, Library.NEG_X),
-			new DirPos(xCoord - 2, yCoord, zCoord - 1, Library.NEG_X),
-			new DirPos(xCoord + 1, yCoord, zCoord + 2, Library.POS_Z),
-			new DirPos(xCoord - 1, yCoord, zCoord + 2, Library.POS_Z),
-			new DirPos(xCoord + 1, yCoord, zCoord - 2, Library.NEG_Z),
-			new DirPos(xCoord - 1, yCoord, zCoord - 2, Library.NEG_Z)
+	public PortDef[] getPorts() {
+		if(cachedPorts == null) {
+			cachedPorts = new PortDef[] {
+				PortDef.make(xCoord + 1, yCoord, zCoord + 1, Library.POS_X),
+				PortDef.make(xCoord + 1, yCoord, zCoord - 1, Library.POS_X),
+				PortDef.make(xCoord - 1, yCoord, zCoord + 1, Library.NEG_X),
+				PortDef.make(xCoord - 1, yCoord, zCoord - 1, Library.NEG_X),
+				PortDef.make(xCoord + 1, yCoord, zCoord + 1, Library.POS_Z),
+				PortDef.make(xCoord - 1, yCoord, zCoord + 1, Library.POS_Z),
+				PortDef.make(xCoord + 1, yCoord, zCoord - 1, Library.NEG_Z),
+				PortDef.make(xCoord - 1, yCoord, zCoord - 1, Library.NEG_Z)
 		};
 	}
+
+		return cachedPorts;
+	}
+
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
@@ -183,11 +182,11 @@ public class TileEntityMachineMilkReformer extends TileEntityMachineBase impleme
 		tanks[2].writeToNBT(nbt, "m2");
 		tanks[3].writeToNBT(nbt, "m3");
 	}
+
 	AxisAlignedBB bb = null;
 
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-
 		if(bb == null) {
 			bb = AxisAlignedBB.getBoundingBox(
 				xCoord - 2,
