@@ -9,6 +9,8 @@ Main things:
 - New ores
 - New ammo for folly
 - New fuel for rbmk
+- Pumps for fluid pipes
+- Additional parts like screws, rods and others
 - More... and soon...
 
 You shouldn't use mod without modpack™
