@@ -19,6 +19,7 @@ import com.hbm.tileentity.TileEntityLoadedBase;
 import com.hbm.tileentity.TileEntityProxyCombo;
 import com.hbm.tileentity.TilePort.PortDef;
 import com.hbm.uninos.GenNode;
+import com.hbm.uninos.NodeNet;
 import com.hbm.uninos.UniNodespace;
 import com.hbm.util.fauxpointtwelve.DirPos;
 import com.hbm.util.BobMathUtil;
@@ -185,7 +186,6 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 
 			text.add(I18nUtil.resolveKey("hbm.pump.hintRemove"));
 		}
-		if(pump.tank[0].getFill() > 0) text.add(BobMathUtil.format(pump.tank[0].getFill()) + "mB buffered");
 		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getUnlocalizedName() + ".name"), 0xffff00, 0x404000, text);
 	}
 
@@ -210,6 +210,7 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 		public int pullSize;
 		public int pushSize;
 		public boolean running;
+		private boolean passing;
 
 		public float rotor;
 		public float prevRotor;
@@ -316,13 +317,6 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 
 				this.updatePortPIFIFO();
 
-				// if the capacity were changed directly, any excess buffered fluid would be destroyed
-				// when running a closed loop or handling hard to get fluids, that's quite bad
-				if(bufferMismatch()) {
-					int nextBuffer = Math.max(this.tank[0].getFill(), this.bufferSize);
-					this.tank[0].changeTankSize(nextBuffer);
-				}
-
 				ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset).getRotation(ForgeDirection.DOWN);
 				this.redstone = worldObj.isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord) ||
 						worldObj.isBlockIndirectlyGettingPowered(xCoord + dir.offsetX, yCoord, zCoord + dir.offsetZ) ||
@@ -352,37 +346,31 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 			}
 		}
 
+		/** The pump holds no fluid, it hands whatever the pull side offers straight to the push side, up to the configured throughput */
+		@Override
+		public long getDemand(FluidType type, int pressure) {
+			if(!this.running || this.redstone || !this.isWithinPipeLimit() || this.tank[0].getTankType() != type || this.tank[0].getPressure() != pressure) return 0L;
+			return Math.max(0L, this.bufferSize - this.moved);
+		}
+
 		@Override
 		public long transferFluid(FluidType type, int pressure, long amount) {
 
-			if(this.tank[0].getTankType() != type || this.tank[0].getPressure() != pressure) return amount;
+			long toMove = Math.min(amount, this.getDemand(type, pressure));
+			if(this.passing || toMove <= 0 || this.fluidInPorts == null || this.fluidOutPorts == null) return amount;
 
-			int toAdd = (int) Math.min(amount, this.tank[0].getMaxFill() - this.tank[0].getFill());
+			NodeNet pushNet = this.fluidOutPorts[0].getNetwork();
+			if(!(pushNet instanceof FluidNetMK2) || pushNet == this.fluidInPorts[0].getNetwork()) return amount;
 
-			if(toAdd > 0) {
-				this.tank[0].setFill(this.tank[0].getFill() + toAdd);
-				this.moved += toAdd;
-				amount -= toAdd;
+			this.passing = true;
+			long sent = toMove - ((FluidNetMK2) pushNet).passThrough(type, pressure, toMove);
+			this.passing = false;
+
+			if(sent > 0) {
+				this.moved += sent;
+				this.isWorking = true;
 			}
-
-			return amount;
-		}
-
-		@Override
-		public void useUpFluid(FluidType type, int pressure, long amount) {
-			
-			if(amount > 0) {
-				if(tank[0].getTankType() == type && tank[0].getPressure() == pressure) {
-					int toRem = (int) Math.min(amount, tank[0].getFill());
-					tank[0].setFill(tank[0].getFill() - toRem);
-					amount -= toRem;
-					this.isWorking = true;
-				}
-			}
-		}
-		
-		public boolean bufferMismatch() {
-			return this.bufferSize != this.tank[0].getMaxFill();
+			return amount - sent;
 		}
 
 		@Override
@@ -436,11 +424,10 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 		}
 
 		@Override public ConnectionPriority getFluidPriority() { return priority; }
-		@Override public FluidTank[] getSendingTanks() { return redstone || !running ? FluidTank.EMPTY_ARRAY : tank; }
-		@Override public FluidTank[] getReceivingTanks() { return !running || this.bufferSize < this.tank[0].getFill() ? FluidTank.EMPTY_ARRAY : tank; }
+		@Override public FluidTank[] getSendingTanks() { return tank; }
+		@Override public FluidTank[] getReceivingTanks() { return tank; }
 		@Override public FluidTank[] getAllTanks() { return tank; }
 
-		@Override public long getReceiverSpeed(FluidType type, int pressure) { return redstone || bufferMismatch() ?  0 : 1_000_000_000; }
 		@Override public long getProviderSpeed(FluidType type, int pressure) { return redstone ?  0 : 1_000_000_000; }
 
 		@Override public long getPower() { return power; }

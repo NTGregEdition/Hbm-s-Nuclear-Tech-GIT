@@ -45,6 +45,45 @@ public class FluidNetMK2 extends NodeNet<IFluidReceiverMK2, IFluidProviderMK2, F
 		return this.getPumpStrength() >= this.links.size();
 	}
 
+	protected static final ConnectionPriority[] PRIORITIES = ConnectionPriority.values();
+
+	/** Hands fluid straight to this net's receivers (highest priority first, split by demand), so pumps can move it between nets without buffering. Returns what nobody took */
+	public long passThrough(FluidType type, int pressure, long amount) {
+
+		for(int i = PRIORITIES.length - 1; i >= 0 && amount > 0; i--) {
+
+			long demand = 0;
+			for(IFluidReceiverMK2 receiver : receiverEntries) demand += passDemand(receiver, type, pressure, i);
+			if(demand <= 0) continue;
+
+			long left = Math.min(amount, demand);
+			long total = left;
+
+			for(IFluidReceiverMK2 receiver : receiverEntries) {
+				long wanted = passDemand(receiver, type, pressure, i);
+				if(wanted <= 0) continue;
+				long toSend = Math.min(wanted, (long) (total * ((double) wanted / (double) demand)));
+				if(toSend > 0) left -= toSend - receiver.transferFluid(type, pressure, toSend);
+			}
+
+			// rounding leftovers, otherwise tiny flows would never get anywhere
+			for(IFluidReceiverMK2 receiver : receiverEntries) {
+				if(left <= 0) break;
+				long toSend = Math.min(left, passDemand(receiver, type, pressure, i));
+				if(toSend > 0) left -= toSend - receiver.transferFluid(type, pressure, toSend);
+			}
+
+			amount -= total - left;
+		}
+
+		return amount;
+	}
+
+	private static long passDemand(IFluidReceiverMK2 receiver, FluidType type, int pressure, int priority) {
+		if(receiver.getFluidPriority().ordinal() != priority || isBadLink(receiver)) return 0L;
+		return Math.max(0L, Math.min(receiver.getDemand(type, pressure), receiver.getReceiverSpeed(type, pressure)));
+	}
+
 	@Override
 	public void update() {
 

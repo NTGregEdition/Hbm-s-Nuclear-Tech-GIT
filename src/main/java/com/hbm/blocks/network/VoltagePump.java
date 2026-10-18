@@ -181,8 +181,10 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 		public int pushSize;
 
 		public boolean running;
+		private boolean passing;
 
-		protected PortDef inPort, outPort, powerPort;
+		private FluidNetMK2 pullNet, pushNet;
+		protected PortDef powerPort;
 
 		public int getFlow() {
 			return PumpUpgrades.flow(PumpUpgrades.ELECTRIC_PUMP, this.pump);
@@ -227,11 +229,6 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 
 			if(this.worldObj.isRemote) return;
 
-			/* the tank doubles as throughput limit and as buffer, resizing it directly would destroy
-			 * whatever fluid is currently buffered, so the fill is kept as the new size if need be */
-			int flow = this.getFlow();
-			if(flow != this.tank[0].getMaxFill()) this.tank[0].changeTankSize(Math.max(this.tank[0].getFill(), flow));
-
 			/* pay the standby drain plus the cost of the fluid moved through this pump during the last tick */
 			long demand = this.getEnergyDemand();
 			this.running = this.pump != PumpUpgrades.NONE && this.power >= demand;
@@ -242,46 +239,45 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 			ForgeDirection in = dir.getRotation(ForgeDirection.UP);
 			ForgeDirection out = in.getOpposite();
 
-			/* ports are built from the full tank array, the sending/receiving getters gate them. an uninstalled
-			 * or unpowered pump therefore never joins a fluid network and must not count as a pump */
-			if(this.inPort == null) {
-				this.inPort = PortDef.make(this.xCoord, this.yCoord, this.zCoord, in);
-				this.outPort = PortDef.make(this.xCoord, this.yCoord, this.zCoord, out);
+			if(this.powerPort == null) {
 				List<ForgeDirection> powerDirs = new ArrayList<ForgeDirection>();
 				for(ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) if(d != in && d != out) powerDirs.add(d);
 				this.powerPort = PortDef.make(this.xCoord, this.yCoord, this.zCoord, powerDirs.toArray(new ForgeDirection[0]));
 			}
-			this.setupFluidInPorts(this.tank, this.inPort);
-			this.setupFluidOutPorts(this.tank, this.outPort);
 			this.setupPowerPorts(new PortDef[] {this.powerPort});
 
-			FluidNetMK2 pullNet = this.getNetwork(in);
-			FluidNetMK2 pushNet = this.getNetwork(out);
-			this.pullSize = pullNet == null ? 0 : pullNet.links.size();
-			this.pushSize = pushNet == null || pushNet == pullNet ? 0 : pushNet.links.size();
+			// no node of its own, that would merge both sides into one network, so it subscribes to the two neighbouring networks instead
+			this.pullNet = this.getNetwork(in);
+			this.pushNet = this.getNetwork(out);
+			if(this.pullNet != null) this.pullNet.addReceiver(this);
+			if(this.pushNet != null) this.pushNet.addProvider(this);
+			this.pullSize = this.pullNet == null ? 0 : this.pullNet.links.size();
+			this.pushSize = this.pushNet == null || this.pushNet == this.pullNet ? 0 : this.pushNet.links.size();
 
 			this.updatePortPIFIFO();
 
 			this.networkPackNT(20);
 		}
 
-		/* this is how the pump knows how much fluid passed through it, the network calls it when
-		 * it fills the pump's tank up. the default useUpFluid then drains it again on the output side */
+		/** The pump holds no fluid, it hands whatever the pull side offers straight to the push side, up to its flow */
+		@Override
+		public long getDemand(FluidType type, int pressure) {
+			if(!this.isPumpRunning() || !this.isWithinPipeLimit() || this.tank[0].getTankType() != type || this.tank[0].getPressure() != pressure) return 0L;
+			return Math.max(0L, this.getFlow() - this.moved);
+		}
 
 		@Override
 		public long transferFluid(FluidType type, int pressure, long amount) {
 
-			if(this.tank[0].getTankType() != type || this.tank[0].getPressure() != pressure) return amount;
+			long toMove = Math.min(amount, this.getDemand(type, pressure));
+			if(this.passing || toMove <= 0 || this.pushNet == null || this.pushNet == this.pullNet) return amount;
 
-			int toAdd = (int) Math.min(amount, this.tank[0].getMaxFill() - this.tank[0].getFill());
+			this.passing = true;
+			long sent = toMove - this.pushNet.passThrough(type, pressure, toMove);
+			this.passing = false;
 
-			if(toAdd > 0) {
-				this.tank[0].setFill(this.tank[0].getFill() + toAdd);
-				this.moved += toAdd;
-				amount -= toAdd;
-			}
-
-			return amount;
+			this.moved += sent;
+			return amount - sent;
 		}
 
 		@Override
@@ -322,8 +318,8 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 			this.running = buf.readBoolean();
 		}
 
-		@Override public FluidTank[] getSendingTanks() { return this.running ? this.tank : FluidTank.EMPTY_ARRAY; }
-		@Override public FluidTank[] getReceivingTanks() { return this.running && this.tank[0].getFill() < this.tank[0].getMaxFill() ? this.tank : FluidTank.EMPTY_ARRAY; }
+		@Override public FluidTank[] getSendingTanks() { return this.tank; }
+		@Override public FluidTank[] getReceivingTanks() { return this.tank; }
 		@Override public FluidTank[] getAllTanks() { return this.tank; }
 
 		@Override public long getPower() { return this.power; }
