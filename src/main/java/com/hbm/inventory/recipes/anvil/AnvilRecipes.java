@@ -500,21 +500,21 @@ public class AnvilRecipes extends SerializableRecipe {
 			},
 			new AnvilOutput(new ItemStack(ModBlocks.machine_deuterium_tower))).setTier(4));
 		constructionRecipes.add(new AnvilConstructionRecipe(
-			new AStack[] {
-				new OreDictStack(STEEL.shell(), 6),
-				new OreDictStack(STAINLESS.plate(), 8),
-				new ComparableStack(ModBlocks.concrete_smooth, 4),
-				new ComparableStack(ModBlocks.heater_heatex),
-			},
-			new AnvilOutput(new ItemStack(ModBlocks.machine_atmo_tower))).setTier(2));
+				new AStack[] {
+						new OreDictStack(STEEL.shell(), 6),
+						new OreDictStack(STAINLESS.plate(), 8),
+						new OreDictStack(ANY_CONCRETE.any(), 4),
+						new ComparableStack(ModBlocks.heater_heatex),
+				},
+				new AnvilOutput(new ItemStack(ModBlocks.machine_atmo_tower))).setTier(2));
 		constructionRecipes.add(new AnvilConstructionRecipe(
-			new AStack[] {
-				new OreDictStack(STEEL.shell(), 4),
-				new OreDictStack(STAINLESS.plate(), 4),
-				new ComparableStack(ModBlocks.concrete_smooth, 4),
-				new ComparableStack(ModItems.turbine_titanium, 1),
-			},
-			new AnvilOutput(new ItemStack(ModBlocks.machine_atmo_vent))).setTier(2));
+				new AStack[] {
+						new OreDictStack(STEEL.shell(), 4),
+						new OreDictStack(STAINLESS.plate(), 4),
+						new OreDictStack(ANY_CONCRETE.any(), 4),
+						new ComparableStack(ModItems.turbine_titanium, 1),
+				},
+				new AnvilOutput(new ItemStack(ModBlocks.machine_atmo_vent))).setTier(2));
 		constructionRecipes.add(new AnvilConstructionRecipe(
 			new AStack[] {
 				new OreDictStack(STEEL.pipe(), 6),
