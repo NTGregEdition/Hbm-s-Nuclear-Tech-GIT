@@ -48,7 +48,7 @@ public class ItemVoltage extends Item {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public boolean requiresMultipleRenderPasses() {
-		return true;
+		return false;
 	}
 
 	@Override

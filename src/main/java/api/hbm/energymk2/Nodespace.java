@@ -35,6 +35,7 @@ public class Nodespace {
 
 	@NotableComments
 	public static class PowerNode extends GenNode<PowerNetMK2> {
+		public boolean batterySocket = false;
 		
 		/**
 		 * Okay so here's the deal: The code has shit idiot brain fungus. I don't know why. I re-tested every part involved several times.

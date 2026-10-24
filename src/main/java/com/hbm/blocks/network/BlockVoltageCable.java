@@ -46,6 +46,17 @@ public class BlockVoltageCable extends BlockCable implements ITooltipProvider, I
 	}
 
 	@Override
+	public boolean isFlammable(IBlockAccess world, int x, int y, int z, ForgeDirection face) {
+		TileEntity tile = world.getTileEntity(x, y, z);
+		return tile instanceof TileEntityVoltageCable && ((TileEntityVoltageCable) tile).isElectricalBurnQueued();
+	}
+
+	@Override
+	public int getFlammability(IBlockAccess world, int x, int y, int z, ForgeDirection face) {
+		return isFlammable(world, x, y, z, face) ? 60 : 0;
+	}
+
+	@Override
 	public void onNeighborBlockChange(World world, int x, int y, int z, Block changedBlock) {
 		super.onNeighborBlockChange(world, x, y, z, changedBlock);
 		if(world.isRemote) return;
@@ -153,7 +164,7 @@ public class BlockVoltageCable extends BlockCable implements ITooltipProvider, I
 	@SideOnly(Side.CLIENT)
 	public void addInformation(net.minecraft.item.ItemStack stack, EntityPlayer player, List list, boolean ext) {
 		list.add(EnumChatFormatting.AQUA + StatCollector.translateToLocal("hbm.voltage.generic") + ": " + VoltageTier.format(properties.voltage));
-		list.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocalFormatted("hbm.voltage.amperageLimit", properties.maxEnergyPerTick));
+		list.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocalFormatted("hbm.voltage.amperageLimit", properties.maxAmperage, properties.maxEnergyPerTick));
 		list.add(EnumChatFormatting.RED + StatCollector.translateToLocalFormatted("hbm.voltage.loss", properties.lossPerBlock));
 		list.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("hbm.voltage.wireCutterHint"));
 		list.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("hbm.voltage.coreHint"));

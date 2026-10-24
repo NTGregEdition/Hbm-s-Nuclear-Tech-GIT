@@ -10,12 +10,15 @@ public final class MachineVoltageRegistry {
 
 	private static final Map<Block, Long> BLOCK_VOLTAGES = new HashMap<Block, Long>();
 	private static final Map<Block, Float> BLOCK_EXPLOSION_STRENGTH = new HashMap<Block, Float>();
-	private static boolean configLoaded;
+	private static volatile boolean configLoaded;
 
 	private MachineVoltageRegistry() { }
 
-	private static synchronized void ensureConfigLoaded() {
-		if(!configLoaded) configLoaded = MachineVoltageConfig.registerAll();
+	private static void ensureConfigLoaded() {
+		if(configLoaded) return;
+		synchronized(MachineVoltageRegistry.class) {
+			if(!configLoaded) configLoaded = MachineVoltageConfig.registerAll();
+		}
 	}
 
 	public static void setVoltage(Block block, long voltage) {

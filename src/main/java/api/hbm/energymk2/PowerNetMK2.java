@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 				if(!VoltageTier.isConfigured(receiverVoltage)) continue;
 
 				for(Long providerVoltage : providerVoltages) {
-					if(providerVoltage.longValue() != receiverVoltage) {
+					if(providerVoltage.longValue() > receiverVoltage) {
 						entry.getKey().onOvervoltage(providerVoltage.longValue());
 						demand[i] -= entry.getValue();
 						it.remove();
@@ -61,40 +62,80 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 
 	private final Map<IEnergyProviderMK2, List<DirPos>> providerCablePorts = new HashMap<IEnergyProviderMK2, List<DirPos>>();
 	private final Map<IEnergyReceiverMK2, List<DirPos>> receiverCablePorts = new HashMap<IEnergyReceiverMK2, List<DirPos>>();
+	private final Map<IEnergyProviderMK2, Long> providerPowerTransferredThisTick = new HashMap<IEnergyProviderMK2, Long>();
+	private final Map<IEnergyProviderMK2, Long> providerAmperageTransferredThisTick = new HashMap<IEnergyProviderMK2, Long>();
+	private final Map<IEnergyProviderMK2, Map<IEnergyReceiverMK2, VoltageRoute>> voltageRoutes = new IdentityHashMap<IEnergyProviderMK2, Map<IEnergyReceiverMK2, VoltageRoute>>();
+	private static final VoltageRoute NO_VOLTAGE_ROUTE = new VoltageRoute();
+	private boolean voltageCableStateKnown;
+	private boolean containsVoltageCable;
 
 	@Override public void resetTrackers() { this.energyTracker = 0; }
 
-	public void addProviderAt(IEnergyProviderMK2 provider, int x, int y, int z, ForgeDirection cableFace) {
+	@Override
+	public void addProvider(IEnergyProviderMK2 provider) {
+		if(isProvider(provider)) return;
 		super.addProvider(provider);
-		rememberCablePort(providerCablePorts, provider, x, y, z, cableFace);
+		invalidateVoltageCaches();
+	}
+
+	public void addProviderAt(IEnergyProviderMK2 provider, int x, int y, int z, ForgeDirection cableFace) {
+		addProvider(provider);
+		if(rememberCablePort(providerCablePorts, provider, x, y, z, cableFace)) invalidateVoltageCaches();
+	}
+
+	@Override
+	public void addReceiver(IEnergyReceiverMK2 receiver) {
+		if(isSubscribed(receiver)) return;
+		super.addReceiver(receiver);
+		invalidateVoltageCaches();
 	}
 
 	public void addReceiverAt(IEnergyReceiverMK2 receiver, int x, int y, int z, ForgeDirection cableFace) {
-		super.addReceiver(receiver);
-		rememberCablePort(receiverCablePorts, receiver, x, y, z, cableFace);
+		addReceiver(receiver);
+		if(rememberCablePort(receiverCablePorts, receiver, x, y, z, cableFace)) invalidateVoltageCaches();
 	}
 
-	private <T> void rememberCablePort(Map<T, List<DirPos>> ports, T endpoint, int x, int y, int z, ForgeDirection cableFace) {
-		if(cableFace == null || cableFace == ForgeDirection.UNKNOWN) return;
+	private <T> boolean rememberCablePort(Map<T, List<DirPos>> ports, T endpoint, int x, int y, int z, ForgeDirection cableFace) {
+		if(cableFace == null || cableFace == ForgeDirection.UNKNOWN) return false;
 		List<DirPos> list = ports.get(endpoint);
 		if(list == null) {
 			list = new ArrayList<DirPos>();
 			ports.put(endpoint, list);
 		}
 		for(DirPos port : list) {
-			if(port.getX() == x && port.getY() == y && port.getZ() == z && port.getDir() == cableFace) return;
+			if(port.getX() == x && port.getY() == y && port.getZ() == z && port.getDir() == cableFace) return false;
 		}
 		list.add(new DirPos(x, y, z, cableFace));
+		return true;
 	}
 
 	@Override
 	public void joinNetworks(NodeNet network) {
+		invalidateVoltageCaches();
 		if(network != this && network instanceof PowerNetMK2) {
 			PowerNetMK2 other = (PowerNetMK2) network;
 			mergeCablePorts(providerCablePorts, other.providerCablePorts);
 			mergeCablePorts(receiverCablePorts, other.receiverCablePorts);
 		}
 		super.joinNetworks(network);
+	}
+
+	@Override
+	public NodeNet joinLink(PowerNode node) {
+		invalidateVoltageCaches();
+		return super.joinLink(node);
+	}
+
+	@Override
+	public NodeNet forceJoinLink(PowerNode node) {
+		invalidateVoltageCaches();
+		return super.forceJoinLink(node);
+	}
+
+	@Override
+	public void leaveLink(PowerNode node) {
+		invalidateVoltageCaches();
+		super.leaveLink(node);
 	}
 
 	private <T> void mergeCablePorts(Map<T, List<DirPos>> destination, Map<T, List<DirPos>> source) {
@@ -107,14 +148,18 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 
 	@Override
 	public void removeProvider(IEnergyProviderMK2 provider) {
+		boolean changed = isProvider(provider) || providerCablePorts.containsKey(provider);
 		super.removeProvider(provider);
 		providerCablePorts.remove(provider);
+		if(changed) invalidateVoltageCaches();
 	}
 
 	@Override
 	public void removeReceiver(IEnergyReceiverMK2 receiver) {
+		boolean changed = isSubscribed(receiver) || receiverCablePorts.containsKey(receiver);
 		super.removeReceiver(receiver);
 		receiverCablePorts.remove(receiver);
+		if(changed) invalidateVoltageCaches();
 	}
 
 	@Override
@@ -122,19 +167,29 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 		super.destroy();
 		providerCablePorts.clear();
 		receiverCablePorts.clear();
+		providerPowerTransferredThisTick.clear();
+		providerAmperageTransferredThisTick.clear();
+		invalidateVoltageCaches();
+	}
+
+	private void invalidateVoltageCaches() {
+		voltageCableStateKnown = false;
+		voltageRoutes.clear();
 	}
 
 	@Override
 	public void update() {
 
+		providerPowerTransferredThisTick.clear();
+		providerAmperageTransferredThisTick.clear();
 		if(providerEntries.isEmpty()) return;
-		if(receiverEntries.isEmpty()) return;
 
 		World world = getNetworkWorld();
 		if(world != null && hasVoltageCable(world)) {
 			updateVoltageCableNetwork(world);
 			return;
 		}
+		if(receiverEntries.isEmpty()) return;
 
 		List<Pair<IEnergyProviderMK2, Long>> providers = new ArrayList();
 		long powerAvailable = 0;
@@ -280,6 +335,8 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 				if(tile instanceof IVoltageCableMK2) ((IVoltageCableMK2) tile).beginPowerTick();
 			}
 		}
+		updateEnergizedVoltageCables(world, providers);
+		if(receiverEntries.isEmpty()) return;
 
 		@SuppressWarnings("unchecked")
 		List<IEnergyReceiverMK2>[] receivers = new ArrayList[ConnectionPriority.values().length];
@@ -296,10 +353,32 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 				for(IEnergyProviderMK2 provider : providers) {
 					if((Object) provider == (Object) receiver) continue;
 					if(isBadLink(provider) || isBadLink(receiver)) continue;
-					VoltageRoute route = findVoltageRoute(world, provider, receiver);
-					if(route == null || route.cables.isEmpty()) continue;
+					VoltageRoute route = getVoltageRoute(world, provider, receiver);
+					if(route == null || route.cables.isEmpty()) {
+						if(isDirectlyAdjacent(provider, receiver)) moveDirectly(provider, receiver);
+						if(getReceiverDemand(receiver) <= 0L) break;
+						continue;
+					}
 					moveAlongRoute(provider, receiver, route);
 					if(getReceiverDemand(receiver) <= 0) break;
+				}
+			}
+		}
+	}
+
+	private void updateEnergizedVoltageCables(World world, List<IEnergyProviderMK2> providers) {
+		for(IEnergyProviderMK2 provider : providers) {
+			long voltage = provider.getProviderVoltage();
+			long sourceAvailable = getProviderPowerAvailableThisTick(provider);
+			if(sourceAvailable <= 0L || !VoltageTier.isConfigured(voltage)) continue;
+			long amperage = Math.min(getProviderAmperageAvailableThisTick(provider), sourceAvailable / voltage);
+			if(amperage <= 0L) continue;
+
+			for(ReachableCable reachable : findReachableVoltageCables(world, provider)) {
+				IVoltageCableMK2 cable = reachable.cable;
+				if(reachable.voltage > cable.getCableProperties().voltage) {
+					cable.burnForElectricalOverload(reachable.voltage, 0L, 1 + reachable.distance * 2,
+							provider instanceof TileEntity ? (TileEntity) provider : null);
 				}
 			}
 		}
@@ -309,49 +388,164 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 		return Math.max(0L, Math.min(receiver.getReceiverMaxPower() - receiver.getReceiverPower(), receiver.getReceiverSpeed()));
 	}
 
-	private void moveAlongRoute(IEnergyProviderMK2 provider, IEnergyReceiverMK2 receiver, VoltageRoute route) {
-		long voltage = route.cables.get(0).getCableProperties().voltage;
-		long sourceAvailable = Math.max(0L, Math.min(provider.getProviderPower(), provider.getProviderSpeed()));
-		for(IVoltageCableMK2 cable : route.cables) {
-			if(cable.getCableProperties().voltage != voltage) {
-				if(sourceAvailable > 0) cable.explodeForWrongVoltage(voltage);
-				return;
+	private boolean isDirectlyAdjacent(IEnergyProviderMK2 provider, IEnergyReceiverMK2 receiver) {
+		if(!(provider instanceof TileEntity) || !(receiver instanceof TileEntity)) return false;
+		TileEntity source = (TileEntity) provider;
+		TileEntity target = (TileEntity) receiver;
+		if(source.getWorldObj() == null || source.getWorldObj() != target.getWorldObj()) return false;
+		BlockPos sourcePos = new BlockPos(source.xCoord, source.yCoord, source.zCoord);
+		BlockPos targetPos = new BlockPos(target.xCoord, target.yCoord, target.zCoord);
+		if(!isAdjacent(sourcePos, targetPos)) return false;
+		return hasPortAt(providerCablePorts.get(provider), targetPos)
+				|| hasPortAt(receiverCablePorts.get(receiver), sourcePos)
+				|| hasBatterySocketConnection(provider, targetPos)
+				|| hasBatterySocketConnection(receiver, sourcePos);
+	}
+
+	private boolean hasPortAt(List<DirPos> ports, BlockPos position) {
+		if(ports == null) return false;
+		for(DirPos port : ports) {
+			if(port.getX() == position.getX() && port.getY() == position.getY() && port.getZ() == position.getZ()) return true;
+		}
+		return false;
+	}
+
+	private boolean hasBatterySocketConnection(IEnergyHandlerMK2 endpoint, BlockPos target) {
+		if(!(endpoint instanceof TileEntity)) return false;
+		TileEntity tile = (TileEntity) endpoint;
+		BlockPos endpointPos = new BlockPos(tile.xCoord, tile.yCoord, tile.zCoord);
+		for(PowerNode node : this.links) {
+			if(!node.batterySocket || !containsPosition(node, endpointPos)) continue;
+			for(DirPos connection : node.connections) {
+				if(connection.getX() == target.getX() && connection.getY() == target.getY() && connection.getZ() == target.getZ()) return true;
 			}
 		}
-		if(provider.getProviderVoltage() != voltage && sourceAvailable > 0) {
-			route.cables.get(0).explodeForWrongVoltage(provider.getProviderVoltage());
+		return false;
+	}
+
+	private void moveDirectly(IEnergyProviderMK2 provider, IEnergyReceiverMK2 receiver) {
+		long voltage = provider.getProviderVoltage();
+		if(!VoltageTier.isConfigured(voltage)) return;
+		long available = getProviderPowerAvailableThisTick(provider);
+		long sourceAmperage = Math.min(getProviderAmperageAvailableThisTick(provider), available / voltage);
+		long demand = getReceiverDemand(receiver);
+		if(sourceAmperage <= 0L || demand <= 0L) return;
+
+		long receiverVoltage = receiver.getReceiverVoltage();
+		if(VoltageTier.isConfigured(receiverVoltage) && voltage > receiverVoltage) {
+			receiver.onOvervoltage(voltage);
 			return;
 		}
+
+		long amperage = Math.min(sourceAmperage,
+				Math.min(receiver.getReceiverAmperage(), ampsNeededForEnergy(demand, voltage)));
+		if(amperage <= 0L) return;
+		long deliveredPower = multiplyClamped(amperage, voltage);
+		long remainder = receiver.transferPowerAtVoltage(deliveredPower, voltage);
+		long acceptedPower = deliveredPower - Math.min(deliveredPower, Math.max(0L, remainder));
+		if(acceptedPower <= 0L) return;
+
+		long acceptedAmperage = Math.min(amperage, ampsNeededForEnergy(acceptedPower, voltage));
+		long sourcePower = multiplyClamped(acceptedAmperage, voltage);
+		provider.usePower(sourcePower);
+		Long priorUsed = providerPowerTransferredThisTick.get(provider);
+		providerPowerTransferredThisTick.put(provider, Long.valueOf(addClamped(priorUsed == null ? 0L : priorUsed.longValue(), sourcePower)));
+		Long priorAmperage = providerAmperageTransferredThisTick.get(provider);
+		providerAmperageTransferredThisTick.put(provider, Long.valueOf(addClamped(priorAmperage == null ? 0L : priorAmperage.longValue(), acceptedAmperage)));
+		energyTracker += acceptedPower;
+	}
+
+	private long ampsNeededForEnergy(long energy, long voltage) {
+		if(energy <= 0L || voltage <= 0L) return 0L;
+		return 1L + (energy - 1L) / voltage;
+	}
+
+	private long getProviderPowerAvailableThisTick(IEnergyProviderMK2 provider) {
+		Long used = providerPowerTransferredThisTick.get(provider);
+		long usedPower = used == null ? 0L : used.longValue();
+		long speedRemaining = Math.max(0L, provider.getProviderSpeed() - usedPower);
+		return Math.max(0L, Math.min(provider.getProviderPower(), speedRemaining));
+	}
+
+	private long getProviderAmperageAvailableThisTick(IEnergyProviderMK2 provider) {
+		Long used = providerAmperageTransferredThisTick.get(provider);
+		long usedAmperage = used == null ? 0L : used.longValue();
+		return Math.max(0L, provider.getProviderAmperage() - usedAmperage);
+	}
+
+	private void moveAlongRoute(IEnergyProviderMK2 provider, IEnergyReceiverMK2 receiver, VoltageRoute route) {
+		long voltage = provider.getProviderVoltage();
+		if(!VoltageTier.isConfigured(voltage)) return;
+		long sourceAvailable = getProviderPowerAvailableThisTick(provider);
+		if(sourceAvailable <= 0L) return;
+		long sourceAmperage = Math.min(getProviderAmperageAvailableThisTick(provider), sourceAvailable / voltage);
+		if(sourceAmperage <= 0L) return;
 		long demand = getReceiverDemand(receiver);
-		if(sourceAvailable <= 0 || demand <= 0) return;
-
-		long lossBeforeCable = 0L;
-		long totalLoss = 0L;
-		long maximumPacket = sourceAvailable;
+		long totalLossPerAmp = 0L;
 		for(IVoltageCableMK2 cable : route.cables) {
-			maximumPacket = Math.min(maximumPacket, addClamped(cable.getRemainingTransfer(), lossBeforeCable));
-			totalLoss = addClamped(totalLoss, cable.getCableProperties().lossPerBlock);
-			lossBeforeCable = totalLoss;
+			totalLossPerAmp = addClamped(totalLossPerAmp, Math.max(0L, cable.getCableProperties().lossPerBlock));
+		}
+		long deliveredVoltage = Math.max(0L, voltage - totalLossPerAmp);
+		long flowingAmperage = demand > 0L && deliveredVoltage > 0L
+				? Math.min(sourceAmperage, Math.min(receiver.getReceiverAmperage(), ampsNeededForEnergy(demand, deliveredVoltage)))
+				: 0L;
+
+		int firstOverloadIndex = -1;
+		long cableVoltage = voltage;
+		for(int i = 0; i < route.cables.size(); i++) {
+			IVoltageCableMK2 cable = route.cables.get(i);
+			boolean overvoltage = cableVoltage > cable.getCableProperties().voltage;
+			if(overvoltage) {
+				if(firstOverloadIndex < 0) firstOverloadIndex = i;
+				cable.burnForElectricalOverload(cableVoltage, 0L, 1 + (i - firstOverloadIndex) * 2,
+						provider instanceof TileEntity ? (TileEntity) provider : null);
+			}
+			cableVoltage = Math.max(0L, cableVoltage - Math.max(0L, cable.getCableProperties().lossPerBlock));
 		}
 
-		long packet = Math.min(maximumPacket, addClamped(demand, totalLoss));
-		if(packet <= 0) return;
+		if(demand <= 0L || deliveredVoltage <= 0L) return;
+		long amperage = flowingAmperage;
+		if(amperage <= 0L) return;
+		long receiverVoltage = receiver.getReceiverVoltage();
+		if(VoltageTier.isConfigured(receiverVoltage) && deliveredVoltage > receiverVoltage) {
+			receiver.onOvervoltage(deliveredVoltage);
+			return;
+		}
 
-		long throughCable = packet;
+		long deliveredPower = multiplyClamped(amperage, deliveredVoltage);
+		if(deliveredPower <= 0L) return;
+		long remainder = receiver.transferPowerAtVoltage(deliveredPower, deliveredVoltage);
+		long acceptedPower = deliveredPower - Math.min(deliveredPower, Math.max(0L, remainder));
+		if(acceptedPower <= 0L) return;
+
+		long acceptedAmperage = Math.min(amperage, ampsNeededForEnergy(acceptedPower, deliveredVoltage));
+		long pathMaxAmperage = Long.MAX_VALUE;
 		for(IVoltageCableMK2 cable : route.cables) {
-			throughCable = cable.useTransferCapacity(throughCable);
-			throughCable = Math.max(0L, throughCable - cable.getCableProperties().lossPerBlock);
+			pathMaxAmperage = Math.min(pathMaxAmperage, cable.getCableProperties().maxAmperage);
 		}
-
-		provider.usePower(packet);
-		if(throughCable > 0) {
-			long remainder = receiver.transferPowerAtVoltage(throughCable, voltage);
-			energyTracker += throughCable - remainder;
+		cableVoltage = voltage;
+		for(int i = 0; i < route.cables.size(); i++) {
+			IVoltageCableMK2 cable = route.cables.get(i);
+			cable.recordAmperageFlow(cableVoltage, acceptedAmperage, pathMaxAmperage, 1 + i * 2,
+					provider instanceof TileEntity ? (TileEntity) provider : null);
+			cableVoltage = Math.max(0L, cableVoltage - Math.max(0L, cable.getCableProperties().lossPerBlock));
 		}
+		long sourcePower = multiplyClamped(acceptedAmperage, voltage);
+		provider.usePower(sourcePower);
+		Long priorUsed = providerPowerTransferredThisTick.get(provider);
+		providerPowerTransferredThisTick.put(provider, Long.valueOf(addClamped(priorUsed == null ? 0L : priorUsed.longValue(), sourcePower)));
+		Long priorAmperage = providerAmperageTransferredThisTick.get(provider);
+		providerAmperageTransferredThisTick.put(provider, Long.valueOf(addClamped(priorAmperage == null ? 0L : priorAmperage.longValue(), acceptedAmperage)));
+		energyTracker += acceptedPower;
 	}
 
 	private long addClamped(long first, long second) {
 		return first > Long.MAX_VALUE - second ? Long.MAX_VALUE : first + second;
+	}
+
+	private long multiplyClamped(long first, long second) {
+		if(first <= 0L || second <= 0L) return 0L;
+		return first > Long.MAX_VALUE / second ? Long.MAX_VALUE : first * second;
 	}
 
 	private World getNetworkWorld() {
@@ -365,17 +559,39 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 	}
 
 	private boolean hasVoltageCable(World world) {
+		if(voltageCableStateKnown) return containsVoltageCable;
+		containsVoltageCable = false;
 		for(PowerNode node : this.links) {
 			for(BlockPos pos : node.positions) {
-				if(world.getTileEntity(pos.getX(), pos.getY(), pos.getZ()) instanceof IVoltageCableMK2) return true;
+				if(world.getTileEntity(pos.getX(), pos.getY(), pos.getZ()) instanceof IVoltageCableMK2) {
+					containsVoltageCable = true;
+					voltageCableStateKnown = true;
+					return true;
+				}
 			}
 		}
-		return false;
+		voltageCableStateKnown = true;
+		return containsVoltageCable;
+	}
+
+	private VoltageRoute getVoltageRoute(World world, IEnergyProviderMK2 provider, IEnergyReceiverMK2 receiver) {
+		Map<IEnergyReceiverMK2, VoltageRoute> routes = voltageRoutes.get(provider);
+		if(routes != null && routes.containsKey(receiver)) return routes.get(receiver);
+
+		VoltageRoute route = findVoltageRoute(world, provider, receiver);
+		if(route == null) route = NO_VOLTAGE_ROUTE;
+		if(routes == null) {
+			routes = new IdentityHashMap<IEnergyReceiverMK2, VoltageRoute>();
+			voltageRoutes.put(provider, routes);
+		}
+		routes.put(receiver, route);
+		return route;
 	}
 
 	private VoltageRoute findVoltageRoute(World world, IEnergyProviderMK2 provider, IEnergyReceiverMK2 receiver) {
 		Map<BlockPos, PowerNode> nodes = new HashMap<BlockPos, PowerNode>();
 		Set<BlockPos> targets = new HashSet<BlockPos>();
+		Set<PowerNode> receiverBatterySockets = new HashSet<PowerNode>();
 		ArrayDeque<PowerNode> queue = new ArrayDeque<PowerNode>();
 		Map<PowerNode, PowerNode> previous = new HashMap<PowerNode, PowerNode>();
 
@@ -383,12 +599,33 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 			for(BlockPos pos : node.positions) {
 				BlockPos key = new BlockPos(pos.getX(), pos.getY(), pos.getZ());
 				nodes.put(key, node);
+			}
+		}
+
+		List<DirPos> receiverPorts = receiverCablePorts.get(receiver);
+		if(receiverPorts != null) {
+			for(PowerNode node : this.links) {
+				if(!node.batterySocket) continue;
+				for(DirPos port : receiverPorts) {
+					if(containsPosition(node, port)) {
+						receiverBatterySockets.add(node);
+						break;
+					}
+				}
+			}
+		}
+
+		for(PowerNode node : this.links) {
+			for(BlockPos pos : node.positions) {
+				BlockPos key = new BlockPos(pos.getX(), pos.getY(), pos.getZ());
 				TileEntity tile = world.getTileEntity(pos.getX(), pos.getY(), pos.getZ());
 				if(tile instanceof IVoltageCableMK2 && touchesEnabledCableFace(world, pos, providerCablePorts.get(provider), provider) && !previous.containsKey(node)) {
 					queue.add(node);
 					previous.put(node, null);
 				}
-				if(tile instanceof IVoltageCableMK2 && touchesEnabledCableFace(world, pos, receiverCablePorts.get(receiver), receiver)) targets.add(key);
+				if(tile instanceof IVoltageCableMK2
+						&& (touchesEnabledCableFace(world, pos, receiverPorts, receiver)
+								|| touchesBatterySocket(world, pos, receiverBatterySockets))) targets.add(key);
 			}
 		}
 
@@ -398,7 +635,7 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 			if(containsPosition(node, targets)) { end = node; break; }
 			for(DirPos connection : node.connections) {
 				PowerNode next = nodes.get(new BlockPos(connection.getX(), connection.getY(), connection.getZ()));
-				if(next != null && !previous.containsKey(next) && isSameVoltageCableStep(world, node, next)) {
+				if(next != null && !previous.containsKey(next) && isVoltageCableStep(world, node, next)) {
 					previous.put(next, node);
 					queue.add(next);
 				}
@@ -418,11 +655,100 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 		return route;
 	}
 
-	private boolean isSameVoltageCableStep(World world, PowerNode from, PowerNode to) {
+	private boolean touchesBatterySocket(World world, BlockPos cablePosition, Set<PowerNode> batterySockets) {
+		TileEntity tile = world.getTileEntity(cablePosition.getX(), cablePosition.getY(), cablePosition.getZ());
+		if(!(tile instanceof IVoltageCableMK2)) return false;
+		IVoltageCableMK2 cable = (IVoltageCableMK2) tile;
+		for(PowerNode socket : batterySockets) {
+			for(DirPos connection : socket.connections) {
+				if(connection.getX() == cablePosition.getX()
+						&& connection.getY() == cablePosition.getY()
+						&& connection.getZ() == cablePosition.getZ()
+						&& cable.isFaceConnected(connection.getDir().getOpposite())) return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isVoltageCableStep(World world, PowerNode from, PowerNode to) {
 		IVoltageCableMK2 first = getVoltageCable(world, from);
 		IVoltageCableMK2 second = getVoltageCable(world, to);
-		return first != null && second != null
-				&& first.getCableProperties().voltage == second.getCableProperties().voltage;
+		if(first == null || second == null) return false;
+		for(BlockPos firstPos : from.positions) {
+			TileEntity firstTile = world.getTileEntity(firstPos.getX(), firstPos.getY(), firstPos.getZ());
+			if(!(firstTile instanceof IVoltageCableMK2)) continue;
+			for(BlockPos secondPos : to.positions) {
+				TileEntity secondTile = world.getTileEntity(secondPos.getX(), secondPos.getY(), secondPos.getZ());
+				if(!(secondTile instanceof IVoltageCableMK2)) continue;
+				for(ForgeDirection direction : ForgeDirection.VALID_DIRECTIONS) {
+					if(firstPos.getX() + direction.offsetX == secondPos.getX()
+							&& firstPos.getY() + direction.offsetY == secondPos.getY()
+							&& firstPos.getZ() + direction.offsetZ == secondPos.getZ()
+							&& ((IVoltageCableMK2) firstTile).isFaceConnected(direction)
+							&& ((IVoltageCableMK2) secondTile).isFaceConnected(direction.getOpposite())) return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private List<ReachableCable> findReachableVoltageCables(World world, IEnergyProviderMK2 provider) {
+		Map<BlockPos, PowerNode> nodes = new HashMap<BlockPos, PowerNode>();
+		ArrayDeque<PowerNode> queue = new ArrayDeque<PowerNode>();
+		Map<PowerNode, Long> voltages = new HashMap<PowerNode, Long>();
+		Map<PowerNode, Integer> distances = new HashMap<PowerNode, Integer>();
+		long providerVoltage = provider.getProviderVoltage();
+		for(PowerNode node : this.links) {
+			for(BlockPos pos : node.positions) {
+				nodes.put(new BlockPos(pos.getX(), pos.getY(), pos.getZ()), node);
+				TileEntity tile = world.getTileEntity(pos.getX(), pos.getY(), pos.getZ());
+				if(tile instanceof IVoltageCableMK2
+						&& touchesEnabledCableFace(world, pos, providerCablePorts.get(provider), provider)
+						&& !voltages.containsKey(node)) {
+					voltages.put(node, Long.valueOf(providerVoltage));
+					distances.put(node, Integer.valueOf(0));
+					queue.add(node);
+				}
+			}
+		}
+
+		while(!queue.isEmpty()) {
+			PowerNode node = queue.remove();
+			long voltage = voltages.get(node).longValue();
+			int distance = distances.get(node).intValue();
+			long voltageAfterNode = voltage;
+			for(BlockPos pos : node.positions) {
+				TileEntity tile = world.getTileEntity(pos.getX(), pos.getY(), pos.getZ());
+				if(tile instanceof IVoltageCableMK2) {
+					voltageAfterNode = Math.max(0L, voltageAfterNode - Math.max(0L, ((IVoltageCableMK2) tile).getCableProperties().lossPerBlock));
+				}
+			}
+			for(DirPos connection : node.connections) {
+				PowerNode next = nodes.get(new BlockPos(connection.getX(), connection.getY(), connection.getZ()));
+				if(next == null || voltageAfterNode <= 0L || !isVoltageCableStep(world, node, next)) continue;
+				Long previousVoltage = voltages.get(next);
+				if(previousVoltage == null || voltageAfterNode > previousVoltage.longValue()) {
+					voltages.put(next, Long.valueOf(voltageAfterNode));
+					if(!distances.containsKey(next) || distance + 1 < distances.get(next).intValue()) {
+						distances.put(next, Integer.valueOf(distance + 1));
+					}
+					queue.add(next);
+				}
+			}
+		}
+
+		List<ReachableCable> cables = new ArrayList<ReachableCable>();
+		for(Map.Entry<PowerNode, Long> entry : voltages.entrySet()) {
+			PowerNode node = entry.getKey();
+			int distance = distances.get(node).intValue();
+			for(BlockPos pos : node.positions) {
+				TileEntity tile = world.getTileEntity(pos.getX(), pos.getY(), pos.getZ());
+				if(tile instanceof IVoltageCableMK2) {
+					cables.add(new ReachableCable((IVoltageCableMK2) tile, distance, entry.getValue().longValue()));
+				}
+			}
+		}
+		return cables;
 	}
 
 	private IVoltageCableMK2 getVoltageCable(World world, PowerNode node) {
@@ -435,6 +761,13 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 
 	private boolean containsPosition(PowerNode node, Set<BlockPos> positions) {
 		for(BlockPos pos : node.positions) if(positions.contains(pos)) return true;
+		return false;
+	}
+
+	private boolean containsPosition(PowerNode node, BlockPos position) {
+		for(BlockPos pos : node.positions) {
+			if(pos.getX() == position.getX() && pos.getY() == position.getY() && pos.getZ() == position.getZ()) return true;
+		}
 		return false;
 	}
 
@@ -473,5 +806,17 @@ public class PowerNetMK2 extends NodeNet<IEnergyReceiverMK2, IEnergyProviderMK2,
 
 	private static class VoltageRoute {
 		final List<IVoltageCableMK2> cables = new ArrayList<IVoltageCableMK2>();
+	}
+
+	private static class ReachableCable {
+		final IVoltageCableMK2 cable;
+		final int distance;
+		final long voltage;
+
+		ReachableCable(IVoltageCableMK2 cable, int distance, long voltage) {
+			this.cable = cable;
+			this.distance = distance;
+			this.voltage = voltage;
+		}
 	}
 }

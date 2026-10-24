@@ -192,7 +192,7 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 	@Override public Object provideGUI(int ID, EntityPlayer player, World world, int x, int y, int z) { return new GUIPump((TileEntityFlowControlPump) world.getTileEntity(x, y, z)); }
 	@Override public Container provideContainer(int ID, EntityPlayer player, World world, int x, int y, int z) { return null; }
 
-	public static class TileEntityFlowControlPump extends TileEntityLoadedBase implements IFluidStandardTransceiverMK2, IControlReceiver, IEnergyReceiverMK2, IFluidPumpMK2 {
+	public static class TileEntityFlowControlPump extends TileEntityVoltagePumpBase implements IFluidStandardTransceiverMK2, IControlReceiver {
 
 		public int bufferSize = 0;
 		public FluidTank[] tank;
@@ -205,12 +205,6 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 
 		// regulator / energy / pipe limit logic
 		public int regulator = PumpUpgrades.NONE;
-		public long power;
-		private long moved;
-		public int pullSize;
-		public int pushSize;
-		public boolean running;
-		private boolean passing;
 
 		public float rotor;
 		public float prevRotor;
@@ -256,19 +250,11 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 			return dir != rot && dir != rot.getOpposite();
 		}
 
+		@Override protected PumpUpgrades.Stats[] getUpgradeType() { return PumpUpgrades.FLUID_REGULATOR; }
+		@Override protected int getInstalledUpgrade() { return regulator; }
+		@Override protected void destroyInstalledUpgrade() { regulator = PumpUpgrades.NONE; }
+
 		public int getMaxFlow() { return PumpUpgrades.flow(PumpUpgrades.FLUID_REGULATOR, this.regulator); }
-		public int getPipeLimit() { return PumpUpgrades.pipes(PumpUpgrades.FLUID_REGULATOR, this.regulator); }
-		public int getPipes() { return this.pullSize + this.pushSize; }
-		public boolean isWithinPipeLimit() { return this.regulator != PumpUpgrades.NONE && this.getPipes() <= this.getPipeLimit(); }
-
-		public long getEnergyDemand() {
-			return PumpUpgrades.idle(PumpUpgrades.FLUID_REGULATOR, this.regulator) + PumpUpgrades.energyForMoved(PumpUpgrades.FLUID_REGULATOR, this.regulator, this.moved);
-		}
-
-		public long getMaxDemand() {
-			if(this.regulator == PumpUpgrades.NONE) return 0L;
-			return PumpUpgrades.idle(PumpUpgrades.FLUID_REGULATOR, this.regulator) + PumpUpgrades.energyForMoved(PumpUpgrades.FLUID_REGULATOR, this.regulator, this.bufferSize);
-		}
 
 		public void installRegulator(EntityPlayer player, ItemStack stack) {
 			this.regulator = PumpUpgrades.tierOf(stack);
@@ -305,15 +291,11 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 
 				if(this.bufferSize > this.getMaxFlow()) this.bufferSize = this.getMaxFlow();
 
-				long demand = this.getEnergyDemand();
-				this.running = this.regulator != PumpUpgrades.NONE && this.power >= demand;
-				if(this.running) this.power -= demand;
-				this.moved = 0L;
+				this.updateRunningState();
 
 				FluidNetMK2 pullNet = this.getNetwork(getInPort());
 				FluidNetMK2 pushNet = this.getNetwork(getOutPort());
-				this.pullSize = pullNet == null ? 0 : pullNet.links.size();
-				this.pushSize = pushNet == null || pushNet == pullNet ? 0 : pushNet.links.size();
+				this.updatePipeCounts(pullNet, pushNet);
 
 				this.updatePortPIFIFO();
 
@@ -356,22 +338,15 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 		@Override
 		public long transferFluid(FluidType type, int pressure, long amount) {
 
-			long toMove = Math.min(amount, this.getDemand(type, pressure));
-			if(this.passing || toMove <= 0 || this.fluidInPorts == null || this.fluidOutPorts == null) return amount;
-
+			if(this.fluidInPorts == null || this.fluidOutPorts == null) return amount;
 			NodeNet pushNet = this.fluidOutPorts[0].getNetwork();
-			if(!(pushNet instanceof FluidNetMK2) || pushNet == this.fluidInPorts[0].getNetwork()) return amount;
-
-			this.passing = true;
-			long sent = toMove - ((FluidNetMK2) pushNet).passThrough(type, pressure, toMove);
-			this.passing = false;
-
-			if(sent > 0) {
-				this.moved += sent;
-				this.isWorking = true;
-			}
-			return amount - sent;
+			NodeNet pullNet = this.fluidInPorts[0].getNetwork();
+			return pushNet instanceof FluidNetMK2
+					? transferToPushNet(pullNet instanceof FluidNetMK2 ? (FluidNetMK2) pullNet : null, (FluidNetMK2) pushNet, type, pressure, amount, getDemand(type, pressure))
+					: amount;
 		}
+
+		@Override protected void onFluidTransferred(long amount) { isWorking = true; }
 
 		@Override
 		public void writeToNBT(NBTTagCompound nbt) {
@@ -379,7 +354,7 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 			tank[0].writeToNBT(nbt, "t");
 			nbt.setByte("p", (byte) priority.ordinal());
 			nbt.setInteger("buffer", bufferSize);
-			nbt.setLong("power", power);
+			writePumpPower(nbt);
 			if(regulator != PumpUpgrades.NONE) nbt.setByte("regulator", (byte) regulator);
 		}
 
@@ -389,7 +364,7 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 			tank[0].readFromNBT(nbt, "t");
 			priority = EnumUtil.grabEnumSafely(ConnectionPriority.class, nbt.getByte("p"));
 			bufferSize = nbt.getInteger("buffer");
-			power = nbt.getLong("power");
+			readPumpPower(nbt);
 			regulator = nbt.hasKey("regulator") ? nbt.getByte("regulator") : PumpUpgrades.NONE;
 		}
 
@@ -402,10 +377,7 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 			buf.writeBoolean(redstone);
 			buf.writeBoolean(isWorking);
 			buf.writeByte(regulator);
-			buf.writeLong(power);
-			buf.writeInt(pullSize);
-			buf.writeInt(pushSize);
-			buf.writeBoolean(running);
+			serializePumpState(buf);
 		}
 
 		@Override
@@ -417,10 +389,7 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 			redstone = buf.readBoolean();
 			isWorking = buf.readBoolean();
 			regulator = buf.readByte();
-			power = buf.readLong();
-			pullSize = buf.readInt();
-			pushSize = buf.readInt();
-			running = buf.readBoolean();
+			deserializePumpState(buf);
 		}
 
 		@Override public ConnectionPriority getFluidPriority() { return priority; }
@@ -429,27 +398,6 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 		@Override public FluidTank[] getAllTanks() { return tank; }
 
 		@Override public long getProviderSpeed(FluidType type, int pressure) { return redstone ?  0 : 1_000_000_000; }
-
-		@Override public long getPower() { return power; }
-		@Override public void setPower(long power) { this.power = power; }
-		@Override public long getMaxPower() { return Math.max(PumpUpgrades.capacity(PumpUpgrades.FLUID_REGULATOR, this.regulator), this.power); }
-		@Override public long getVoltage() { return this.regulator == PumpUpgrades.NONE ? VoltageTier.DEFAULT : PumpUpgrades.voltageOf(this.regulator); }
-
-		@Override
-		public void onOvervoltage(long voltage) {
-			this.dropInstalledItem();
-			IEnergyReceiverMK2.super.onOvervoltage(voltage);
-		}
-
-		public void dropInstalledItem() {
-			if(this.regulator == PumpUpgrades.NONE || this.worldObj == null || this.worldObj.isRemote) return;
-			this.worldObj.spawnEntityInWorld(new EntityItem(this.worldObj, this.xCoord + 0.5D, this.yCoord + 0.5D, this.zCoord + 0.5D, new ItemStack(ModItems.voltage_fluid_regulator, 1, this.regulator)));
-			this.regulator = PumpUpgrades.NONE;
-		}
-
-		@Override public int getPipeBudget() { return this.getPipeLimit(); }
-		@Override public boolean isPumpRunning() { return this.running && this.regulator != PumpUpgrades.NONE; }
-		@Override public int getPumpStrength() { return this.isPumpRunning() && this.isWithinPipeLimit() ? this.getPipeLimit() : 0; }
 
 		@Override
 		public boolean hasPermission(EntityPlayer player) {

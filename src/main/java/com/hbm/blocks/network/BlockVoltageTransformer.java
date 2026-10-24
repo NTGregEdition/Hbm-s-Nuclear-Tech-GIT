@@ -51,9 +51,11 @@ public class BlockVoltageTransformer extends BlockContainer implements ITooltipP
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void registerBlockIcons(IIconRegister register) {
-		inputIcon = register.registerIcon(RefStrings.MODID + ":pwr_port");
-		outputIcon = register.registerIcon(RefStrings.MODID + ":machine_transformer_top_iron");
-		blockIcon = register.registerIcon(RefStrings.MODID + ":machine_transformer_iron");
+		String inputTier = VoltageTier.getTierKey(properties.inputVoltage);
+		String outputTier = VoltageTier.getTierKey(properties.outputVoltage);
+		inputIcon = register.registerIcon(RefStrings.MODID + ":transformer_" + inputTier + "_input");
+		outputIcon = register.registerIcon(RefStrings.MODID + ":transformer_" + outputTier + "_output");
+		blockIcon = register.registerIcon(RefStrings.MODID + ":transformer_" + inputTier + "_side");
 	}
 
 	@Override
@@ -70,8 +72,8 @@ public class BlockVoltageTransformer extends BlockContainer implements ITooltipP
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void addInformation(net.minecraft.item.ItemStack stack, EntityPlayer player, List list, boolean ext) {
-		list.add(EnumChatFormatting.AQUA + StatCollector.translateToLocalFormatted("hbm.voltage.transformerInput", VoltageTier.format(properties.inputVoltage), properties.maxInputEnergyPerTick));
-		list.add(EnumChatFormatting.GREEN + StatCollector.translateToLocalFormatted("hbm.voltage.transformerOutput", VoltageTier.format(properties.outputVoltage), properties.getMaxOutputEnergyPerTick()));
+		list.add(EnumChatFormatting.AQUA + StatCollector.translateToLocalFormatted("hbm.voltage.transformerInput", VoltageTier.format(properties.inputVoltage), properties.getMaxInputAmperage(), properties.maxInputEnergyPerTick));
+		list.add(EnumChatFormatting.GREEN + StatCollector.translateToLocalFormatted("hbm.voltage.transformerOutput", VoltageTier.format(properties.outputVoltage), properties.getMaxOutputAmperage(), properties.getMaxOutputEnergyPerTick()));
 		list.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("hbm.voltage.transformerPlacementHint"));
 	}
 }

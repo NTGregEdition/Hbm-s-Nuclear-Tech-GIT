@@ -170,18 +170,10 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 		this.addStandardInfo(stack, player, list, ext);
 	}
 
-	public static class TileEntityVoltagePump extends TileEntityLoadedBase implements IFluidStandardTransceiverMK2, IEnergyReceiverMK2, IFluidPumpMK2 {
+	public static class TileEntityVoltagePump extends TileEntityVoltagePumpBase implements IFluidStandardTransceiverMK2 {
 
 		public final FluidTank[] tank = {new FluidTank(Fluids.NONE, 0)};
 		public int pump = PumpUpgrades.NONE;
-		public long power;
-		private long moved;
-
-		public int pullSize;
-		public int pushSize;
-
-		public boolean running;
-		private boolean passing;
 
 		private FluidNetMK2 pullNet, pushNet;
 		protected PortDef powerPort;
@@ -190,25 +182,9 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 			return PumpUpgrades.flow(PumpUpgrades.ELECTRIC_PUMP, this.pump);
 		}
 
-		public int getPipeLimit() {
-			return PumpUpgrades.pipes(PumpUpgrades.ELECTRIC_PUMP, this.pump);
-		}
-
-		public int getPipes() {
-			return this.pullSize + this.pushSize;
-		}
-
-		public boolean isWithinPipeLimit() {
-			return this.pump != PumpUpgrades.NONE && this.getPipes() <= this.getPipeLimit();
-		}
-
-		public long getEnergyDemand() {
-			return PumpUpgrades.idle(PumpUpgrades.ELECTRIC_PUMP, this.pump) + PumpUpgrades.energyForMoved(PumpUpgrades.ELECTRIC_PUMP, this.pump, this.moved);
-		}
-
-		public long getMaxDemand() {
-			return PumpUpgrades.maxDrain(PumpUpgrades.ELECTRIC_PUMP, this.pump);
-		}
+		@Override protected PumpUpgrades.Stats[] getUpgradeType() { return PumpUpgrades.ELECTRIC_PUMP; }
+		@Override protected int getInstalledUpgrade() { return pump; }
+		@Override protected void destroyInstalledUpgrade() { pump = PumpUpgrades.NONE; }
 
 		public void installPump(EntityPlayer player, ItemStack stack) {
 			this.pump = PumpUpgrades.tierOf(stack);
@@ -230,10 +206,7 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 			if(this.worldObj.isRemote) return;
 
 			/* pay the standby drain plus the cost of the fluid moved through this pump during the last tick */
-			long demand = this.getEnergyDemand();
-			this.running = this.pump != PumpUpgrades.NONE && this.power >= demand;
-			if(this.running) this.power -= demand;
-			this.moved = 0L;
+			this.updateRunningState();
 
 			ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata());
 			ForgeDirection in = dir.getRotation(ForgeDirection.UP);
@@ -251,8 +224,7 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 			this.pushNet = this.getNetwork(out);
 			if(this.pullNet != null) this.pullNet.addReceiver(this);
 			if(this.pushNet != null) this.pushNet.addProvider(this);
-			this.pullSize = this.pullNet == null ? 0 : this.pullNet.links.size();
-			this.pushSize = this.pushNet == null || this.pushNet == this.pullNet ? 0 : this.pushNet.links.size();
+			this.updatePipeCounts(this.pullNet, this.pushNet);
 
 			this.updatePortPIFIFO();
 
@@ -269,22 +241,14 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 		@Override
 		public long transferFluid(FluidType type, int pressure, long amount) {
 
-			long toMove = Math.min(amount, this.getDemand(type, pressure));
-			if(this.passing || toMove <= 0 || this.pushNet == null || this.pushNet == this.pullNet) return amount;
-
-			this.passing = true;
-			long sent = toMove - this.pushNet.passThrough(type, pressure, toMove);
-			this.passing = false;
-
-			this.moved += sent;
-			return amount - sent;
+			return transferToPushNet(this.pullNet, this.pushNet, type, pressure, amount, getDemand(type, pressure));
 		}
 
 		@Override
 		public void writeToNBT(NBTTagCompound nbt) {
 			super.writeToNBT(nbt);
 			this.tank[0].writeToNBT(nbt, "t");
-			nbt.setLong("power", this.power);
+			writePumpPower(nbt);
 			if(this.pump != PumpUpgrades.NONE) nbt.setByte("pump", (byte) this.pump);
 		}
 
@@ -292,7 +256,7 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 		public void readFromNBT(NBTTagCompound nbt) {
 			super.readFromNBT(nbt);
 			this.tank[0].readFromNBT(nbt, "t");
-			this.power = nbt.getLong("power");
+			readPumpPower(nbt);
 			this.pump = nbt.hasKey("pump") ? nbt.getByte("pump") : PumpUpgrades.NONE;
 		}
 
@@ -301,10 +265,7 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 			super.serialize(buf);
 			this.tank[0].serialize(buf);
 			buf.writeByte(this.pump);
-			buf.writeInt(this.pullSize);
-			buf.writeInt(this.pushSize);
-			buf.writeLong(this.power);
-			buf.writeBoolean(this.running);
+			serializePumpState(buf);
 		}
 
 		@Override
@@ -312,37 +273,12 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 			super.deserialize(buf);
 			this.tank[0].deserialize(buf);
 			this.pump = buf.readByte();
-			this.pullSize = buf.readInt();
-			this.pushSize = buf.readInt();
-			this.power = buf.readLong();
-			this.running = buf.readBoolean();
+			deserializePumpState(buf);
 		}
 
 		@Override public FluidTank[] getSendingTanks() { return this.tank; }
 		@Override public FluidTank[] getReceivingTanks() { return this.tank; }
 		@Override public FluidTank[] getAllTanks() { return this.tank; }
 
-		@Override public long getPower() { return this.power; }
-		@Override public void setPower(long power) { this.power = power; }
-		/** the buffer never shrinks below whatever is stored, so no energy is destroyed when the item changes */
-		@Override public long getMaxPower() { return Math.max(PumpUpgrades.capacity(PumpUpgrades.ELECTRIC_PUMP, this.pump), this.power); }
-		@Override public long getVoltage() { return this.pump == PumpUpgrades.NONE ? VoltageTier.DEFAULT : PumpUpgrades.voltageOf(this.pump); }
-
-		@Override
-		public void onOvervoltage(long voltage) {
-			this.dropInstalledItem();
-			IEnergyReceiverMK2.super.onOvervoltage(voltage);
-		}
-
-		/** Drops the installed pump item, used when the machine is destroyed rather than broken */
-		public void dropInstalledItem() {
-			if(this.pump == PumpUpgrades.NONE || this.worldObj == null || this.worldObj.isRemote) return;
-			this.worldObj.spawnEntityInWorld(new EntityItem(this.worldObj, this.xCoord + 0.5D, this.yCoord + 0.5D, this.zCoord + 0.5D, new ItemStack(ModItems.voltage_electric_pump, 1, this.pump)));
-			this.pump = PumpUpgrades.NONE;
-		}
-
-		@Override public int getPipeBudget() { return this.getPipeLimit(); }
-		@Override public boolean isPumpRunning() { return this.running && this.pump != PumpUpgrades.NONE; }
-		@Override public int getPumpStrength() { return this.isPumpRunning() && this.isWithinPipeLimit() ? this.getPipeLimit() : 0; }
 	}
 }

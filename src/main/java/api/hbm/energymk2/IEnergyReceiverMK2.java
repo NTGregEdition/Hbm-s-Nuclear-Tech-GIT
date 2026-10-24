@@ -1,9 +1,6 @@
 package api.hbm.energymk2;
 
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.WeakHashMap;
 import com.hbm.handler.threading.PacketThreading;
 import com.hbm.interfaces.NotableComments;
 import com.hbm.packet.toclient.AuxParticlePacketNT;
@@ -23,7 +20,11 @@ public interface IEnergyReceiverMK2 extends IEnergyHandlerMK2 {
 	public default long getReceiverMaxPower() { return this.getMaxPower(); }
 	public default long getReceiverVoltage() { return this.getVoltage(); }
 
-	Set<IEnergyReceiverMK2> BURNED_OUT = Collections.newSetFromMap(new WeakHashMap<IEnergyReceiverMK2, Boolean>());
+	/** Maximum whole-voltage packets this receiver can accept per tick. */
+	public default long getReceiverAmperage() {
+		long voltage = getReceiverVoltage();
+		return voltage > 0L ? Math.max(0L, getReceiverSpeed()) / voltage : 0L;
+	}
 
 	public default long transferPower(long power) {
 		if(power + this.getReceiverPower() <= this.getReceiverMaxPower()) {
@@ -39,9 +40,8 @@ public interface IEnergyReceiverMK2 extends IEnergyHandlerMK2 {
 
 	public default long transferPowerAtVoltage(long power, long voltage) {
 		if(power <= 0) return power;
-		if(BURNED_OUT.contains(this)) return power;
 		if(!VoltageTier.isConfigured(this.getReceiverVoltage())) return this.transferPower(power);
-		if(voltage != this.getReceiverVoltage()) {
+		if(voltage > this.getReceiverVoltage()) {
 			this.onOvervoltage(voltage);
 			return power;
 		}
@@ -57,9 +57,9 @@ public interface IEnergyReceiverMK2 extends IEnergyHandlerMK2 {
 	}
 
 	public default void onOvervoltage(long voltage) {
-		if(!BURNED_OUT.add(this)) return;
 		if(this instanceof TileEntity) {
 			TileEntity te = (TileEntity) this;
+			if(te.isInvalid()) return;
 			World world = te.getWorldObj();
 			if(world != null && !world.isRemote) {
 				float strength = MachineVoltageRegistry.getExplosionStrength(this);

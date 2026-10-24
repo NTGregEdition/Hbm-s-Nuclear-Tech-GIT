@@ -18,13 +18,20 @@ public final class TransformerProperties {
 		this.maxInputEnergyPerTick = maxInputEnergyPerTick;
 	}
 
+	/** Transformers change packet voltage and amperage, while conserving HE/t. */
 	public long convert(long inputEnergy) {
-		if(inputEnergy <= 0) return 0;
-		if(inputEnergy > Long.MAX_VALUE / inputVoltage) return Long.MAX_VALUE / outputVoltage;
-		return inputEnergy * inputVoltage / outputVoltage;
+		return Math.max(0L, Math.min(inputEnergy, maxInputEnergyPerTick));
 	}
 
 	public long getMaxOutputEnergyPerTick() {
-		return convert(maxInputEnergyPerTick);
+		return maxInputEnergyPerTick;
+	}
+
+	public long getMaxInputAmperage() {
+		return maxInputEnergyPerTick / inputVoltage;
+	}
+
+	public long getMaxOutputAmperage() {
+		return getMaxOutputEnergyPerTick() / outputVoltage;
 	}
 }

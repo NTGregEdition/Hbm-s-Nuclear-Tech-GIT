@@ -278,6 +278,10 @@ public class TileEntityBatterySocket extends TileEntityBatteryBase implements IR
 		return mode == mode_output || mode == mode_buffer ? ((IBatteryItem) slots[0].getItem()).getDischargeRate(slots[0]) : 0;
 	}
 
+	@Override public long getProviderAmperage() {
+		return getProviderSpeed() > 0L && VoltageTier.isConfigured(getProviderVoltage()) ? 1L : 0L;
+	}
+
 	@Override public long getReceiverSpeed() {
 		if(slots[0] == null || !(slots[0].getItem() instanceof IBatteryItem)) return 0;
 		int mode = this.getRelevantMode(true);

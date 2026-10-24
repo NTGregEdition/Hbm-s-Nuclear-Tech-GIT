@@ -13,6 +13,7 @@ import com.hbm.util.fauxpointtwelve.BlockPos;
 import com.hbm.util.fauxpointtwelve.DirPos;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.init.Blocks;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
@@ -21,8 +22,15 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 public class TileEntityVoltageCable extends TileEntityCableBaseNT implements IVoltageCableMK2 {
 
-	private long transferredThisTick;
-	private boolean exploded;
+	private static final CableProperties FALLBACK_PROPERTIES = new CableProperties("unconfigured", Long.MAX_VALUE, Long.MAX_VALUE, 0L);
+
+	private long amperageTransferredThisTick;
+	private long amperageOverloadBuffer;
+	private long lastPowerTick = Long.MIN_VALUE;
+	private boolean burnQueued;
+	private int pendingBurnTicks;
+	private long pendingBurnVoltage;
+	private long pendingBurnAmperage;
 	private byte disconnectedSides;
 	private byte forcedOpenSides;
 	private byte pendingAirCutResets;
@@ -32,7 +40,7 @@ public class TileEntityVoltageCable extends TileEntityCableBaseNT implements IVo
 		if(this.getBlockType() instanceof BlockVoltageCable) {
 			return ((BlockVoltageCable) this.getBlockType()).getProperties();
 		}
-		throw new IllegalStateException("Voltage cable tile placed without a voltage cable block");
+		return FALLBACK_PROPERTIES;
 	}
 
 	@Override
@@ -41,8 +49,7 @@ public class TileEntityVoltageCable extends TileEntityCableBaseNT implements IVo
 		TileEntity neighbour = worldObj.getTileEntity(xCoord + direction.offsetX, yCoord + direction.offsetY, zCoord + direction.offsetZ);
 		if(neighbour instanceof TileEntityVoltageCable) {
 			TileEntityVoltageCable cable = (TileEntityVoltageCable) neighbour;
-			return cable.isConnectionEnabled(direction.getOpposite())
-					&& cable.getCableProperties().voltage == getCableProperties().voltage;
+			return cable.isConnectionEnabled(direction.getOpposite());
 		}
 		if(neighbour instanceof TileEntityVoltageTransformer) {
 			return ((TileEntityVoltageTransformer) neighbour).canConnectCable(direction.getOpposite(), getCableProperties().voltage);
@@ -119,7 +126,6 @@ public class TileEntityVoltageCable extends TileEntityCableBaseNT implements IVo
 		TileEntity neighbour = worldObj.getTileEntity(xCoord + direction.offsetX, yCoord + direction.offsetY, zCoord + direction.offsetZ);
 		if(!(neighbour instanceof TileEntityVoltageCable)) return;
 		TileEntityVoltageCable cable = (TileEntityVoltageCable) neighbour;
-		if(cable.getCableProperties().voltage != getCableProperties().voltage) return;
 
 		ForgeDirection opposite = direction.getOpposite();
 		if(cut) {
@@ -165,7 +171,9 @@ public class TileEntityVoltageCable extends TileEntityCableBaseNT implements IVo
 	@Override
 	public void updateEntity() {
 		super.updateEntity();
-		if(worldObj == null || worldObj.isRemote || pendingAirCutResets == 0) return;
+		if(worldObj == null || worldObj.isRemote) return;
+		if(pendingBurnTicks > 0 && --pendingBurnTicks == 0) burnForWrongVoltage();
+		if(pendingAirCutResets == 0) return;
 
 		byte pending = pendingAirCutResets;
 		pendingAirCutResets = 0;
@@ -215,43 +223,106 @@ public class TileEntityVoltageCable extends TileEntityCableBaseNT implements IVo
 
 	@Override
 	public void beginPowerTick() {
-		transferredThisTick = 0L;
+		amperageTransferredThisTick = 0L;
 	}
 
 	@Override
 	public long getRemainingTransfer() {
-		return Math.max(0L, getCableProperties().maxEnergyPerTick - transferredThisTick);
+		return Math.max(0L, getCableProperties().maxAmperage - amperageTransferredThisTick);
 	}
 
 	@Override
 	public long useTransferCapacity(long amount) {
 		long used = Math.min(Math.max(0L, amount), getRemainingTransfer());
-		transferredThisTick += used;
-		if(used > 0L && explodeForDifferentVoltageContact()) return 0L;
+		amperageTransferredThisTick += used;
 		return used;
 	}
 
-	private boolean explodeForDifferentVoltageContact() {
-		CableProperties own = getCableProperties();
-		for(ForgeDirection direction : ForgeDirection.VALID_DIRECTIONS) {
-			if(!isConnectionEnabled(direction) || !isConnectionForced(direction)) continue;
-			TileEntity neighbour = worldObj.getTileEntity(xCoord + direction.offsetX, yCoord + direction.offsetY, zCoord + direction.offsetZ);
-			if(!(neighbour instanceof TileEntityVoltageCable)) continue;
-			TileEntityVoltageCable cable = (TileEntityVoltageCable) neighbour;
-			CableProperties other = cable.getCableProperties();
-			if(!cable.isConnectionEnabled(direction.getOpposite()) || !cable.isConnectionForced(direction.getOpposite()) || own.voltage == other.voltage) continue;
-			cable.explodeForWrongVoltage(own.voltage);
-			explodeForWrongVoltage(other.voltage);
-			return true;
+	@Override
+	public void recordAmperageFlow(long voltage, long amperage, long pathMaxAmperage, int delayTicks, TileEntity source) {
+		if(amperage <= 0L || burnQueued || worldObj == null || worldObj.isRemote) return;
+		long currentTick = worldObj.getTotalWorldTime();
+		long elapsedTicks = lastPowerTick == Long.MIN_VALUE ? 1L : Math.max(0L, currentTick - lastPowerTick);
+		if(elapsedTicks > 100L) {
+			amperageOverloadBuffer = 0L;
+		} else if(elapsedTicks > 0L) {
+			long decayAmperage = Math.max(0L, pathMaxAmperage);
+			long decay = decayAmperage > Long.MAX_VALUE / elapsedTicks ? Long.MAX_VALUE : decayAmperage * elapsedTicks;
+			amperageOverloadBuffer = Math.max(0L, amperageOverloadBuffer - decay);
 		}
-		return false;
+		lastPowerTick = currentTick;
+		amperageTransferredThisTick = addClamped(amperageTransferredThisTick, amperage);
+		amperageOverloadBuffer = addClamped(amperageOverloadBuffer, amperage);
+		long maxAmperage = getCableProperties().maxAmperage;
+		// GT tolerates a 40-tick current surplus before a cable burns.
+		long overloadLimit = maxAmperage > Long.MAX_VALUE / 40L ? Long.MAX_VALUE : maxAmperage * 40L;
+		if(amperageOverloadBuffer > overloadLimit) {
+			queueBurn(voltage, amperageTransferredThisTick, delayTicks);
+		}
 	}
 
 	@Override
 	public void explodeForWrongVoltage(long suppliedVoltage) {
-		if(exploded || worldObj == null || worldObj.isRemote) return;
-		exploded = true;
-		worldObj.createExplosion(null, xCoord + 0.5D, yCoord + 0.5D, zCoord + 0.5D, 2.0F, true);
+		explodeForWrongVoltage(suppliedVoltage, 1);
+	}
+
+	@Override
+	public void explodeForWrongVoltage(long suppliedVoltage, int delayTicks) {
+		burnForElectricalOverload(suppliedVoltage, 0L, delayTicks);
+	}
+
+	@Override
+	public void burnForElectricalOverload(long suppliedVoltage, long suppliedAmperage, int delayTicks) {
+		CableProperties properties = getCableProperties();
+		if(burnQueued || worldObj == null || worldObj.isRemote
+				|| (suppliedVoltage <= properties.voltage && suppliedAmperage <= properties.maxAmperage)) return;
+		queueBurn(suppliedVoltage, suppliedAmperage, delayTicks);
+	}
+
+	@Override
+	public void burnForElectricalOverload(long suppliedVoltage, long suppliedAmperage, int delayTicks, TileEntity source) {
+		burnForElectricalOverload(suppliedVoltage, suppliedAmperage, delayTicks);
+	}
+
+	private void queueBurn(long suppliedVoltage, long attemptedAmperage, int delayTicks) {
+		burnQueued = true;
+		pendingBurnVoltage = suppliedVoltage;
+		pendingBurnAmperage = attemptedAmperage;
+		pendingBurnTicks = Math.max(1, delayTicks);
+		spawnTopFire();
+		markDirty();
+	}
+
+	public boolean isElectricalBurnQueued() {
+		return burnQueued;
+	}
+
+	private void spawnTopFire() {
+		int fireY = yCoord + 1;
+		if(worldObj.isAirBlock(xCoord, fireY, zCoord)) {
+			worldObj.setBlock(xCoord, fireY, zCoord, Blocks.fire, 0, 3);
+		}
+	}
+
+	private void burnForWrongVoltage() {
+		long voltage = pendingBurnVoltage;
+		long amperage = pendingBurnAmperage;
+		for(ForgeDirection direction : ForgeDirection.VALID_DIRECTIONS) {
+			if(!isConnectionEnabled(direction)) continue;
+			TileEntity neighbour = worldObj.getTileEntity(xCoord + direction.offsetX, yCoord + direction.offsetY, zCoord + direction.offsetZ);
+			if(!(neighbour instanceof TileEntityVoltageCable)) continue;
+			TileEntityVoltageCable cable = (TileEntityVoltageCable) neighbour;
+			ForgeDirection opposite = direction.getOpposite();
+			if(!cable.isConnectionEnabled(opposite) || !canConnect(direction) || !cable.canConnect(opposite)) continue;
+			cable.burnForElectricalOverload(voltage, amperage, 2);
+		}
+
+		worldObj.setBlockToAir(xCoord, yCoord, zCoord);
+		worldObj.setBlock(xCoord, yCoord, zCoord, Blocks.fire, 0, 3);
+	}
+
+	private long addClamped(long first, long second) {
+		return first > Long.MAX_VALUE - second ? Long.MAX_VALUE : first + second;
 	}
 
 	@Override
@@ -259,6 +330,10 @@ public class TileEntityVoltageCable extends TileEntityCableBaseNT implements IVo
 		super.readFromNBT(nbt);
 		disconnectedSides = nbt.getByte("voltageCableDisconnectedSides");
 		forcedOpenSides = nbt.getByte("voltageCableForcedOpenSides");
+		burnQueued = nbt.getBoolean("voltageCableBurnQueued");
+		pendingBurnTicks = Math.max(0, nbt.getInteger("voltageCableBurnTicks"));
+		pendingBurnVoltage = nbt.getLong("voltageCableBurnVoltage");
+		pendingBurnAmperage = nbt.getLong("voltageCableBurnAmperage");
 	}
 
 	@Override
@@ -266,6 +341,10 @@ public class TileEntityVoltageCable extends TileEntityCableBaseNT implements IVo
 		super.writeToNBT(nbt);
 		nbt.setByte("voltageCableDisconnectedSides", disconnectedSides);
 		nbt.setByte("voltageCableForcedOpenSides", forcedOpenSides);
+		nbt.setBoolean("voltageCableBurnQueued", burnQueued);
+		nbt.setInteger("voltageCableBurnTicks", pendingBurnTicks);
+		nbt.setLong("voltageCableBurnVoltage", pendingBurnVoltage);
+		nbt.setLong("voltageCableBurnAmperage", pendingBurnAmperage);
 	}
 
 	@Override

@@ -3,9 +3,7 @@ package api.hbm.energymk2;
 import com.hbm.items.ModItems;
 import com.hbm.lib.Library;
 
-import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
 
 public final class VoltageCheckedCharging {
 
@@ -17,16 +15,12 @@ public final class VoltageCheckedCharging {
 
 		if(stack != null && stack.getItem() instanceof IBatteryItem && stack.getItem() != ModItems.battery_creative) {
 
-			long machineVoltage = getMachineBlockVoltage(machine);
+			long machineVoltage = machine.getReceiverVoltage();
 
 			if(VoltageTier.isConfigured(machineVoltage)) {
-				long batteryVoltage = BatteryVoltageRegistry.getVoltage(stack, VoltageTier.DEFAULT);
+				long batteryVoltage = BatteryVoltageRegistry.getVoltage(stack, machineVoltage);
 
-				if(!VoltageTier.isConfigured(batteryVoltage)) {
-					return power;
-				}
-
-				if(batteryVoltage != machineVoltage) {
+				if(batteryVoltage > machineVoltage) {
 					machine.onOvervoltage(batteryVoltage);
 					return power;
 				}
@@ -42,14 +36,10 @@ public final class VoltageCheckedCharging {
 
 		if(stack != null && stack.getItem() instanceof IBatteryItem && stack.getItem() != ModItems.battery_creative) {
 
-			long itemVoltage = BatteryVoltageRegistry.getVoltage(stack, VoltageTier.DEFAULT);
-
-			if(!VoltageTier.isConfigured(itemVoltage)) {
-				return power;
-			}
-
-			long machineVoltage = getMachineBlockVoltage(machine);
-			if(VoltageTier.isConfigured(machineVoltage) && itemVoltage != machineVoltage) {
+			long machineVoltage = machine.getProviderVoltage();
+			long itemVoltage = BatteryVoltageRegistry.getVoltage(stack, machineVoltage);
+			if(VoltageTier.isConfigured(machineVoltage) && machineVoltage > itemVoltage) {
+				destroyItem(slots, index);
 				return power;
 			}
 		}
@@ -57,12 +47,9 @@ public final class VoltageCheckedCharging {
 		return Library.chargeItemsFromTE(slots, index, power, maxPower);
 	}
 
-	private static long getMachineBlockVoltage(Object machine) {
-		if(machine instanceof TileEntity) {
-			TileEntity te = (TileEntity) machine;
-			Block block = te.getWorldObj() == null ? null : te.getBlockType();
-			return MachineVoltageRegistry.getVoltageForBlock(block, VoltageTier.DEFAULT);
-		}
-		return VoltageTier.DEFAULT;
+	private static void destroyItem(ItemStack[] slots, int index) {
+		ItemStack stack = slots[index];
+		if(stack == null) return;
+		if(--stack.stackSize <= 0) slots[index] = null;
 	}
 }

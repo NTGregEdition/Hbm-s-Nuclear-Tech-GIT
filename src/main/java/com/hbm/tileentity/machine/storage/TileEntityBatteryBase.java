@@ -99,7 +99,9 @@ public abstract class TileEntityBatteryBase extends TileEntityMachineBase implem
 
 	@Override
 	public PowerNode createNode() {
-		return new PowerNode(this.getPortPos()).setConnections(this.getConPos());
+		PowerNode node = new PowerNode(this.getPortPos()).setConnections(this.getConPos());
+		node.batterySocket = true;
+		return node;
 	}
 
 	@Override

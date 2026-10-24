@@ -860,10 +860,40 @@ public class ModBlocks {
 	public static Block cable_voltage_lv;
 	public static Block cable_voltage_mv;
 	public static Block cable_voltage_hv;
+	public static Block cable_voltage_ev;
+	public static Block cable_voltage_iv;
+	public static Block cable_voltage_luv;
+	public static Block cable_voltage_zpm;
+	public static Block cable_voltage_uv;
+	public static Block cable_voltage_uhv;
+	public static Block cable_voltage_uev;
+	public static Block cable_voltage_uiv;
+	public static Block cable_voltage_umv;
+	public static Block cable_voltage_uxv;
 	public static Block transformer_lv_mv;
-	public static Block transformer_mv_lv;
 	public static Block transformer_mv_hv;
+	public static Block transformer_hv_ev;
+	public static Block transformer_ev_iv;
+	public static Block transformer_iv_luv;
+	public static Block transformer_luv_zpm;
+	public static Block transformer_zpm_uv;
+	public static Block transformer_uv_uhv;
+	public static Block transformer_uhv_uev;
+	public static Block transformer_uev_uiv;
+	public static Block transformer_uiv_umv;
+	public static Block transformer_umv_uxv;
+	public static Block transformer_uxv_umv;
+	public static Block transformer_umv_uiv;
+	public static Block transformer_uiv_uev;
+	public static Block transformer_uev_uhv;
+	public static Block transformer_uhv_uv;
+	public static Block transformer_uv_zpm;
+	public static Block transformer_zpm_luv;
+	public static Block transformer_luv_iv;
+	public static Block transformer_iv_ev;
+	public static Block transformer_ev_hv;
 	public static Block transformer_hv_mv;
+	public static Block transformer_mv_lv;
 	public static Block machine_casing;
 	public static Block machine_hull;
 	public static Block red_connector;
@@ -2231,13 +2261,43 @@ public class ModBlocks {
 		red_cable_paintable = new BlockCablePaintable().setBlockName("red_cable_paintable").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 		red_cable_gauge = new BlockCableGauge().setBlockName("red_cable_gauge").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 		red_cable_box = new PowerCableBox(Material.iron).setBlockName("red_cable_box").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":fluid_duct_box");
-		cable_voltage_lv = new BlockVoltageCable(Material.iron, new CableProperties("lv", VoltageTier.LV, 128L, 1L)).setBlockName("cable_lv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":cable_neo");
-		cable_voltage_mv = new BlockVoltageCable(Material.iron, new CableProperties("mv", VoltageTier.MV, 512L, 2L)).setBlockName("cable_mv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":cable_neo");
-		cable_voltage_hv = new BlockVoltageCable(Material.iron, new CableProperties("hv", VoltageTier.HV, 2_048L, 4L)).setBlockName("cable_hv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":cable_neo");
-		transformer_lv_mv = new BlockVoltageTransformer(Material.iron, new TransformerProperties("lv_mv", VoltageTier.LV, VoltageTier.MV, 128L)).setBlockName("transformer_lv_mv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
-		transformer_mv_lv = new BlockVoltageTransformer(Material.iron, new TransformerProperties("mv_lv", VoltageTier.MV, VoltageTier.LV, 32L)).setBlockName("transformer_mv_lv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
-		transformer_mv_hv = new BlockVoltageTransformer(Material.iron, new TransformerProperties("mv_hv", VoltageTier.MV, VoltageTier.HV, 512L)).setBlockName("transformer_mv_hv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
-		transformer_hv_mv = new BlockVoltageTransformer(Material.iron, new TransformerProperties("hv_mv", VoltageTier.HV, VoltageTier.MV, 128L)).setBlockName("transformer_hv_mv").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
+		cable_voltage_lv = createVoltageCable("lv", VoltageTier.LV, 1L);
+		cable_voltage_mv = createVoltageCable("mv", VoltageTier.MV, 2L);
+		cable_voltage_hv = createVoltageCable("hv", VoltageTier.HV, 4L);
+		cable_voltage_ev = createVoltageCable("ev", VoltageTier.EV, 8L);
+		cable_voltage_iv = createVoltageCable("iv", VoltageTier.IV, 16L);
+		cable_voltage_luv = createVoltageCable("luv", VoltageTier.LUV, 32L);
+		cable_voltage_zpm = createVoltageCable("zpm", VoltageTier.ZPM, 64L);
+		cable_voltage_uv = createVoltageCable("uv", VoltageTier.UV, 128L);
+		cable_voltage_uhv = createVoltageCable("uhv", VoltageTier.UHV, 256L);
+		cable_voltage_uev = createVoltageCable("uev", VoltageTier.UEV, 512L);
+		cable_voltage_uiv = createVoltageCable("uiv", VoltageTier.UIV, 1024L);
+		cable_voltage_umv = createVoltageCable("umv", VoltageTier.UMV, 2048L);
+		cable_voltage_uxv = createVoltageCable("uxv", VoltageTier.UXV, 4096L);
+		transformer_lv_mv = createVoltageTransformer("lv_mv", VoltageTier.LV, VoltageTier.MV);
+		transformer_mv_hv = createVoltageTransformer("mv_hv", VoltageTier.MV, VoltageTier.HV);
+		transformer_hv_ev = createVoltageTransformer("hv_ev", VoltageTier.HV, VoltageTier.EV);
+		transformer_ev_iv = createVoltageTransformer("ev_iv", VoltageTier.EV, VoltageTier.IV);
+		transformer_iv_luv = createVoltageTransformer("iv_luv", VoltageTier.IV, VoltageTier.LUV);
+		transformer_luv_zpm = createVoltageTransformer("luv_zpm", VoltageTier.LUV, VoltageTier.ZPM);
+		transformer_zpm_uv = createVoltageTransformer("zpm_uv", VoltageTier.ZPM, VoltageTier.UV);
+		transformer_uv_uhv = createVoltageTransformer("uv_uhv", VoltageTier.UV, VoltageTier.UHV);
+		transformer_uhv_uev = createVoltageTransformer("uhv_uev", VoltageTier.UHV, VoltageTier.UEV);
+		transformer_uev_uiv = createVoltageTransformer("uev_uiv", VoltageTier.UEV, VoltageTier.UIV);
+		transformer_uiv_umv = createVoltageTransformer("uiv_umv", VoltageTier.UIV, VoltageTier.UMV);
+		transformer_umv_uxv = createVoltageTransformer("umv_uxv", VoltageTier.UMV, VoltageTier.UXV);
+		transformer_uxv_umv = createVoltageTransformer("uxv_umv", VoltageTier.UXV, VoltageTier.UMV);
+		transformer_umv_uiv = createVoltageTransformer("umv_uiv", VoltageTier.UMV, VoltageTier.UIV);
+		transformer_uiv_uev = createVoltageTransformer("uiv_uev", VoltageTier.UIV, VoltageTier.UEV);
+		transformer_uev_uhv = createVoltageTransformer("uev_uhv", VoltageTier.UEV, VoltageTier.UHV);
+		transformer_uhv_uv = createVoltageTransformer("uhv_uv", VoltageTier.UHV, VoltageTier.UV);
+		transformer_uv_zpm = createVoltageTransformer("uv_zpm", VoltageTier.UV, VoltageTier.ZPM);
+		transformer_zpm_luv = createVoltageTransformer("zpm_luv", VoltageTier.ZPM, VoltageTier.LUV);
+		transformer_luv_iv = createVoltageTransformer("luv_iv", VoltageTier.LUV, VoltageTier.IV);
+		transformer_iv_ev = createVoltageTransformer("iv_ev", VoltageTier.IV, VoltageTier.EV);
+		transformer_ev_hv = createVoltageTransformer("ev_hv", VoltageTier.EV, VoltageTier.HV);
+		transformer_hv_mv = createVoltageTransformer("hv_mv", VoltageTier.HV, VoltageTier.MV);
+		transformer_mv_lv = createVoltageTransformer("mv_lv", VoltageTier.MV, VoltageTier.LV);
 		machine_hull = new BlockVoltage(Material.iron).setBlockName("machine_hull").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 		machine_casing = new BlockVoltage(Material.iron).setBlockName("machine_casing").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 		red_connector = new ConnectorRedWire(Material.iron).setBlockName("red_connector").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":red_connector");
@@ -3734,10 +3794,40 @@ public class ModBlocks {
 		register(cable_voltage_lv);
 		register(cable_voltage_mv);
 		register(cable_voltage_hv);
+		register(cable_voltage_ev);
+		register(cable_voltage_iv);
+		register(cable_voltage_luv);
+		register(cable_voltage_zpm);
+		register(cable_voltage_uv);
+		register(cable_voltage_uhv);
+		register(cable_voltage_uev);
+		register(cable_voltage_uiv);
+		register(cable_voltage_umv);
+		register(cable_voltage_uxv);
 		register(transformer_lv_mv);
-		register(transformer_mv_lv);
 		register(transformer_mv_hv);
+		register(transformer_hv_ev);
+		register(transformer_ev_iv);
+		register(transformer_iv_luv);
+		register(transformer_luv_zpm);
+		register(transformer_zpm_uv);
+		register(transformer_uv_uhv);
+		register(transformer_uhv_uev);
+		register(transformer_uev_uiv);
+		register(transformer_uiv_umv);
+		register(transformer_umv_uxv);
+		register(transformer_uxv_umv);
+		register(transformer_umv_uiv);
+		register(transformer_uiv_uev);
+		register(transformer_uev_uhv);
+		register(transformer_uhv_uv);
+		register(transformer_uv_zpm);
+		register(transformer_zpm_luv);
+		register(transformer_luv_iv);
+		register(transformer_iv_ev);
+		register(transformer_ev_hv);
 		register(transformer_hv_mv);
+		register(transformer_mv_lv);
 		register(machine_casing);
 		register(machine_hull);
 		register(red_wire_coated);
@@ -4172,6 +4262,19 @@ public class ModBlocks {
 
 	private static void register(Block b) {
 		GameRegistry.registerBlock(b, ItemBlockBase.class, b.getUnlocalizedName());
+	}
+
+	private static Block createVoltageCable(String tier, long voltage, long lossPerBlock) {
+		return new BlockVoltageCable(Material.iron, new CableProperties(tier, voltage, 4L, lossPerBlock))
+				.setBlockName("cable_" + tier).setHardness(5.0F).setResistance(10.0F)
+				.setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":cable_" + tier);
+	}
+
+	private static Block createVoltageTransformer(String id, long inputVoltage, long outputVoltage) {
+		return new BlockVoltageTransformer(Material.iron,
+				new TransformerProperties(id, inputVoltage, outputVoltage, Math.max(inputVoltage, outputVoltage)))
+				.setBlockName("transformer_" + id).setHardness(5.0F).setResistance(10.0F)
+				.setCreativeTab(MainRegistry.machineTab);
 	}
 
 	private static void register(Block b, Class<? extends ItemBlock> clazz) {

@@ -18,18 +18,19 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 public class TileEntityVoltageTransformer extends TileEntityLoadedBase implements IEnergyReceiverMK2, IEnergyProviderMK2, IEnergyConductorMK2 {
 
+	private static final TransformerProperties FALLBACK_PROPERTIES = new TransformerProperties("unconfigured", Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE);
+
 	private PowerNode outputNode;
 	private PowerNetMK2 inputNet;
 	private PowerNetMK2 outputNet;
 	private long pendingInput;
 	private long pendingOutput;
-	private long conversionRemainder;
 
 	private TransformerProperties getProperties() {
 		if(getBlockType() instanceof BlockVoltageTransformer) {
 			return ((BlockVoltageTransformer) getBlockType()).getProperties();
 		}
-		throw new IllegalStateException("Voltage transformer tile placed without a transformer block");
+		return FALLBACK_PROPERTIES;
 	}
 
 	public ForgeDirection getInputDirection() {
@@ -44,7 +45,6 @@ public class TileEntityVoltageTransformer extends TileEntityLoadedBase implement
 	@Override
 	public void updateEntity() {
 		if(worldObj.isRemote) return;
-		pendingOutput = 0L;
 
 		if(outputNode == null || outputNode.expired) {
 			outputNode = Nodespace.getNode(worldObj, xCoord, yCoord, zCoord);
@@ -54,7 +54,7 @@ public class TileEntityVoltageTransformer extends TileEntityLoadedBase implement
 			}
 		}
 
-		if(worldObj.getTotalWorldTime() % 20L == 0L) subscribeInput();
+		subscribeInput();
 		convertPendingInput();
 
 		provideOutput();
@@ -83,9 +83,8 @@ public class TileEntityVoltageTransformer extends TileEntityLoadedBase implement
 		PowerNetMK2 target = null;
 
 		TileEntity inputTile = worldObj.getTileEntity(x, y, z);
-		boolean wrongVoltage = inputTile instanceof TileEntityVoltageCable
-				&& ((TileEntityVoltageCable) inputTile).getCableProperties().voltage != getProperties().inputVoltage;
-		if(!wrongVoltage) {
+		if(inputTile instanceof IEnergyConductorMK2
+				&& ((IEnergyConductorMK2) inputTile).canConnect(input.getOpposite())) {
 			PowerNode node = Nodespace.getNode(worldObj, x, y, z);
 			if(node != null && node.net != null) target = node.net;
 		}
@@ -97,14 +96,11 @@ public class TileEntityVoltageTransformer extends TileEntityLoadedBase implement
 
 	private void convertPendingInput() {
 		TransformerProperties properties = getProperties();
-		long input = Math.min(pendingInput, properties.maxInputEnergyPerTick);
-		pendingInput = 0L;
-		if(input <= 0) return;
-
-		long numerator = input * properties.inputVoltage + conversionRemainder;
-		long converted = numerator / properties.outputVoltage;
-		pendingOutput = converted;
-		conversionRemainder = numerator % properties.outputVoltage;
+		long outputRoom = Math.max(0L, properties.getMaxOutputEnergyPerTick() - pendingOutput);
+		long input = Math.min(pendingInput, outputRoom);
+		if(input <= 0L) return;
+		pendingInput -= input;
+		pendingOutput += properties.convert(input);
 		markDirty();
 	}
 
@@ -121,9 +117,8 @@ public class TileEntityVoltageTransformer extends TileEntityLoadedBase implement
 	}
 
 	public boolean canConnectCable(ForgeDirection transformerSide, long cableVoltage) {
-		if(transformerSide == getInputDirection()) return cableVoltage == getProperties().inputVoltage;
-		if(transformerSide == getOutputDirection()) return cableVoltage == getProperties().outputVoltage;
-		return false;
+		// Cable voltage is a maximum rating; the actual voltage is checked while power is transferred.
+		return transformerSide == getInputDirection() || transformerSide == getOutputDirection();
 	}
 
 	@Override
@@ -168,12 +163,14 @@ public class TileEntityVoltageTransformer extends TileEntityLoadedBase implement
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
-		conversionRemainder = Math.max(0L, nbt.getLong("transformerRemainder"));
+		pendingInput = Math.max(0L, nbt.getLong("transformerPendingInput"));
+		pendingOutput = Math.max(0L, nbt.getLong("transformerPendingOutput"));
 	}
 
 	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
-		nbt.setLong("transformerRemainder", conversionRemainder);
+		nbt.setLong("transformerPendingInput", pendingInput);
+		nbt.setLong("transformerPendingOutput", pendingOutput);
 	}
 }

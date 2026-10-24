@@ -151,12 +151,9 @@ public class TileEntityCharger extends TileEntityLoadedBase implements IEnergyRe
 
 				if(stack != null && stack.getItem() instanceof IBatteryItem) {
 
-					long itemVoltage = BatteryVoltageRegistry.getVoltage(stack, VoltageTier.DEFAULT);
-
-					if(!VoltageTier.isConfigured(itemVoltage)) {
-						continue;
-					}
-					if(VoltageTier.isConfigured(chargerVoltage) && itemVoltage != chargerVoltage) {
+					long itemVoltage = BatteryVoltageRegistry.getVoltage(stack, chargerVoltage);
+					if(VoltageTier.isConfigured(chargerVoltage) && chargerVoltage > itemVoltage) {
+						player.setCurrentItemOrArmor(i, null);
 						continue;
 					}
 
