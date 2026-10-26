@@ -368,6 +368,10 @@ public class ResourceManager {
 	public static AnimatedModel transition_seal = ColladaLoader.load(new ResourceLocation(RefStrings.MODID, "models/doors/seal.dae"), true);
 	public static Animation transition_seal_anim = ColladaLoader.loadAnim(24040, new ResourceLocation(RefStrings.MODID, "models/doors/seal.dae"));
 
+	//Crucible first person rig: hilt, guards, blade and both arms (textured with the player skin), 1060ms equip animation
+	public static AnimatedModel crucible_anim = ColladaLoader.load(new ResourceLocation(RefStrings.MODID, "models/anim/crucible_equip.dae"), true);
+	public static Animation crucible_equip = ColladaLoader.loadAnim(1060, new ResourceLocation(RefStrings.MODID, "models/anim/crucible_equip.dae"));
+
 	//PheoDoors
 	public static final ResourceLocation pheo_fire_door_tex = new ResourceLocation(RefStrings.MODID, "textures/models/pheodoors/fire_door.png");
 	public static final ResourceLocation pheo_fire_door_black_tex = new ResourceLocation(RefStrings.MODID, "textures/models/pheodoors/fire_door_black.png");
@@ -1143,6 +1147,10 @@ public class ResourceManager {
 	public static final ResourceLocation crucible_hilt = new ResourceLocation(RefStrings.MODID, "textures/models/weapons/crucible_hilt.png");
 	public static final ResourceLocation crucible_guard = new ResourceLocation(RefStrings.MODID, "textures/models/weapons/crucible_guard.png");
 	public static final ResourceLocation crucible_blade = new ResourceLocation(RefStrings.MODID, "textures/models/weapons/crucible_blade.png");
+	public static final ResourceLocation crucible_cap = new ResourceLocation(RefStrings.MODID, "textures/misc/crucible_cap.png");
+	public static final ResourceLocation blood0 = new ResourceLocation(RefStrings.MODID, "textures/misc/blood0.png");
+	public static final ResourceLocation blood_dec1 = new ResourceLocation(RefStrings.MODID, "textures/misc/blood_dec1.png");
+	public static final ResourceLocation bfg_particle = new ResourceLocation(RefStrings.MODID, "textures/models/bfg/particle.png");
 	public static final ResourceLocation chainsaw_tex = new ResourceLocation(RefStrings.MODID, "textures/models/weapons/chainsaw.png");
 	public static final ResourceLocation boltgun_tex = new ResourceLocation(RefStrings.MODID, "textures/models/weapons/boltgun.png");
 

@@ -319,6 +319,10 @@ public class ModEventHandler {
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void onEntityDeathFirst(LivingDeathEvent event) {
 
+		//a revive would leave the sliced entity dead and alive at the same time
+		if(event.entityLiving.getEntityData().getBoolean("killedByMobSlicer"))
+			return;
+
 		for(int i = 1; i < 5; i++) {
 
 			ItemStack stack = event.entityLiving.getEquipmentInSlot(i);

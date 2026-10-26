@@ -1,5 +1,7 @@
 package com.hbm.render.anim;
 
+import com.hbm.animloader.AnimationWrapper;
+import com.hbm.animloader.AnimationWrapper.EndResult;
 import com.hbm.interfaces.NotableComments;
 import com.hbm.util.Clock;
 import net.minecraft.client.Minecraft;
@@ -45,6 +47,27 @@ public class HbmAnimations {
 		}
 	}
 
+	/**
+	 * Slot entry that plays a Collada (Blender) animation on an AnimatedModel. The regular bus animation is optional and layers on top of it
+	 * for as long as it runs, the slot itself stays until the item is gone. Whatever reads {@link Animation#animation} has to expect null here.
+	 */
+	public static class BlenderAnimation extends Animation {
+
+		public AnimationWrapper wrapper;
+
+		public BlenderAnimation(String key, long startMillis, float scale, com.hbm.animloader.Animation animation, EndResult end) {
+			super(key, startMillis, null);
+			this.wrapper = new AnimationWrapper(startMillis, scale, animation).onEnd(end);
+		}
+	}
+
+	public static AnimationWrapper getRelevantBlenderAnim() { return getRelevantBlenderAnim(0); }
+	public static AnimationWrapper getRelevantBlenderAnim(int index) {
+		Animation anim = getRelevantAnim(index);
+		if(anim instanceof BlenderAnimation) return ((BlenderAnimation) anim).wrapper;
+		return AnimationWrapper.EMPTY;
+	}
+
 	public static Animation getRelevantAnim() { return getRelevantAnim(0); }
 	public static Animation getRelevantAnim(int index) {
 
@@ -74,7 +97,7 @@ public class HbmAnimations {
 
 		Animation anim = HbmAnimations.getRelevantAnim(index);
 
-		if(anim != null) {
+		if(anim != null && anim.animation != null) {
 
 			BusAnimation buses = anim.animation;
 			int millis = (int)(Clock.get_ms() - anim.startMillis);

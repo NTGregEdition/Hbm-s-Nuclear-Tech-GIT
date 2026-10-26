@@ -77,6 +77,10 @@ public class PacketDispatcher {
 		wrapper.registerMessage(ContainerNBTCommsPacket.Handler.class, ContainerNBTCommsPacket.class, i++, Side.SERVER);
 
 		wrapper.registerMessage(PacketDigammaApocalypse.Handler.class, PacketDigammaApocalypse.class, i++, Side.CLIENT);
+
+		//Crucible cut: the client sends the plane it drew, the server slices what it hits and tells the clients that track it
+		wrapper.registerMessage(PacketMobSlicer.Handler.class, PacketMobSlicer.class, i++, Side.SERVER);
+		wrapper.registerMessage(PacketSpecialDeath.Handler.class, PacketSpecialDeath.class, i++, Side.CLIENT);
 	}
 
 }

@@ -42,11 +42,13 @@ import com.hbm.items.armor.*;
 import com.hbm.items.machine.ItemDepletedFuel;
 import com.hbm.items.machine.ItemFluidDuct;
 import com.hbm.items.machine.ItemRBMKPellet;
+import com.hbm.items.weapon.ItemCrucible;
 import com.hbm.items.weapon.sedna.GunConfig;
 import com.hbm.items.weapon.sedna.ItemGunBaseNT;
 import com.hbm.lib.Library;
 import com.hbm.lib.RefStrings;
 import com.hbm.packet.PacketDispatcher;
+import com.hbm.physics.Vec3d;
 import com.hbm.potion.HbmPotion;
 import com.hbm.packet.toserver.AuxButtonPacket;
 import com.hbm.qmaw.GuiQMAW;
@@ -54,6 +56,7 @@ import com.hbm.qmaw.QMAWLoader;
 import com.hbm.qmaw.QuickManualAndWiki;
 import com.hbm.render.anim.HbmAnimations;
 import com.hbm.render.anim.HbmAnimations.Animation;
+import com.hbm.render.anim.HbmAnimations.BlenderAnimation;
 import com.hbm.render.block.ct.CTStitchReceiver;
 import com.hbm.render.item.weapon.sedna.ItemRenderWeaponBase;
 import com.hbm.render.util.RenderAccessoryUtility;
@@ -136,6 +139,7 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 
 import java.lang.reflect.Method;
@@ -361,10 +365,21 @@ public class ModEventHandlerClient {
 				if(animation == null)
 					continue;
 
+				long time = Clock.get_ms() - animation.startMillis;
+
+				// a rig animation outlives its bus layer, only the layer ends with its own duration, the rig goes once the item it belongs to is gone
+				if(animation instanceof BlenderAnimation) {
+					ItemStack inSlot = player.inventory.mainInventory[i];
+					if(inSlot == null || !inSlot.getItem().getUnlocalizedName().equals(animation.key)) {
+						HbmAnimations.hotbar[i][j] = null;
+					} else if(animation.animation != null && time > animation.animation.getDuration()) {
+						animation.animation = null;
+					}
+					continue;
+				}
+
 				if(animation.holdLastFrame)
 					continue;
-
-				long time = Clock.get_ms() - animation.startMillis;
 
 				if(time > animation.animation.getDuration())
 					HbmAnimations.hotbar[i][j] = null;
@@ -1349,6 +1364,90 @@ public class ModEventHandlerClient {
 		}
 	}
 
+	/** While a cut is being drawn the camera is turned here instead of by vanilla, so that it can be kept within reach of where the cut started */
+	@SideOnly(Side.CLIENT)
+	@SubscribeEvent
+	public void onRenderTick(TickEvent.RenderTickEvent event) {
+
+		Minecraft mc = Minecraft.getMinecraft();
+		EntityPlayer player = mc.thePlayer;
+
+		if(event.phase != Phase.START || player == null || !ItemCrucible.clicked || !mc.inGameHasFocus || !Display.isActive())
+			return;
+
+		ItemStack held = player.getHeldItem();
+		if(held == null || !(held.getItem() instanceof ItemCrucible))
+			return;
+
+		mc.mouseHelper.mouseXYChange();
+		float sensitivity = mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
+		float factor = sensitivity * sensitivity * sensitivity * 8F;
+		player.setAngles(mc.mouseHelper.deltaX * factor, mc.mouseHelper.deltaY * factor * (mc.gameSettings.invertMouse ? -1 : 1));
+
+		float oldYaw = player.rotationYaw;
+		float oldPitch = player.rotationPitch;
+		player.rotationYaw = MathHelper.clamp_float(player.rotationYaw, ItemCrucible.yaw - ItemCrucible.MAX_DYAW, ItemCrucible.yaw + ItemCrucible.MAX_DYAW);
+		player.rotationPitch = MathHelper.clamp_float(player.rotationPitch, ItemCrucible.pitch - ItemCrucible.MAX_DPITCH, ItemCrucible.pitch + ItemCrucible.MAX_DPITCH);
+		player.prevRotationYaw += player.rotationYaw - oldYaw;
+		player.prevRotationPitch += player.rotationPitch - oldPitch;
+	}
+
+	@SideOnly(Side.CLIENT)
+	@SubscribeEvent
+	public void onMouseClick(MouseEvent event) {
+		if(event.button == 1 && !event.buttonstate)
+			ItemCrucible.canClick = true;
+	}
+
+	/** Black line from where the cut was started to where the player looks, the plane through both is what gets sliced */
+	@SideOnly(Side.CLIENT)
+	private static void renderCutLine(EntityPlayer player, float partialTicks) {
+
+		ItemStack held = player.getHeldItem();
+		if(!ItemCrucible.clicked || held == null || !(held.getItem() instanceof ItemCrucible))
+			return;
+
+		if(!Mouse.isButtonDown(1) || ItemCrucible.startPos == null || !ItemCrucible.isCharged(held)) {
+			ItemCrucible.clicked = false;
+			ItemCrucible.planeNormal = null;
+			return;
+		}
+
+		Vec3d start = ItemCrucible.startPos;
+		Vec3 look = player.getLook(partialTicks);
+		Vec3d end = new Vec3d(look.xCoord, look.yCoord, look.zCoord);
+
+		boolean lighting = GL11.glIsEnabled(GL11.GL_LIGHTING);
+		float lineWidth = GL11.glGetFloat(GL11.GL_LINE_WIDTH);
+		GL11.glDisable(GL11.GL_TEXTURE_2D);
+		GL11.glDisable(GL11.GL_LIGHTING);
+		GL11.glLineWidth(2F);
+		GL11.glColor4f(0F, 0F, 0F, 1F);
+		GL11.glPushMatrix();
+
+		try {
+			GL11.glLoadIdentity();
+			GL11.glRotatef(player.rotationPitch, 1F, 0F, 0F);
+			GL11.glRotatef(player.rotationYaw + 180F, 0F, 1F, 0F);
+
+			Tessellator tess = Tessellator.instance;
+			tess.startDrawing(GL11.GL_LINES);
+			tess.addVertex(start.x, start.y, start.z);
+			tess.addVertex(end.x, end.y, end.z);
+			tess.draw();
+		} finally {
+			GL11.glPopMatrix();
+			GL11.glLineWidth(lineWidth);
+			GL11.glColor4f(1F, 1F, 1F, 1F);
+			GL11.glEnable(GL11.GL_TEXTURE_2D);
+			if(lighting) GL11.glEnable(GL11.GL_LIGHTING);
+		}
+
+		Vec3d norm = start.crossProduct(end);
+		if(norm.lengthSquared() > 0.001D)
+			ItemCrucible.planeNormal = norm.normalize();
+	}
+
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
 	public void onRenderWorldLastEvent(RenderWorldLastEvent event) {
@@ -1455,6 +1554,8 @@ public class ModEventHandlerClient {
 		}
 
 		RenderOverhead.renderActionPreview(event.partialTicks);
+
+		renderCutLine(player, event.partialTicks);
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGHEST)

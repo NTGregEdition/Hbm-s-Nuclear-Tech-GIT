@@ -901,6 +901,7 @@ death.attack.cheater=внутренности %1$s превратились в �
 death.attack.chopperBullet=%1$s был изничтожен %2$s.
 death.attack.cloud=%1$s растаял, как эскимо на солнце.
 death.attack.cmb=%1$s был продырявлен %2$s.
+death.attack.crucible=%1$s был рассечён клинком из чистой энергии Аргента
 death.attack.digamma=%1$s шагнул в пустоту.
 death.attack.electricity=%1$s был убит электрическим током.
 death.attack.electrified=%1$s превратился в батарейку благодаря %2$s.

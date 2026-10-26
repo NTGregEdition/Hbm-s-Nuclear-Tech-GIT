@@ -224,6 +224,7 @@
     "weapon.mukeExplosion": {"category": "block", "sounds": [{"name": "weapon/mukeExplosion", "stream": false}]},
     "weapon.cDeploy": {"category": "player", "sounds": [{"name": "weapon/cDeploy", "stream": false}]},
     "weapon.cSwing": {"category": "player", "sounds": [{"name": "weapon/cSwing", "stream": false}]},
+    "weapon.crucible_swing": {"category": "player", "sounds": [{"name": "weapon/crucible_swing", "stream": false}]},
     "weapon.extinguisher": {"category": "player", "sounds": [{"name": "weapon/extinguisher", "stream": false}]},
     "weapon.robin_explosion": {"category": "player", "sounds": [{"name": "weapon/robin_explosion", "stream": false}]},
     "weapon.shotgunPump": {"category": "player", "sounds": [{"name": "weapon/shotgunShootPump", "stream": false}]},
