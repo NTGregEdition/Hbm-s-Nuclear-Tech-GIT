@@ -206,7 +206,7 @@ public class ItemMultitool extends ItemCraftingDegradation {
 		return stack;
 	}
 
-	// ---------------- pre-empting Block#onBlockActivated (dud bombs, landmines, ...) ----------------
+	// ---------------- runs the whole vanilla click sequence with the emulated tool in hand ----------------
 
 	@Override
 	public boolean onItemUseFirst(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side, float fX, float fY, float fZ) {
@@ -216,26 +216,29 @@ public class ItemMultitool extends ItemCraftingDegradation {
 		Mode mode = getMode(stack);
 		if (mode == null || mode.emulatedItem == null) return false;
 
-		Block b = world.getBlock(x, y, z);
-
-		if (b.onBlockActivated(world, x, y, z, player, side, fX, fY, fZ)) {
-			return true;
-		}
-
 		ItemStack backup = player.inventory.getStackInSlot(player.inventory.currentItem);
 		ItemStack fake = swapInEmulatedItem(stack, mode, player);
 
 		boolean handled;
+		boolean toolUsed;
 		try {
-			handled = mode.emulatedItem.onItemUseFirst(fake, player, world, x, y, z, side, fX, fY, fZ);
+			toolUsed = mode.emulatedItem.onItemUseFirst(fake, player, world, x, y, z, side, fX, fY, fZ);
+			handled = toolUsed;
+
+			if (!handled && (!player.isSneaking() || mode.emulatedItem.doesSneakBypassUse(world, x, y, z, player))) {
+				handled = world.getBlock(x, y, z).onBlockActivated(world, x, y, z, player, side, fX, fY, fZ);
+			}
+
 			if (!handled) {
-				handled = b.onBlockActivated(world, x, y, z, player, side, fX, fY, fZ);
+				toolUsed = tryScrew(mode, player, world, x, y, z, side, fX, fY, fZ)
+					|| mode.emulatedItem.onItemUse(fake, player, world, x, y, z, side, fX, fY, fZ);
+				handled = toolUsed;
 			}
 		} finally {
 			restoreRealItem(stack, mode, player, fake, backup);
 		}
 
-		if (handled && this.getMaxDamage() > 0) {
+		if (toolUsed && this.getMaxDamage() > 0) {
 			stack.damageItem(1, player);
 		}
 
