@@ -219,6 +219,19 @@ public class ItemRenderCrucible implements IItemRenderer {
 		HeatDistortion.end();
 	}
 
+	public static void keepRaised(EntityPlayer player) {
+		ItemRenderer itemRenderer = Minecraft.getMinecraft().entityRenderer.itemRenderer;
+		ItemStack held = player.getHeldItem();
+		ItemStack shown = itemRenderer.itemToRender;
+
+		if(!(held != null && shown != null && held.getItem() instanceof ItemCrucible && held.getItem() == shown.getItem()))
+			return;
+
+		itemRenderer.itemToRender = held;
+		itemRenderer.prevEquippedProgress = 1.0F;
+		itemRenderer.equippedProgress = 1.0F;
+	}
+
 	private static void renderFirstPerson(EntityPlayer player, ItemStack item, boolean isOn) {
 		Minecraft mc = Minecraft.getMinecraft();
 		ItemRenderer itemRenderer = mc.entityRenderer.itemRenderer;

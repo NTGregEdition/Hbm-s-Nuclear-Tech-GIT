@@ -8,10 +8,17 @@ import com.hbm.physics.Vec3d;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EntityTrackerEntry;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
 
 public class CrucibleSlice {
+
+	public static boolean canSlice(EntityLivingBase victim, EntityPlayer attacker) {
+		if(!(victim instanceof EntityPlayer)) return true;
+		EntityPlayer target = (EntityPlayer) victim;
+		return !target.capabilities.disableDamage && target.canAttackPlayer(attacker);
+	}
 
 	public static void slice(EntityLivingBase victim, Vec3d point, Vec3d normal) {
 		Vec3d rel = point.subtract(new Vec3d(victim.posX, victim.posY, victim.posZ));
@@ -20,7 +27,7 @@ public class CrucibleSlice {
 		victim.getEntityData().setBoolean("killedByMobSlicer", true);
 		try {
 			victim.func_110142_aN().func_94547_a(ModDamageSource.crucible, victim.getHealth(), victim.getHealth());
-			victim.setDead();
+			if(victim instanceof EntityPlayer) victim.setDead();
 			victim.setHealth(0);
 			victim.onDeath(ModDamageSource.crucible);
 		} finally {

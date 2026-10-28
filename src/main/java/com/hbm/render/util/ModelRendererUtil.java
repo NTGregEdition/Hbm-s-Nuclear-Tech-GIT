@@ -3,6 +3,7 @@ package com.hbm.render.util;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -60,6 +61,12 @@ public class ModelRendererUtil {
 	private static final ResourceLocation FALLBACK_TEXTURE = new ResourceLocation("textures/entity/steve.png");
 	private static final FloatBuffer MATRIX_BUFFER = GLAllocation.createDirectFloatBuffer(16);
 
+	private static final FloatBuffer FEEDBACK_BUFFER = GLAllocation.createDirectFloatBuffer(1 << 20);
+	private static final IntBuffer VIEWPORT = GLAllocation.createDirectIntBuffer(16);
+	private static final int FEEDBACK_VERTEX = 11;
+	private static final float FEEDBACK_SCALE = 1F / 32F;
+	private static final int[] BOUNDS_INDICES = {0, 2, 3, 0, 3, 1, 4, 5, 7, 4, 7, 6, 0, 4, 6, 0, 6, 2, 1, 3, 7, 1, 7, 5, 0, 1, 5, 0, 5, 4, 2, 6, 7, 2, 7, 3};
+
 	@SuppressWarnings("unchecked")
 	private static <T> T get(Field field, Object owner) {
 		try {
@@ -82,19 +89,19 @@ public class ModelRendererUtil {
 	/** every cube of the model, with the transform that places it relative to the entity's feet in world scale */
 	public static List<ModelPart> getBoxesFromMob(EntityLivingBase e, float partialTicks) {
 		Render render = RenderManager.instance.getEntityRenderObject(e);
-		if(!(render instanceof RendererLivingEntity)) return Collections.emptyList();
+		if(e.isChild() || !(render instanceof RendererLivingEntity)) return Collections.emptyList();
 
 		ModelBase model = get(rMainModel, render);
 		GL11.glPushMatrix();
 		try {
 			GL11.glLoadIdentity();
-			return collectParts(e, (RendererLivingEntity) render, model, partialTicks);
+			return collectParts(e, (RendererLivingEntity) render, model, partialTicks, false);
 		} finally {
 			GL11.glPopMatrix();
 		}
 	}
 
-	private static List<ModelPart> collectParts(EntityLivingBase e, RendererLivingEntity render, ModelBase model, float partialTicks) {
+	private static List<ModelPart> collectParts(EntityLivingBase e, RendererLivingEntity render, ModelBase model, float partialTicks, boolean draw) {
 		//This copies RendererLivingEntity.doRender up to the model call, without the translation to the entity
 		model.onGround = e.getSwingProgress(partialTicks);
 		model.isRiding = e.isRiding();
@@ -134,6 +141,11 @@ public class ModelRendererUtil {
 
 		model.setLivingAnimations(e, limbSwing, limbSwingAmount, partialTicks);
 		model.setRotationAngles(limbSwing, limbSwingAmount, age, headYawAbs - bodyYaw, pitch, scale, e);
+
+		if(draw) {
+			model.render(e, limbSwing, limbSwingAmount, age, headYawAbs - bodyYaw, pitch, scale);
+			return Collections.emptyList();
+		}
 
 		List<ModelPart> list = new ArrayList<ModelPart>();
 		for(Object o : model.boxList) {
@@ -279,6 +291,10 @@ public class ModelRendererUtil {
 
 	/** Returns the triangles on the positive side of the plane, on the negative side, and the cap that closes the cut. */
 	public static VertexData[] cutAndCapConvex(Triangle[] tris, float[] plane) {
+		return cutAndCap(tris, plane, false);
+	}
+
+	private static VertexData[] cutAndCap(Triangle[] tris, float[] plane, boolean mesh) {
 		VertexData[] returnData = new VertexData[] {null, null, new VertexData()};
 		List<Triangle> side1 = new ArrayList<Triangle>();
 		List<Triangle> side2 = new ArrayList<Triangle>();
@@ -361,8 +377,11 @@ public class ModelRendererUtil {
 				clippedEdges.add(new Vec3d[] {e, d});
 			}
 		}
+		if(mesh && !clippedEdges.isEmpty()) {
+			Triangle[] cap = capLoops(clippedEdges, plane, side1, side2);
+			if(cap.length > 0) returnData[2] = compress(cap);
 		//Since this is a convex mesh, generating one edge list is fine.
-		if(!clippedEdges.isEmpty()) {
+		} else if(!clippedEdges.isEmpty()) {
 			Matrix3f mat = Matrix3f.normalToMat(new Vec3d(plane[0], plane[1], plane[2]), 0);
 			List<Vec3d> orderedClipVertices = new ArrayList<Vec3d>();
 			orderedClipVertices.add(clippedEdges.get(0)[0]);
@@ -387,6 +406,12 @@ public class ModelRendererUtil {
 	}
 
 	private static Vec3d getNext(List<Vec3d[]> edges, Vec3d first) {
+		Vec3d next = findNext(edges, first);
+		if(next == null) throw new IllegalStateException("Didn't find next in loop!");
+		return next;
+	}
+
+	private static Vec3d findNext(List<Vec3d[]> edges, Vec3d first) {
 		Iterator<Vec3d[]> itr = edges.iterator();
 		while(itr.hasNext()) {
 			Vec3d[] v = itr.next();
@@ -399,7 +424,7 @@ public class ModelRendererUtil {
 				return v[0];
 			}
 		}
-		throw new IllegalStateException("Didn't find next in loop!");
+		return null;
 	}
 
 	public static double rayPlaneIntercept(Vec3d start, Vec3d ray, float[] plane) {
@@ -439,7 +464,8 @@ public class ModelRendererUtil {
 
 		// Cut all mob boxes and store them in separate lists //
 
-		List<ModelPart> boxes = getBoxesFromMob(ent, ((Timer) get(rTimer, Minecraft.getMinecraft())).renderPartialTicks);
+		float partialTicks = ((Timer) get(rTimer, Minecraft.getMinecraft())).renderPartialTicks;
+		List<ModelPart> boxes = getBoxesFromMob(ent, partialTicks);
 		List<CutModelData> top = new ArrayList<CutModelData>();
 		List<CutModelData> bottom = new ArrayList<CutModelData>();
 		for(ModelPart r : boxes) {
@@ -461,6 +487,8 @@ public class ModelRendererUtil {
 				}
 			}
 		}
+
+		if(boxes.isEmpty()) cutDrawnModel(ent, plane, partialTicks, top, bottom);
 
 		if(capConsumer != null) {
 			List<Triangle> tris = new ArrayList<Triangle>();
@@ -523,6 +551,222 @@ public class ModelRendererUtil {
 		}
 
 		return particles.toArray(new ParticleSlicedMob[particles.size()]);
+	}
+
+	private static void cutDrawnModel(EntityLivingBase ent, float[] plane, float partialTicks, List<CutModelData> top, List<CutModelData> bottom) {
+		Triangle[] tris = captureMobTriangles(ent, partialTicks);
+		if(tris.length == 0) return;
+
+		VertexData[] dat = cutAndCap(tris, plane, true);
+		CutModelData tp = null;
+		CutModelData bt = null;
+		if(dat[0].positionIndices != null && dat[0].positionIndices.length > 0) {
+			tp = new CutModelData(dat[0], null, false, boundsCollider(dat[0]));
+			top.add(tp);
+		}
+		if(dat[1].positionIndices != null && dat[1].positionIndices.length > 0) {
+			bt = new CutModelData(dat[1], null, true, boundsCollider(dat[1]));
+			bottom.add(bt);
+		}
+		if(tp != null && bt != null && dat[2].positionIndices != null && dat[2].positionIndices.length > 0) {
+			tp.cap = dat[2];
+			bt.cap = dat[2];
+		}
+	}
+
+	private static ConvexMeshCollider boundsCollider(VertexData d) {
+		float[] min = {Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE};
+		float[] max = {-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
+		float[] verts = d.vertexArray();
+		for(int i = 0; i < verts.length; i++) {
+			min[i % 3] = Math.min(min[i % 3], verts[i]);
+			max[i % 3] = Math.max(max[i % 3], verts[i]);
+		}
+
+		float pad = 0.02F;
+		float[] box = new float[24];
+		for(int i = 0; i < 8; i++) {
+			box[i * 3] = (i & 1) == 0 ? min[0] - pad : max[0] + pad;
+			box[i * 3 + 1] = (i & 2) == 0 ? min[1] - pad : max[1] + pad;
+			box[i * 3 + 2] = (i & 4) == 0 ? min[2] - pad : max[2] + pad;
+		}
+		return new ConvexMeshCollider(BOUNDS_INDICES, box, 1);
+	}
+
+	private static Triangle[] captureMobTriangles(EntityLivingBase e, float partialTicks) {
+		Render render = RenderManager.instance.getEntityRenderObject(e);
+		if(render == null) return new Triangle[0];
+
+		Triangle[] tris = new Triangle[0];
+		if(render instanceof RendererLivingEntity) {
+			RendererLivingEntity living = (RendererLivingEntity) render;
+			ModelBase model = get(rMainModel, render);
+			tris = captureDraw(() -> collectParts(e, living, model, partialTicks, true));
+		}
+		if(tris.length == 0) tris = captureDraw(() -> render.doRender(e, 0D, 0D, 0D, 0F, partialTicks));
+		return tris;
+	}
+
+	private static Triangle[] captureDraw(Runnable draw) {
+		VIEWPORT.clear();
+		GL11.glGetInteger(GL11.GL_VIEWPORT, VIEWPORT);
+		int values = 0;
+
+		GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_TRANSFORM_BIT);
+		GL11.glMatrixMode(GL11.GL_PROJECTION);
+		GL11.glPushMatrix();
+		GL11.glLoadIdentity();
+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
+		GL11.glPushMatrix();
+		try {
+			GL11.glLoadIdentity();
+			GL11.glScalef(FEEDBACK_SCALE, FEEDBACK_SCALE, FEEDBACK_SCALE);
+			GL11.glDisable(GL11.GL_CULL_FACE);
+			GL11.glDisable(GL11.GL_CLIP_PLANE0);
+			GL11.glEnable(GL11.GL_TEXTURE_2D);
+
+			FEEDBACK_BUFFER.clear();
+			GL11.glFeedbackBuffer(GL11.GL_3D_COLOR_TEXTURE, FEEDBACK_BUFFER);
+			GL11.glRenderMode(GL11.GL_FEEDBACK);
+			try {
+				draw.run();
+			} finally {
+				values = GL11.glRenderMode(GL11.GL_RENDER);
+			}
+		} finally {
+			GL11.glPopMatrix();
+			GL11.glMatrixMode(GL11.GL_PROJECTION);
+			GL11.glPopMatrix();
+			GL11.glPopAttrib();
+		}
+
+		if(values < 0) {
+			MainRegistry.logger.warn("The model of a sliced entity is too big to be read back, the cut will be incomplete");
+			values = FEEDBACK_BUFFER.capacity();
+		}
+
+		List<Triangle> tris = new ArrayList<Triangle>();
+		int i = 0;
+		while(i < values) {
+			int token = (int) FEEDBACK_BUFFER.get(i++);
+			if(token == GL11.GL_POLYGON_TOKEN) {
+				int count = (int) FEEDBACK_BUFFER.get(i++);
+				if(i + count * FEEDBACK_VERTEX > values) break;
+				for(int v = 1; v < count - 1; v++) {
+					int a = i;
+					int b = i + v * FEEDBACK_VERTEX;
+					int c = b + FEEDBACK_VERTEX;
+					tris.add(new Triangle(feedbackPos(a), feedbackPos(b), feedbackPos(c), new float[] {
+							FEEDBACK_BUFFER.get(a + 7), FEEDBACK_BUFFER.get(a + 8),
+							FEEDBACK_BUFFER.get(b + 7), FEEDBACK_BUFFER.get(b + 8),
+							FEEDBACK_BUFFER.get(c + 7), FEEDBACK_BUFFER.get(c + 8)}));
+				}
+				i += count * FEEDBACK_VERTEX;
+			} else if(token == GL11.GL_POINT_TOKEN) {
+				i += FEEDBACK_VERTEX;
+			} else if(token == GL11.GL_LINE_TOKEN || token == GL11.GL_LINE_RESET_TOKEN) {
+				i += FEEDBACK_VERTEX * 2;
+			} else if(token == GL11.GL_PASS_THROUGH_TOKEN) {
+				i++;
+			} else {
+				break;
+			}
+		}
+		return tris.toArray(new Triangle[tris.size()]);
+	}
+
+	private static Vec3d feedbackPos(int at) {
+		double x = (FEEDBACK_BUFFER.get(at) - VIEWPORT.get(0)) * 2D / VIEWPORT.get(2) - 1D;
+		double y = (FEEDBACK_BUFFER.get(at + 1) - VIEWPORT.get(1)) * 2D / VIEWPORT.get(3) - 1D;
+		double z = FEEDBACK_BUFFER.get(at + 2) * 2D - 1D;
+		return new Vec3d(x / FEEDBACK_SCALE, y / FEEDBACK_SCALE, z / FEEDBACK_SCALE);
+	}
+
+	private static Triangle[] capLoops(List<Vec3d[]> edges, float[] plane, List<Triangle> side1, List<Triangle> side2) {
+		Matrix3f mat = Matrix3f.normalToMat(new Vec3d(plane[0], plane[1], plane[2]), 0);
+		List<List<Vec3d>> loops = new ArrayList<List<Vec3d>>();
+		while(!edges.isEmpty()) {
+			Vec3d[] start = edges.remove(0);
+			List<Vec3d> loop = new ArrayList<Vec3d>();
+			loop.add(start[0]);
+			Vec3d current = start[1];
+			while(current != null && !epsEquals(current, start[0], 0.00001D)) {
+				loop.add(current);
+				current = findNext(edges, current);
+			}
+			if(current != null && loop.size() >= 3) loops.add(loop);
+		}
+
+		double[] areas = new double[loops.size()];
+		double reference = 0;
+		for(int l = 0; l < areas.length; l++) {
+			List<Vec3d> loop = loops.get(l);
+			for(int i = 0; i < loop.size(); i++) {
+				Vec3d a = loop.get(i).matTransform(mat);
+				Vec3d b = loop.get((i + 1) % loop.size()).matTransform(mat);
+				areas[l] += a.x * b.y - b.x * a.y;
+			}
+			if(Math.abs(areas[l]) > Math.abs(reference)) reference = areas[l];
+		}
+
+		List<Triangle> cap = new ArrayList<Triangle>();
+		for(int l = 0; l < areas.length; l++) {
+			if(areas[l] * reference > 0) fillLoop(loops.get(l), mat, reference > 0, cap, side1, side2);
+		}
+		return cap.toArray(new Triangle[cap.size()]);
+	}
+
+	private static void fillLoop(List<Vec3d> loop, Matrix3f mat, boolean ccw, List<Triangle> cap, List<Triangle> side1, List<Triangle> side2) {
+		int n = loop.size();
+		Vec3d[] uv = new Vec3d[n];
+		List<Integer> rest = new ArrayList<Integer>(n);
+		for(int i = 0; i < n; i++) {
+			uv[i] = loop.get(i).matTransform(mat);
+			rest.add(i);
+		}
+
+		while(rest.size() > 3) {
+			int m = rest.size();
+			int ear = 0;
+			for(int i = 0; i < m; i++) {
+				if(isEar(uv, rest, i, ccw)) {
+					ear = i;
+					break;
+				}
+			}
+			addCapTriangle(loop, uv, rest.get((ear + m - 1) % m), rest.get(ear), rest.get((ear + 1) % m), cap, side1, side2);
+			rest.remove(ear);
+		}
+		addCapTriangle(loop, uv, rest.get(0), rest.get(1), rest.get(2), cap, side1, side2);
+	}
+
+	private static boolean isEar(Vec3d[] uv, List<Integer> rest, int i, boolean ccw) {
+		int m = rest.size();
+		int ia = rest.get((i + m - 1) % m);
+		int ib = rest.get(i);
+		int ic = rest.get((i + 1) % m);
+		double sign = ccw ? 1D : -1D;
+		if(turn(uv[ia], uv[ib], uv[ic]) * sign <= 0) return false;
+
+		for(int j = 0; j < m; j++) {
+			int ip = rest.get(j);
+			if(ip == ia || ip == ib || ip == ic) continue;
+			if(turn(uv[ia], uv[ib], uv[ip]) * sign >= 0 && turn(uv[ib], uv[ic], uv[ip]) * sign >= 0 && turn(uv[ic], uv[ia], uv[ip]) * sign >= 0) return false;
+		}
+		return true;
+	}
+
+	private static double turn(Vec3d o, Vec3d a, Vec3d b) {
+		return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+	}
+
+	private static void addCapTriangle(List<Vec3d> loop, Vec3d[] uv, int ia, int ib, int ic, List<Triangle> cap, List<Triangle> side1, List<Triangle> side2) {
+		Vec3d a = loop.get(ia);
+		Vec3d b = loop.get(ib);
+		Vec3d c = loop.get(ic);
+		cap.add(new Triangle(a, c, b, new float[] {(float) uv[ia].x, (float) uv[ia].y, (float) uv[ic].x, (float) uv[ic].y, (float) uv[ib].x, (float) uv[ib].y}));
+		side1.add(new Triangle(a, c, b, new float[6]));
+		side2.add(new Triangle(a, b, c, new float[6]));
 	}
 
 	private static void generateChunks(List<List<CutModelData>> chunks, List<CutModelData> toSort) {

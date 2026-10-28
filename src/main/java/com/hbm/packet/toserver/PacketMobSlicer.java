@@ -4,27 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.hbm.items.weapon.ItemCrucible;
-import com.hbm.lib.ModDamageSource;
-import com.hbm.main.MainRegistry;
-import com.hbm.packet.PacketDispatcher;
-import com.hbm.packet.toclient.PacketSpecialDeath;
 import com.hbm.physics.Vec3d;
+import com.hbm.util.CrucibleSlice;
 import com.hbm.util.EntityDamageUtil;
-import com.hbm.util.TrackerUtil;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.EntityTrackerEntry;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
 
 /** Sent when a cut is swung with the crucible: the plane normal and a point on the plane (the line's start, in world space). */
 public class PacketMobSlicer implements IMessage {
@@ -79,11 +73,13 @@ public class PacketMobSlicer implements IMessage {
 			Vec3d look = new Vec3d(lookVec.xCoord, lookVec.yCoord, lookVec.zCoord);
 			Vec3d toStart = m.pos.subtract(eye);
 
+			double reach = player.capabilities.isCreativeMode ? 6D : 3D;
+
 			//fans out from the view direction to the start of the line
 			List<EntityLivingBase> victims = new ArrayList<EntityLivingBase>();
 			for(float i = 0; i <= 1; i += 0.1F) {
 				Vec3d dir = new Vec3d(look.x + (toStart.x - look.x) * i, look.y + (toStart.y - look.y) * i, look.z + (toStart.z - look.z) * i).normalize();
-				EntityLivingBase hit = trace(player.worldObj, eye, eye.add(dir.scale(3)), player);
+				EntityLivingBase hit = trace(player.worldObj, eye, eye.add(dir.scale(reach)), player);
 				if(hit != null && !victims.contains(hit)) victims.add(hit);
 			}
 
@@ -95,30 +91,8 @@ public class PacketMobSlicer implements IMessage {
 			//once per cut, not once per victim, the slices of a single swing are one sound
 			ItemCrucible.playSliceSound(player);
 
-			for(EntityLivingBase victim : victims) {
-				Vec3d rel = m.pos.subtract(new Vec3d(victim.posX, victim.posY, victim.posZ));
-				float[] plane = new float[] {(float) m.norm.x, (float) m.norm.y, (float) m.norm.z, -(float) m.norm.dotProduct(rel)};
-
-				//the flag keeps revives from undoing the cut, the death event fires inside onDeath
-				victim.getEntityData().setBoolean("killedByMobSlicer", true);
-				try {
-					victim.func_110142_aN().func_94547_a(ModDamageSource.crucible, victim.getHealth(), victim.getHealth());
-					victim.setDead();
-					victim.setHealth(0);
-					victim.onDeath(ModDamageSource.crucible);
-				} finally {
-					victim.getEntityData().removeTag("killedByMobSlicer");
-				}
-
-				EntityTrackerEntry tracker = TrackerUtil.getTrackerEntry((WorldServer) victim.worldObj, victim.getEntityId());
-				if(tracker != null) {
-					PacketSpecialDeath packet = new PacketSpecialDeath(victim, plane);
-					for(Object tracking : tracker.trackingPlayers) PacketDispatcher.wrapper.sendTo(packet, (EntityPlayerMP) tracking);
-					if(victim instanceof EntityPlayerMP) PacketDispatcher.wrapper.sendTo(packet, (EntityPlayerMP) victim);
-				} else {
-					MainRegistry.logger.warn("Sliced entity " + victim + " is not tracked, clients will not see the cut");
-				}
-			}
+			for(EntityLivingBase victim : victims)
+				CrucibleSlice.slice(victim, m.pos, m.norm);
 
 			return null;
 		}
@@ -142,7 +116,7 @@ public class PacketMobSlicer implements IMessage {
 
 			for(Object o : world.getEntitiesWithinAABB(EntityLivingBase.class, sweep)) {
 				EntityLivingBase living = (EntityLivingBase) o;
-				if(living == exclude || !living.isEntityAlive() || !living.canBeCollidedWith()) continue;
+				if(living == exclude || !living.isEntityAlive() || !living.canBeCollidedWith() || !CrucibleSlice.canSlice(living, exclude)) continue;
 
 				AxisAlignedBB box = living.boundingBox.expand(0.3D, 0.3D, 0.3D);
 				double dist = 0D;

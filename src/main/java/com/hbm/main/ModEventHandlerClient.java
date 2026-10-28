@@ -58,6 +58,7 @@ import com.hbm.render.anim.HbmAnimations;
 import com.hbm.render.anim.HbmAnimations.Animation;
 import com.hbm.render.anim.HbmAnimations.BlenderAnimation;
 import com.hbm.render.block.ct.CTStitchReceiver;
+import com.hbm.render.item.weapon.ItemRenderCrucible;
 import com.hbm.render.item.weapon.sedna.ItemRenderWeaponBase;
 import com.hbm.render.util.RenderAccessoryUtility;
 import com.hbm.render.util.RenderOverhead;
@@ -1371,6 +1372,9 @@ public class ModEventHandlerClient {
 
 		Minecraft mc = Minecraft.getMinecraft();
 		EntityPlayer player = mc.thePlayer;
+
+		if(event.phase == Phase.START && player != null)
+			ItemRenderCrucible.keepRaised(player);
 
 		if(event.phase != Phase.START || player == null || !ItemCrucible.clicked || !mc.inGameHasFocus || !Display.isActive())
 			return;

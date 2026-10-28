@@ -131,6 +131,7 @@ public class ItemCrucible extends ItemSwordAbility implements IEquipReceiver, IA
 		planeNormal = null;
 		clicked = false;
 
+		playSwing(0.8F + itemRand.nextFloat() * 0.2F);
 		ItemRenderCrucible.layerAnimation((EntityPlayer) entity, stack, new BusAnimation().addBus("CUT_SWING", new BusAnimationSequence().addPos(120, 0, 0, 150).addPos(0, 0, 0, 500)));
 	}
 
@@ -162,7 +163,7 @@ public class ItemCrucible extends ItemSwordAbility implements IEquipReceiver, IA
 	@Override
 	public boolean onLeftClickEntity(ItemStack stack, EntityPlayer player, Entity entity) {
 
-		if(!isCharged(stack) || isCutSwing(player) || !(entity instanceof EntityLivingBase) || !entity.isEntityAlive() || entity instanceof EntityPlayer || entity instanceof EntityDragon)
+		if(!isCharged(stack) || isCutSwing(player) || !(entity instanceof EntityLivingBase) || !entity.isEntityAlive() || entity instanceof EntityDragon || !CrucibleSlice.canSlice((EntityLivingBase) entity, player))
 			return super.onLeftClickEntity(stack, player, entity);
 
 		if(!player.worldObj.isRemote) {
