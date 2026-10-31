@@ -24,6 +24,7 @@ import com.hbm.handler.ArmorModHandler;
 import com.hbm.handler.HTTPHandler;
 import com.hbm.handler.HazmatRegistry;
 import com.hbm.handler.HbmKeybinds;
+import com.hbm.handler.JetpackHandler;
 import com.hbm.handler.ImpactWorldHandler;
 import com.hbm.hazard.HazardRegistry;
 import com.hbm.hazard.HazardSystem;
@@ -60,6 +61,7 @@ import com.hbm.render.anim.HbmAnimations.BlenderAnimation;
 import com.hbm.render.block.ct.CTStitchReceiver;
 import com.hbm.render.item.weapon.ItemRenderCrucible;
 import com.hbm.render.item.weapon.sedna.ItemRenderWeaponBase;
+import com.hbm.render.util.JetpackRenderer;
 import com.hbm.render.util.RenderAccessoryUtility;
 import com.hbm.render.util.RenderOverhead;
 import com.hbm.render.util.RenderScreenOverlay;
@@ -587,6 +589,34 @@ public class ModEventHandlerClient {
 	}
 
 	public static boolean ducked = false;
+
+	//Last in line so the matrix is only pushed when no other handler cancelled the render
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void preRenderJetpack(RenderPlayerEvent.Pre event) {
+		JetpackRenderer.preRender(event.entityPlayer, event.partialRenderTick);
+	}
+
+	@SubscribeEvent
+	public void postRenderJetpack(RenderPlayerEvent.Post event) {
+		JetpackRenderer.postRender(event.entityPlayer, event.partialRenderTick);
+	}
+
+	@SubscribeEvent
+	public void renderJetpackLayer(RenderPlayerEvent.Specials.Post event) {
+		JetpackRenderer.renderLayer(event.entityPlayer, event.partialRenderTick);
+	}
+
+	@SubscribeEvent
+	public void onJetpackHUD(RenderGameOverlayEvent.Post event) {
+		if(event.type != ElementType.HOTBAR) return;
+		EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+		if(player != null) JetpackRenderer.renderHUD(player, event.resolution, event.partialTicks);
+	}
+
+	@SubscribeEvent
+	public void onJetpackTick(ClientTickEvent event) {
+		JetpackHandler.clientTick(event);
+	}
 
 	@SubscribeEvent
 	public void preRenderEvent(RenderPlayerEvent.Pre event) {

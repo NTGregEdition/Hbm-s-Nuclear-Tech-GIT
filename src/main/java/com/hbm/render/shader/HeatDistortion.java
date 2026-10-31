@@ -86,6 +86,10 @@ public class HeatDistortion {
 		return true;
 	}
 
+	public static void setAmount(float amount) {
+		shader.setUniform1f(uAmount, amount);
+	}
+
 	public static void end() {
 		shader.stop();
 	}

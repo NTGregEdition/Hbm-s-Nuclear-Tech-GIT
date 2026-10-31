@@ -35,6 +35,9 @@ public class HbmKeybinds {
 	public static KeyBinding jetpackKey = new KeyBinding(category + ".toggleBack", Keyboard.KEY_C, category);
 	public static KeyBinding magnetKey = new KeyBinding(category + ".toggleMagnet", Keyboard.KEY_Z, category);
 	public static KeyBinding hudKey = new KeyBinding(category + ".toggleHUD", Keyboard.KEY_V, category);
+	public static KeyBinding gliderActivateKey = new KeyBinding(category + ".gliderActivate", Keyboard.KEY_J, category);
+	public static KeyBinding gliderHoverKey = new KeyBinding(category + ".gliderHover", Keyboard.KEY_H, category);
+	public static KeyBinding gliderHudKey = new KeyBinding(category + ".gliderHud", Keyboard.KEY_U, category);
 	public static KeyBinding dashKey = new KeyBinding(category + ".dash", Keyboard.KEY_LSHIFT, category);
 	public static KeyBinding trainKey = new KeyBinding(category + ".trainInv", Keyboard.KEY_R, category);
 	public static KeyBinding slamKey = new KeyBinding(category + ".slamkey", Keyboard.KEY_LCONTROL, category);
@@ -62,6 +65,9 @@ public class HbmKeybinds {
 		ClientRegistry.registerKeyBinding(jetpackKey);
 		ClientRegistry.registerKeyBinding(magnetKey);
 		ClientRegistry.registerKeyBinding(hudKey);
+		ClientRegistry.registerKeyBinding(gliderActivateKey);
+		ClientRegistry.registerKeyBinding(gliderHoverKey);
+		ClientRegistry.registerKeyBinding(gliderHudKey);
 		ClientRegistry.registerKeyBinding(dashKey);
 		ClientRegistry.registerKeyBinding(trainKey);
 		ClientRegistry.registerKeyBinding(slamKey);

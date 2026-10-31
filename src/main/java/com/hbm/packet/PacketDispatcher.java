@@ -81,6 +81,9 @@ public class PacketDispatcher {
 		//Crucible cut: the client sends the plane it drew, the server slices what it hits and tells the clients that track it
 		wrapper.registerMessage(PacketMobSlicer.Handler.class, PacketMobSlicer.class, i++, Side.SERVER);
 		wrapper.registerMessage(PacketSpecialDeath.Handler.class, PacketSpecialDeath.class, i++, Side.CLIENT);
+		//Glider jetpack
+		wrapper.registerMessage(JetpackSyncPacket.Handler.class, JetpackSyncPacket.class, i++, Side.CLIENT);
+		wrapper.registerMessage(JetpackSyncPacket.Handler.class, JetpackSyncPacket.class, i++, Side.SERVER);
 	}
 
 }

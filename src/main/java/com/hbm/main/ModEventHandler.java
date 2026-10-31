@@ -56,6 +56,7 @@ import com.hbm.handler.BossSpawnHandler;
 import com.hbm.handler.EntityEffectHandler;
 import com.hbm.handler.HTTPHandler;
 import com.hbm.handler.HbmKeybinds.EnumKeybind;
+import com.hbm.handler.JetpackHandler;
 import com.hbm.handler.atmosphere.ChunkAtmosphereManager;
 import com.hbm.handler.neutron.NeutronNodeWorld;
 import com.hbm.handler.pollution.PollutionHandler;
@@ -202,6 +203,8 @@ public class ModEventHandler {
 	public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
 
 		if(!event.player.worldObj.isRemote) {
+
+			JetpackHandler.playerLoggedIn(event);
 
 			if(GeneralConfig.enableMOTD) {
 				event.player.addChatMessage(new ChatComponentText("Loaded world with NTM: GregEdition " + RefStrings.VERSION + " for Minecraft 1.7.10!"));
@@ -1343,6 +1346,7 @@ public class ModEventHandler {
 	public void onPlayerTick(TickEvent.PlayerTickEvent event) {
 
 		EntityPlayer player = event.player;
+		if(event.phase == Phase.END) JetpackHandler.postPlayerTick(player);
 		if(player.posY > 300 && player.posY <1000) {
 			Vec3 vec = Vec3.createVectorHelper(3 * rand.nextDouble(), 0, 0);
 			CBT_Atmosphere thatmosphere = CelestialBody.getTrait(player.worldObj, CBT_Atmosphere.class);
@@ -1566,7 +1570,14 @@ public class ModEventHandler {
 	}
 
 	@SubscribeEvent
+	public void onWorldSave(WorldEvent.Save event) {
+		JetpackHandler.worldSave(event);
+	}
+
+	@SubscribeEvent
 	public void onServerTick(TickEvent.ServerTickEvent event) {
+
+		if(event.phase == Phase.END) JetpackHandler.serverTick();
 
 		if(event.phase == Phase.START) {
 			CBT_Weather.updateGlobalWeather();

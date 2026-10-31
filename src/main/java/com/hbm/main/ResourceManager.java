@@ -372,6 +372,15 @@ public class ResourceManager {
 	public static AnimatedModel crucible_anim = ColladaLoader.load(new ResourceLocation(RefStrings.MODID, "models/anim/crucible_equip.dae"), true);
 	public static Animation crucible_equip = ColladaLoader.loadAnim(1060, new ResourceLocation(RefStrings.MODID, "models/anim/crucible_equip.dae"));
 
+	//Glider jetpack
+	public static AnimatedModel jetpack = ColladaLoader.load(new ResourceLocation(RefStrings.MODID, "models/anim/jetpack.dae"));
+	public static Animation jetpack_activate = ColladaLoader.loadAnim(1000, new ResourceLocation(RefStrings.MODID, "models/anim/jetpack.dae"));
+	public static final ResourceLocation jetpack_tex = new ResourceLocation(RefStrings.MODID, "textures/armor/jetpack_anim.png");
+	public static final ResourceLocation jetpack_hud_large = new ResourceLocation(RefStrings.MODID, "textures/gui/hud/jetpack_hud_large.png");
+	public static final ResourceLocation jetpack_hud_small = new ResourceLocation(RefStrings.MODID, "textures/gui/hud/jetpack_hud_small.png");
+	public static final ResourceLocation jetpack_hud_small_text = new ResourceLocation(RefStrings.MODID, "textures/gui/hud/jetpack_hud_small_text.png");
+	public static final ResourceLocation fresnel_ms = new ResourceLocation(RefStrings.MODID, "textures/models/bfg/fresnel_ms.png");
+
 	//PheoDoors
 	public static final ResourceLocation pheo_fire_door_tex = new ResourceLocation(RefStrings.MODID, "textures/models/pheodoors/fire_door.png");
 	public static final ResourceLocation pheo_fire_door_black_tex = new ResourceLocation(RefStrings.MODID, "textures/models/pheodoors/fire_door_black.png");
