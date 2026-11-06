@@ -45,6 +45,7 @@ public class MaterialShapes {
 	public static final MaterialShapes GEM = new MaterialShapes(INGOT.quantity, "gem");
 	public static final MaterialShapes CRYSTAL = new MaterialShapes(INGOT.quantity, "crystal");
 	public static final MaterialShapes DUST = new MaterialShapes(INGOT.quantity, "dust");
+	public static final MaterialShapes DUSTSMALL = new MaterialShapes(INGOT.quantity / 4, "dustSmall"); // 1/4 dust; DictFrame.dustSmall() registers DUSTTINY, not this
 	public static final MaterialShapes DENSEWIRE = new MaterialShapes(INGOT.quantity, "wireDense");
 	public static final MaterialShapes PLATE = new MaterialShapes(INGOT.quantity, "plate");
 	public static final MaterialShapes CASTPLATE = new MaterialShapes(INGOT.quantity * 3, "plateTriple");

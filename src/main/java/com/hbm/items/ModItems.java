@@ -708,7 +708,10 @@ public class ModItems {
 	public static Item powder_sawdust;
 	public static Item powder_flux;
 	public static Item powder_fertilizer;
-
+	public static Item powder_clay;
+	public static Item powder_small;
+	public static Item powder_tiny;
+	
 	public static Item fragment_neodymium;
 	public static Item fragment_cobalt;
 	public static Item fragment_niobium;
@@ -2979,7 +2982,10 @@ public class ModItems {
 		powder_borax = new Item().setUnlocalizedName("powder_borax").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_borax");
 		powder_chlorocalcite = new Item().setUnlocalizedName("powder_chlorocalcite").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_chlorocalcite");
 		powder_molysite = new Item().setUnlocalizedName("powder_molysite").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_molysite");
-
+		powder_clay = new Item().setUnlocalizedName("powder_clay").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_clay");
+		powder_small = new ItemAutogen(MaterialShapes.DUSTSMALL).setUnlocalizedName("powder_small").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_small");
+		powder_tiny = new ItemAutogen(MaterialShapes.DUSTTINY).setUnlocalizedName("powder_tiny").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_tiny");
+		
 		nickel_salts = new Item().setUnlocalizedName("nickel_salts").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":nickel_salts");
 
 		fragment_neodymium = new Item().setUnlocalizedName("fragment_neodymium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":fragment_neodymium");
@@ -5434,6 +5440,9 @@ public class ModItems {
 		GameRegistry.registerItem(powder_ash, powder_ash.getUnlocalizedName());
 		GameRegistry.registerItem(powder_limestone, powder_limestone.getUnlocalizedName());
 		GameRegistry.registerItem(powder_cement, powder_cement.getUnlocalizedName());
+		GameRegistry.registerItem(powder_clay, powder_clay.getUnlocalizedName());
+		GameRegistry.registerItem(powder_small, powder_small.getUnlocalizedName());
+		GameRegistry.registerItem(powder_tiny, powder_tiny.getUnlocalizedName());
 
 		GameRegistry.registerItem(nickel_salts, nickel_salts.getUnlocalizedName());
 

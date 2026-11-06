@@ -516,6 +516,23 @@ public class MineralRecipes {
 		add9To1(nine, one);
 	}
 
+	public static void add1To4Pair(ItemStack one, ItemStack four) {
+		add1ToNInSlot(one, four, 1);
+		GameRegistry.addRecipe(one, new Object[] { "##", "##", '#', four });
+	}
+
+	public static void add1To9PairFirstSlot(ItemStack one, ItemStack nine) {
+		add1ToNInSlot(one, nine, 0);
+		add9To1(nine, one);
+	}
+
+	public static void add1ToNInSlot(ItemStack in, ItemStack out, int slot) {
+		char[] grid = "         ".toCharArray();
+		grid[slot] = '#';
+		String s = new String(grid);
+		GameRegistry.addRecipe(new ShapedOreRecipe(out, new Object[] { false, s.substring(0, 3), s.substring(3, 6), s.substring(6, 9), '#', in }));
+	}
+
 	public static void add1To9PairSameMeta(Item one, Item nine, int meta) {
 		add1To9SameMeta(one, nine, meta);
 		add9To1SameMeta(nine, one, meta);

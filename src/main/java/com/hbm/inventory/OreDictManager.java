@@ -127,6 +127,7 @@ public class OreDictManager {
 	 * VANILLA
 	 */
 	public static final DictFrame WOOD = new DictFrame("Wood");
+	public static final DictFrame CLAY = new DictFrame("Clay");
 	public static final DictFrame BONE = new DictFrame("Bone");
 	public static final DictFrame COAL = new DictFrame("Coal");
 	public static final DictFrame IRON = new DictFrame("Iron");
@@ -389,6 +390,7 @@ public class OreDictManager {
 		 * VANILLA
 		 */
 		COAL.gem(Items.coal).dustSmall(powder_coal_tiny).dust(powder_coal);
+		CLAY.dust(powder_clay);
 		IRON.plate(plate_iron).dust(powder_iron).ore(ore_gneiss_iron).oreAll(ore_iron);
 		GOLD.plate(plate_gold).dust(powder_gold).ore(ore_gneiss_gold).oreAll(ore_gold);
 		LAPIS.dust(powder_lapis).oreAll(ore_lapis);
@@ -708,6 +710,8 @@ public class OreDictManager {
 			if(mat.autogen.contains(SPRING)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.SPRING.name() + name, new ItemStack(ModItems.spring, 1, mat.id));
 			if(mat.autogen.contains(SMALL_SPRING)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.SMALL_SPRING.name() + name, new ItemStack(ModItems.small_spring, 1, mat.id));
 			if(mat.autogen.contains(ROTOR)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.ROTOR.name() + name, new ItemStack(ModItems.rotor, 1, mat.id));
+			if(mat.autogen.contains(DUSTSMALL)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.DUSTSMALL.name() + name, new ItemStack(ModItems.powder_small, 1, mat.id));
+			if(mat.autogen.contains(DUSTTINY)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.DUSTTINY.name() + name, new ItemStack(ModItems.powder_tiny, 1, mat.id));
 
 			if(mat.autogen.contains(MaterialShapes.LIGHTBARREL)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.LIGHTBARREL.name() + name, new ItemStack(ModItems.part_barrel_light, 1, mat.id));
 			if(mat.autogen.contains(MaterialShapes.HEAVYBARREL)) for(String name : mat.names) OreDictionary.registerOre(MaterialShapes.HEAVYBARREL.name() + name, new ItemStack(ModItems.part_barrel_heavy, 1, mat.id));
@@ -855,6 +859,13 @@ public class OreDictManager {
 			if(mat.autogen.contains(MaterialShapes.NUGGET) && !OreDictionary.getOres(MaterialShapes.INGOT.make(mat)).isEmpty()) {
 				MineralRecipes.add1To9Pair(OreDictionary.getOres(MaterialShapes.INGOT.make(mat)).get(0).copy(), new ItemStack(ModItems.nugget_raw, 9, mat.id));
 			}
+		}
+
+		for(NTMMaterial mat : Mats.orderedList) {
+			List<ItemStack> dusts = OreDictionary.getOres(MaterialShapes.DUST.make(mat));
+			if(dusts.isEmpty()) continue;
+			if(mat.autogen.contains(MaterialShapes.DUSTSMALL)) MineralRecipes.add1To4Pair(dusts.get(0).copy(), new ItemStack(ModItems.powder_small, 4, mat.id));
+			if(mat.autogen.contains(MaterialShapes.DUSTTINY)) MineralRecipes.add1To9PairFirstSlot(dusts.get(0).copy(), new ItemStack(ModItems.powder_tiny, 9, mat.id));
 		}
 
 		MaterialShapes.registerCompatShapes();
@@ -1041,6 +1052,10 @@ public class OreDictManager {
 		}
 		public DictFrame dust(Object... dust) {
 			hazMult = HazardRegistry.powder;
+			for(String mat : mats) {
+				registerHazards(hazards, HazardRegistry.powder_small, DUSTSMALL.name() + mat);
+				registerHazards(hazards, HazardRegistry.powder_tiny, DUSTTINY.name() + mat);
+			}
 			return makeObject(DUST, dust);
 		}
 		public DictFrame gem(Object... gem) {

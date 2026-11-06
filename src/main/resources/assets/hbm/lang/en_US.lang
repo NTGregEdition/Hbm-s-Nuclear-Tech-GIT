@@ -4516,6 +4516,8 @@ item.powder_xe135_tiny.name=Tiny Pile of Xenon-135 Powder
 item.powder_yellowcake.name=Yellowcake
 item.powder_zirconium.name=Zirconium Powder
 item.powder_zinc.name=Zinc Powder
+item.powder_small.name=Small Pile of %s Powder
+item.powder_tiny.name=Tiny Pile of %s Powder
 item.power_net_tool.name=Cable Network Analysis Tool
 item.pipette.name=Pipette
 item.pipette_boron.name=Boron Pipette
@@ -7628,6 +7630,9 @@ item.powder_bronze.name=Bronze Powder
 item.plate_bronze.name=Bronze Plate
 tile.block_bronze.name=Block Of Bronze
 hbmmat.bronze=Bronze
+
+item.powder_clay.name=Clay Powder
+hbmmat.clay=Clay
 
 desc.gui.upgrade=§lAcceptable Upgrades:§r
 desc.gui.upgrade.afterburner= * §dAfterburner§r: Stacks to level 3
