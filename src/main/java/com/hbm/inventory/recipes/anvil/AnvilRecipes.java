@@ -28,6 +28,7 @@ import com.hbm.inventory.recipes.loader.SerializableRecipe;
 import com.hbm.items.ItemEnums.EnumChunkType;
 import com.hbm.items.ItemEnums.EnumCokeType;
 import com.hbm.items.ModItems;
+import com.hbm.items.tool.ToolMat;
 import com.hbm.items.food.ItemFlask.EnumInfusion;
 import com.hbm.items.machine.ItemBatterySC.EnumBatterySC;
 import com.hbm.items.machine.ItemCircuit.EnumCircuitType;
@@ -576,7 +577,7 @@ public class AnvilRecipes extends SerializableRecipe {
 			new AStack[] {
 				new ComparableStack(ModItems.man_core, 1),
 				new OreDictStack(BE.ingot(), 4),
-				new ComparableStack(ModItems.screwdriver, 1)
+				new ComparableStack(ModItems.screwdriver, 1, ToolMat.STEEL.id)
 			}, new AnvilOutput(new ItemStack(ModItems.demon_core_open))).setTier(3));
 
 		constructionRecipes.add(new AnvilConstructionRecipe(

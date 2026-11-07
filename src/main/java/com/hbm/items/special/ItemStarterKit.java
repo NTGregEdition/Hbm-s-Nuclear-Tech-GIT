@@ -7,6 +7,7 @@ import com.hbm.interfaces.Spaghetti;
 import com.hbm.inventory.OreDictManager.DictFrame;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.items.ModItems;
+import com.hbm.items.tool.ToolMat;
 import com.hbm.items.machine.ItemBatteryPack.EnumBatteryPack;
 import com.hbm.items.machine.ItemBreedingRod.BreedingRodType;
 import com.hbm.items.machine.ItemCircuit.EnumCircuitType;
@@ -178,7 +179,7 @@ public class ItemStarterKit extends Item {
 			player.inventory.addItemStackToInventory(new ItemStack(ModItems.canister_full, 16, Fluids.DIESEL.getID()));
 			player.inventory.addItemStackToInventory(new ItemStack(ModItems.canister_full, 16, Fluids.BIOFUEL.getID()));
 			player.inventory.addItemStackToInventory(new ItemStack(ModItems.battery_potato, 1));
-			player.inventory.addItemStackToInventory(new ItemStack(ModItems.screwdriver, 1));
+			player.inventory.addItemStackToInventory(new ItemStack(ModItems.screwdriver, 1, ToolMat.STEEL.id));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_excavator, 1));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_diesel, 2));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.red_cable, 64));

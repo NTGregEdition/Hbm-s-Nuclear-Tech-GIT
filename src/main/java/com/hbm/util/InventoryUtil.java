@@ -2,6 +2,7 @@ package com.hbm.util;
 
 import com.hbm.inventory.RecipesCommon.AStack;
 import com.hbm.inventory.recipes.anvil.AnvilRecipes.AnvilOutput;
+import com.hbm.items.tool.ItemCraftingDegradation;
 import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.machine.TileEntityFurnaceBrick;
 import net.minecraft.entity.player.EntityPlayer;
@@ -309,6 +310,7 @@ public class InventoryUtil {
 			AStack matcher = inputs.get(entry.getKey());
 			int amount = entry.getValue();
 			int source = -1;
+			int sourceCost = 0;
 			boolean undamageable = false;
 
 			for(int i = 0; i < inventory.length; i++) {
@@ -317,20 +319,25 @@ public class InventoryUtil {
 
 				if(stack == null || !matcher.matchesRecipe(stack, true)) continue;
 
-				if(!stack.isItemStackDamageable()) {
+				int max = ItemCraftingDegradation.maxWear(stack);
+
+				if(max <= 0) {
 					undamageable = true;
 					break;
 				}
 
-				if(source == -1 && stack.getMaxDamage() - stack.getItemDamage() - pending[i] + 1 >= amount) {
+				int cost = amount * (stack.getItem() instanceof ItemCraftingDegradation ? ((ItemCraftingDegradation) stack.getItem()).getCraftWear() : 1);
+
+				if(source == -1 && max - ItemCraftingDegradation.wear(stack) - pending[i] + 1 >= cost) {
 					source = i;
+					sourceCost = cost;
 				}
 			}
 
 			if(undamageable) continue;
 			if(source == -1) return false;
 
-			pending[source] += amount;
+			pending[source] += sourceCost;
 		}
 
 		if(shouldDamage) {
@@ -338,7 +345,7 @@ public class InventoryUtil {
 
 				if(pending[i] <= 0) continue;
 
-				inventory[i].damageItem(pending[i], player);
+				ItemCraftingDegradation.addWear(inventory[i], pending[i], player);
 
 				if(inventory[i].stackSize <= 0) {
 					inventory[i] = null;

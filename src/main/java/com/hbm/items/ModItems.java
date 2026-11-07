@@ -1837,23 +1837,14 @@ public class ModItems {
 	//by using these in crafting table recipes, i'm running the risk of making my recipes too greg-ian (which i don't like)
 	//in the event that i forget about the meaning of the word "sparingly", please throw a brick at my head
 	public static Item screwdriver;
-	public static Item screwdriver_desh;
 	public static Item hand_drill;
-	public static Item hand_drill_desh;
 	public static Item mallet;
-	public static Item mallet_desh;
 	public static Item saw;
-	public static Item saw_desh;
 	public static Item hammer;
-	public static Item hammer_desh;
 	public static Item file;
-	public static Item file_desh;
 	public static Item wire_cutter;
-	public static Item wire_cutter_desh;
 	public static Item c_wrench;
-	public static Item c_wrench_desh;
 	public static Item pocket_multitool;
-	public static Item pocket_multitool_desh;
 	public static Item wrench_archineer;
 	public static Item chemistry_set;
 	public static Item chemistry_set_boron;
@@ -4314,24 +4305,7 @@ public class ModItems {
 		hev_battery = new ItemFusionCore(150000).setUnlocalizedName("hev_battery").setMaxStackSize(4).setCreativeTab(MainRegistry.controlTab).setTextureName(RefStrings.MODID + ":hev_battery");
 		fusion_core = new ItemFusionCore(2500000).setUnlocalizedName("fusion_core").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab).setTextureName(RefStrings.MODID + ":fusion_core");
 		fuse = new ItemCustomLore().setUnlocalizedName("fuse").setCreativeTab(MainRegistry.controlTab).setTextureName(RefStrings.MODID + ":fuse");
-		screwdriver = new ItemTooling(ToolType.SCREWDRIVER, 100).setUnlocalizedName("screwdriver");
-		screwdriver_desh = new ItemTooling(ToolType.SCREWDRIVER, 0).setUnlocalizedName("screwdriver_desh");
-		hand_drill = new ItemTooling(ToolType.HAND_DRILL, 100).setUnlocalizedName("hand_drill");
-		hand_drill_desh = new ItemTooling(ToolType.HAND_DRILL, 0).setUnlocalizedName("hand_drill_desh");
-		mallet = new ItemTooling(ToolType.MALLET, 100).setUnlocalizedName("mallet");
-		mallet_desh = new ItemTooling(ToolType.MALLET, 0).setUnlocalizedName("mallet_desh");
-		saw = new ItemTooling(ToolType.SAW, 100).setUnlocalizedName("saw");
-		saw_desh = new ItemTooling(ToolType.SAW, 0).setUnlocalizedName("saw_desh");
-		hammer = new ItemTooling(ToolType.HAMMER, 100).setUnlocalizedName("hammer");
-		hammer_desh = new ItemTooling(ToolType.HAMMER, 0).setUnlocalizedName("hammer_desh");
-		file = new ItemTooling(ToolType.FILE, 100).setUnlocalizedName("file");
-		file_desh = new ItemTooling(ToolType.FILE, 0).setUnlocalizedName("file_desh");
-		c_wrench = new ItemToolingWrench(ToolType.WRENCH, 100).setUnlocalizedName("c_wrench");
-		c_wrench_desh = new ItemToolingWrench(ToolType.WRENCH, 0).setUnlocalizedName("c_wrench_desh");
-		wire_cutter = new ItemTooling(ToolType.WIRE_CUTTER, 100).setUnlocalizedName("wire_cutter");
-		wire_cutter_desh = new ItemTooling(ToolType.WIRE_CUTTER, 0).setUnlocalizedName("wire_cutter_desh");
-		pocket_multitool = new ItemMultitool("pocket_multitool", 500).setUnlocalizedName("pocket_multitool");
-		pocket_multitool_desh = new ItemMultitool("pocket_multitool_desh", 0).setUnlocalizedName("pocket_multitool_desh");
+		ToolItems.init();
 		wrench_archineer = new ItemToolingWeapon(ToolType.WRENCH, 1000, 12F).setUnlocalizedName("wrench_archineer").setTextureName(RefStrings.MODID + ":wrench_archineer_hd");
 		chemistry_set = new ItemCraftingDegradation(100).setUnlocalizedName("chemistry_set");
 		chemistry_set_boron = new ItemCraftingDegradation(0).setUnlocalizedName("chemistry_set_boron");
@@ -4340,8 +4314,6 @@ public class ModItems {
 		boltgun = new ItemBoltgun().setUnlocalizedName("boltgun");
 		arc_electrode = new ItemArcElectrode().setUnlocalizedName("arc_electrode").setCreativeTab(MainRegistry.controlTab).setTextureName(RefStrings.MODID + ":arc_electrode");
 		arc_electrode_burnt = new ItemArcElectrodeBurnt().setUnlocalizedName("arc_electrode_burnt").setCreativeTab(MainRegistry.controlTab).setTextureName(RefStrings.MODID + ":arc_electrode_burnt");
-
-		mortar = new ItemTooling(ToolType.MORTAR, 32).setUnlocalizedName("mortar");
 
 		ams_lens = new ItemLens(60 * 60 * 60 * 20 * 100).setUnlocalizedName("ams_lens").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab).setTextureName(RefStrings.MODID + ":ams_lens");
 		ams_core_sing = new ItemAMSCore(1000000000L, 200, 10).setUnlocalizedName("ams_core_sing").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab).setTextureName(RefStrings.MODID + ":ams_core_sing");
@@ -6054,24 +6026,7 @@ public class ModItems {
 
 		//Machine Items
 		GameRegistry.registerItem(fuse, fuse.getUnlocalizedName());
-		GameRegistry.registerItem(screwdriver, screwdriver.getUnlocalizedName());
-		GameRegistry.registerItem(screwdriver_desh, screwdriver_desh.getUnlocalizedName());
-		GameRegistry.registerItem(hand_drill, hand_drill.getUnlocalizedName());
-		GameRegistry.registerItem(hand_drill_desh, hand_drill_desh.getUnlocalizedName());
-		GameRegistry.registerItem(mallet, mallet.getUnlocalizedName());
-		GameRegistry.registerItem(mallet_desh, mallet_desh.getUnlocalizedName());
-		GameRegistry.registerItem(saw, saw.getUnlocalizedName());
-		GameRegistry.registerItem(saw_desh, saw_desh.getUnlocalizedName());
-		GameRegistry.registerItem(hammer, hammer.getUnlocalizedName());
-		GameRegistry.registerItem(hammer_desh, hammer_desh.getUnlocalizedName());
-		GameRegistry.registerItem(file, file.getUnlocalizedName());
-		GameRegistry.registerItem(file_desh, file_desh.getUnlocalizedName());
-		GameRegistry.registerItem(wire_cutter, wire_cutter.getUnlocalizedName());
-		GameRegistry.registerItem(wire_cutter_desh, wire_cutter_desh.getUnlocalizedName());
-		GameRegistry.registerItem(c_wrench, c_wrench.getUnlocalizedName());
-		GameRegistry.registerItem(c_wrench_desh, c_wrench_desh.getUnlocalizedName());
-		GameRegistry.registerItem(pocket_multitool, pocket_multitool.getUnlocalizedName());
-		GameRegistry.registerItem(pocket_multitool_desh, pocket_multitool_desh.getUnlocalizedName());
+		ToolItems.register();
 		GameRegistry.registerItem(chemistry_set, chemistry_set.getUnlocalizedName());
 		GameRegistry.registerItem(chemistry_set_boron, chemistry_set_boron.getUnlocalizedName());
 		GameRegistry.registerItem(blowtorch, blowtorch.getUnlocalizedName());
@@ -6080,7 +6035,6 @@ public class ModItems {
 		GameRegistry.registerItem(arc_electrode, arc_electrode.getUnlocalizedName());
 		GameRegistry.registerItem(arc_electrode_burnt, arc_electrode_burnt.getUnlocalizedName());
 
-		GameRegistry.registerItem(mortar, mortar.getUnlocalizedName());
 
 		//Particle Collider Fuel
 		GameRegistry.registerItem(part_lithium, part_lithium.getUnlocalizedName());

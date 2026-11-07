@@ -1,11 +1,15 @@
 package com.hbm.tileentity.machine;
 
 import com.hbm.items.ModItems;
+import com.hbm.items.tool.ItemCraftingDegradation;
 import com.hbm.items.tool.ItemKey;
+import com.hbm.items.tool.ItemTooling;
+import com.hbm.items.tool.ToolMat;
 import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.TileEntityLoadedBase;
 import com.hbm.util.ArmorUtil;
 
+import api.hbm.block.IToolable.ToolType;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -103,26 +107,41 @@ public abstract class TileEntityLockableBase extends TileEntityLoadedBase {
 		}
 	}
 
+	private static boolean isScrewdriver(ItemStack stack) {
+		return stack != null && stack.getItem() instanceof ItemTooling && ((ItemTooling) stack.getItem()).getToolType() == ToolType.SCREWDRIVER;
+	}
+
+	private static int findScrewdriver(EntityPlayer player) {
+		for(int i = 0; i < player.inventory.mainInventory.length; i++) if(isScrewdriver(player.inventory.mainInventory[i])) return i;
+		return -1;
+	}
+
 	private boolean tryPick(EntityPlayer player) {
 
 		boolean canPick = false;
 		ItemStack stack = player.getHeldItem();
 		double chanceOfSuccess = this.lockMod * 100;
+		int tool = -1;
 
-		if(stack != null && stack.getItem() == ModItems.pin && (player.inventory.hasItem(ModItems.screwdriver) || player.inventory.hasItem(ModItems.screwdriver_desh))) {
+		if(stack != null && stack.getItem() == ModItems.pin && (tool = findScrewdriver(player)) != -1) {
 
 			stack.stackSize--;
 			canPick = true;
 		}
 
-		if(stack != null && (stack.getItem() == ModItems.screwdriver || stack.getItem() == ModItems.screwdriver_desh) && player.inventory.hasItem(ModItems.pin)) {
+		if(isScrewdriver(stack) && player.inventory.hasItem(ModItems.pin)) {
 
 			player.inventory.consumeInventoryItem(ModItems.pin);
 			player.inventoryContainer.detectAndSendChanges();
+			tool = player.inventory.currentItem;
 			canPick = true;
 		}
 
 		if(canPick) {
+
+			ItemStack screwdriver = player.inventory.mainInventory[tool];
+			ItemCraftingDegradation.addWear(screwdriver, ToolMat.useCost(ToolType.SCREWDRIVER), player);
+			if(screwdriver.stackSize <= 0) player.inventory.mainInventory[tool] = null;
 
 			if(ArmorUtil.checkArmorPiece(player, ModItems.jackt, 2) || ArmorUtil.checkArmorPiece(player, ModItems.jackt2, 2))
 				chanceOfSuccess *= 100D;

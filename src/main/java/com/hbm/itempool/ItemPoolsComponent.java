@@ -9,6 +9,7 @@ import com.hbm.items.ItemEnums.EnumCokeType;
 import com.hbm.items.machine.ItemCircuit.EnumCircuitType;
 import com.hbm.items.machine.ItemPWRFuel.EnumPWRFuel;
 import com.hbm.items.ModItems;
+import com.hbm.items.tool.ToolMat;
 import com.hbm.items.machine.ItemRTGPelletDepleted;
 import com.hbm.items.machine.ItemBatteryPack.EnumBatteryPack;
 import com.hbm.items.tool.ItemBlowtorch;
@@ -76,7 +77,7 @@ public class ItemPoolsComponent {
 					weighted(ModItems.pile_rod_uranium, 0, 2, 5, 3),
 					weighted(ModItems.pile_rod_source, 0, 1, 2, 2),
 					weighted(ModItems.reacher, 0, 1, 1, 3),
-					weighted(ModItems.screwdriver, 0, 1, 1, 2)
+					weighted(ModItems.screwdriver, ToolMat.STEEL.id, 1, 1, 2)
 			};
 		}};
 
@@ -132,7 +133,7 @@ public class ItemPoolsComponent {
 					weighted(ModItems.dust, 0, 1, 1, 40),
 					weighted(ModItems.dust_tiny, 0, 1, 3, 75),
 					weighted(ModItems.ink, 0, 1, 1, 1),
-					weighted(ModItems.screwdriver, 0, 1, 1, 10),
+					weighted(ModItems.screwdriver, ToolMat.STEEL.id, 1, 1, 10),
 					weighted(ModItems.blueprint_folder, 0, 1, 1, 5),
 					weighted(ModItems.coin_token, 0, 1, 1, 30)
 			};
@@ -155,7 +156,7 @@ public class ItemPoolsComponent {
 			this.pool = new WeightedRandomChestContent[] {
 					weighted(ItemBlowtorch.getEmptyTool(ModItems.blowtorch), 1, 1, 4),
 					weighted(ModItems.chemistry_set, 0, 1, 1, 15),
-					weighted(ModItems.screwdriver, 0, 1, 1, 10),
+					weighted(ModItems.screwdriver, ToolMat.STEEL.id, 1, 1, 10),
 					weighted(ModItems.nugget_mercury, 0, 1, 1, 3),
 					weighted(ModItems.morning_glory, 0, 1, 1, 1),
 					weighted(ModItems.filter_coal, 0, 1, 1, 5),

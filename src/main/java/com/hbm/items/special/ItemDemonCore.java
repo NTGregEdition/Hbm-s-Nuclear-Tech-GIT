@@ -3,6 +3,7 @@ package com.hbm.items.special;
 import java.util.List;
 
 import com.hbm.items.ModItems;
+import com.hbm.items.tool.ToolMat;
 import com.hbm.util.i18n.I18nUtil;
 
 import net.minecraft.entity.item.EntityItem;
@@ -18,7 +19,7 @@ public class ItemDemonCore extends Item {
 		
 		if(entityItem != null && !entityItem.worldObj.isRemote && entityItem.onGround) {
 			entityItem.setEntityItemStack(new ItemStack(ModItems.demon_core_closed));
-			entityItem.worldObj.spawnEntityInWorld(new EntityItem(entityItem.worldObj, entityItem.posX, entityItem.posY, entityItem.posZ, new ItemStack(ModItems.screwdriver)));
+			entityItem.worldObj.spawnEntityInWorld(new EntityItem(entityItem.worldObj, entityItem.posX, entityItem.posY, entityItem.posZ, new ItemStack(ModItems.screwdriver, 1, ToolMat.STEEL.id)));
 			return true;
 		}
 		

@@ -33,6 +33,7 @@ import com.hbm.items.ItemEnums.EnumChunkType;
 import com.hbm.items.ItemEnums.EnumCokeType;
 import com.hbm.items.ItemEnums.EnumTarType;
 import com.hbm.items.special.ItemAutogen;
+import com.hbm.items.tool.ToolItems;
 import com.hbm.items.special.ItemBedrockOre.EnumBedrockOre;
 import com.hbm.main.MainRegistry;
 import com.hbm.util.Compat;
@@ -628,46 +629,12 @@ public class OreDictManager {
 		/*
 		 * TOOLS
 		 */
-		OreDictionary.registerOre(KEY_TOOL_SCREWDRIVER, new ItemStack(screwdriver, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_SCREWDRIVER, new ItemStack(screwdriver_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_HANDDRILL, new ItemStack(hand_drill, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_HANDDRILL, new ItemStack(hand_drill_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_MALLET, new ItemStack(mallet, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_MALLET, new ItemStack(mallet_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_SAW, new ItemStack(saw, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_SAW, new ItemStack(saw_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_HAMMER, new ItemStack(hammer, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_HAMMER, new ItemStack(hammer_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_FILE, new ItemStack(file, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_FILE, new ItemStack(file_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_WIRE_CUTTER, new ItemStack(wire_cutter, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_WIRE_CUTTER, new ItemStack(wire_cutter_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_C_WRENCH, new ItemStack(c_wrench, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_C_WRENCH, new ItemStack(c_wrench_desh, 1, OreDictionary.WILDCARD_VALUE));
-
-		OreDictionary.registerOre(KEY_TOOL_SCREWDRIVER, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_SCREWDRIVER, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_HANDDRILL, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_HANDDRILL, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_MALLET, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_MALLET, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_SAW, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_SAW, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_HAMMER, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_HAMMER, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_FILE, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_FILE, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_WIRE_CUTTER, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_WIRE_CUTTER, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_C_WRENCH, new ItemStack(pocket_multitool, 1, OreDictionary.WILDCARD_VALUE));
-		OreDictionary.registerOre(KEY_TOOL_C_WRENCH, new ItemStack(pocket_multitool_desh, 1, OreDictionary.WILDCARD_VALUE));
+		ToolItems.registerOreDict();
 
 		OreDictionary.registerOre(KEY_TOOL_CHEMISTRYSET, new ItemStack(chemistry_set, 1, OreDictionary.WILDCARD_VALUE));
 		OreDictionary.registerOre(KEY_TOOL_CHEMISTRYSET, new ItemStack(chemistry_set_boron, 1, OreDictionary.WILDCARD_VALUE));
 		OreDictionary.registerOre(KEY_TOOL_TORCH, new ItemStack(blowtorch, 1, OreDictionary.WILDCARD_VALUE));
 		OreDictionary.registerOre(KEY_TOOL_TORCH, new ItemStack(acetylene_torch, 1, OreDictionary.WILDCARD_VALUE));
-
-		OreDictionary.registerOre(KEY_TOOL_MORTAR, new ItemStack(mortar, 1, OreDictionary.WILDCARD_VALUE));
 
 		/*
 		 * GLYPHID M E A T

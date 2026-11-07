@@ -24,6 +24,14 @@ public class ItemToolingWrench extends ItemTooling {
 		super(type, durability);
 	}
 
+	public ItemToolingWrench(ToolType type, String tool) {
+		super(type, tool, false);
+	}
+
+	private static boolean hasStart(ItemStack stack) {
+		return stack.stackTagCompound != null && stack.stackTagCompound.hasKey("x");
+	}
+
 	@Override
 	public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side, float fX, float fY, float fZ) {
 
@@ -43,8 +51,8 @@ public class ItemToolingWrench extends ItemTooling {
 
 			if(te instanceof TileEntityPipelineBase) {
 
-				if(stack.stackTagCompound == null) {
-					stack.stackTagCompound = new NBTTagCompound();
+				if(!hasStart(stack)) {
+					if(stack.stackTagCompound == null) stack.stackTagCompound = new NBTTagCompound();
 					stack.stackTagCompound.setInteger("x", px);
 					stack.stackTagCompound.setInteger("y", py);
 					stack.stackTagCompound.setInteger("z", pz);
@@ -77,9 +85,12 @@ public class ItemToolingWrench extends ItemTooling {
 						player.addChatMessage(new ChatComponentText("Pipe error"));
 					}
 
-					stack.stackTagCompound = null;
+					stack.stackTagCompound.removeTag("x");
+					stack.stackTagCompound.removeTag("y");
+					stack.stackTagCompound.removeTag("z");
 				}
 
+				useTool(stack, player);
 				player.swingItem();
 				return true;
 			}
@@ -109,7 +120,8 @@ public class ItemToolingWrench extends ItemTooling {
 
 	@Override
 	public void addInformation(ItemStack itemstack, EntityPlayer player, List list, boolean bool) {
-		if(itemstack.stackTagCompound != null) {
+		super.addInformation(itemstack, player, list, bool);
+		if(hasStart(itemstack)) {
 			list.add("Pipe start x: " + itemstack.stackTagCompound.getInteger("x"));
 			list.add("Pipe start y: " + itemstack.stackTagCompound.getInteger("y"));
 			list.add("Pipe start z: " + itemstack.stackTagCompound.getInteger("z"));
@@ -122,7 +134,7 @@ public class ItemToolingWrench extends ItemTooling {
 	public void onUpdate(ItemStack stack, World world, Entity entity, int slot, boolean inhand) {
 
 		if(world.isRemote) {
-			if(stack.stackTagCompound != null) {
+			if(hasStart(stack)) {
 				Vec3 vec = Vec3.createVectorHelper(
 					entity.posX - stack.stackTagCompound.getInteger("x"),
 					entity.posY - stack.stackTagCompound.getInteger("y"),

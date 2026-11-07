@@ -9,7 +9,6 @@ import api.hbm.block.IToolable;
 import api.hbm.block.IToolable.ToolType;
 
 import com.hbm.items.ModItems;
-import com.hbm.main.MainRegistry;
 
 import com.sun.org.apache.xpath.internal.operations.Mod;
 import cpw.mods.fml.relauncher.Side;
@@ -65,19 +64,15 @@ public class ItemMultitool extends ItemCraftingDegradation {
 
 	private static final String BASE_ICON_KEY = "__base__";
 
-	private final String iconPrefix;
-
-
 	private Map<String, IIcon> icons;
+	private IIcon layerIcon;
 
-	public ItemMultitool(String iconPrefix, int durability) {
-		super(durability);
-		this.iconPrefix = iconPrefix;
+	public ItemMultitool() {
+		super(ToolMat.MULTITOOL);
 		this.setFull3D();
-		this.setCreativeTab(MainRegistry.controlTab);
 
 		for (Mode m : MODES) {
-			m.type.register(new ItemStack(this));
+			registerStacks(m.type);
 		}
 	}
 
@@ -122,8 +117,12 @@ public class ItemMultitool extends ItemCraftingDegradation {
 		root.setTag(NBT_EMU_STATE, all);
 	}
 
+	private static int emulatedMeta(Item emulated) {
+		return emulated instanceof ItemCraftingDegradation && ((ItemCraftingDegradation) emulated).tool != null ? ToolMat.NEUTRONIUM.id : 0;
+	}
+
 	private ItemStack swapInEmulatedItem(ItemStack realStack, Mode mode, EntityPlayer player) {
-		ItemStack fake = new ItemStack(mode.emulatedItem, 1, 0);
+		ItemStack fake = new ItemStack(mode.emulatedItem, 1, emulatedMeta(mode.emulatedItem));
 		NBTTagCompound savedState = getEmulatedState(realStack, mode);
 		if (savedState != null) fake.setTagCompound((NBTTagCompound) savedState.copy());
 		player.inventory.setInventorySlotContents(player.inventory.currentItem, fake);
@@ -141,16 +140,33 @@ public class ItemMultitool extends ItemCraftingDegradation {
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IIconRegister reg) {
 		icons = new HashMap<String, IIcon>();
-		icons.put(BASE_ICON_KEY, reg.registerIcon("hbm:" + iconPrefix)); // neutral "no mode yet" look
+		icons.put(BASE_ICON_KEY, reg.registerIcon("hbm:" + tool)); // neutral "no mode yet" look
 		for (Mode m : MODES) {
-			icons.put(m.name, reg.registerIcon("hbm:" + iconPrefix + "_" + m.name));
+			icons.put(m.name, reg.registerIcon("hbm:" + tool + "_" + m.name));
 		}
 		this.itemIcon = icons.get(BASE_ICON_KEY);
+
+		layerIcon = reg.registerIcon("hbm:" + tool + "_layer");
+	}
+
+	@Override
+	public boolean requiresMultipleRenderPasses() {
+		return true;
+	}
+
+	@Override
+	public int getCraftWear() {
+		return ToolMat.CRAFT_WEAR_MULTITOOL;
+	}
+
+	private int useCost(Mode mode) {
+		return ToolMat.useCost(mode.type);
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
 	public IIcon getIcon(ItemStack stack, int pass) {
+		if (pass == 1 && layerIcon != null) return layerIcon;
 		Mode mode = getMode(stack);
 		if (icons == null) return super.getIcon(stack, pass);
 		if (mode != null && icons.containsKey(mode.name)) {
@@ -174,6 +190,7 @@ public class ItemMultitool extends ItemCraftingDegradation {
 
 	@Override
 	public void addInformation(ItemStack stack, EntityPlayer player, List list, boolean adv) {
+		super.addInformation(stack, player, list, adv);
 		Mode mode = getMode(stack);
 		if (mode != null) {
 			String localizedModeName = StatCollector.translateToLocal("multitool.mode." + mode.name);
@@ -238,8 +255,8 @@ public class ItemMultitool extends ItemCraftingDegradation {
 			restoreRealItem(stack, mode, player, fake, backup);
 		}
 
-		if (toolUsed && this.getMaxDamage() > 0) {
-			stack.damageItem(1, player);
+		if (toolUsed) {
+			addWear(stack, useCost(mode), player);
 		}
 
 		return handled;
@@ -257,8 +274,8 @@ public class ItemMultitool extends ItemCraftingDegradation {
 			? tryScrew(mode, player, world, x, y, z, side, fX, fY, fZ)
 			: useEmulated(stack, mode, player, world, x, y, z, side, fX, fY, fZ);
 
-		if (handled && this.getMaxDamage() > 0) {
-			stack.damageItem(1, player);
+		if (handled) {
+			addWear(stack, useCost(mode), player);
 		}
 
 		return handled;
@@ -309,8 +326,8 @@ public class ItemMultitool extends ItemCraftingDegradation {
 			restoreRealItem(stack, mode, player, fake, backup);
 		}
 
-		if (handled && this.getMaxDamage() > 0) {
-			stack.damageItem(1, player);
+		if (handled) {
+			addWear(stack, useCost(mode), player);
 		}
 
 		return handled;

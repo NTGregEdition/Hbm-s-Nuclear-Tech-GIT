@@ -4180,19 +4180,13 @@ item.screwdriver.name=Отвёртка
 item.screwdriver.desc=Может использоваться вместо предохранителя...
 item.screwdriver_desh.name=Деш-отвёртка
 item.mallet.name=Киянка
-item.mallet_desh.name=Деш-киянка
 item.saw.name=Пила
-item.saw_desh.name=Деш-пила
 item.hammer.name=Молоток
-item.hammer_desh.name=Деш-молоток
 item.file.name=Напильник
-item.file_desh.name=Деш-напильник
 item.wire_cutter.name=Кусачки
-item.wire_cutter_desh.name=Деш-кусачки
 item.c_wrench.name=Гаечный ключ
-item.c_wrench_desh.name=Деш-гаечный ключ
 item.pocket_multitool.name=Карманный мультитул
-item.pocket_multitool_desh.name=Карманный деш-мультитул
+item.mortar.name=Ступка
 
 multitool.mode.screwdriver=Отвертка
 multitool.mode.hand_drill=Ручная дрель
@@ -4202,6 +4196,38 @@ multitool.mode.hammer=Молоток
 multitool.mode.file=Напильник
 multitool.mode.wire_cutter=Кусачки
 multitool.mode.wrench=Гаечный ключ
+
+toolbase.screwdriver=%s Отвёртка
+toolbase.hand_drill=%s Ручная дрель
+toolbase.mallet=%s Киянка
+toolbase.saw=%s Пила
+toolbase.hammer=%s Молоток
+toolbase.file=%s Напильник
+toolbase.wire_cutter=%s Кусачки
+toolbase.c_wrench=%s Гаечный ключ
+toolbase.mortar=%s Mortar
+toolbase.pocket_multitool=%s Карманныый мультитул
+
+tooltip.tool.durability=§fПрочность: §a%s/%s
+tooltip.tool.level=§f%s - §eУровень %s
+tooltip.tool.damage=§fУрон §9%s
+
+toolmat.null=Null
+toolmat.wood=[Дерево]
+toolmat.rubber=[Резина]
+toolmat.flint=[Кремень]
+toolmat.iron=[Железо]
+toolmat.steel=[Сталь]
+toolmat.bronze=[Бронза]
+toolmat.aluminium=[Алюминий]
+toolmat.titanium=[Титан]
+toolmat.stainless=[Нержавеющая сталь]
+toolmat.lead=[Свинец]
+toolmat.tungsten=[Вольфрам]
+toolmat.desh=[Деш]
+toolmat.infinity=[Бесконечность]
+toolmat.draconium=[Драконий]
+toolmat.neutronium=[Нейтроний]
 
 tooltip.multitool.mode=Режим: %s
 tooltip.multitool.mode.none=Режим: не выбран
@@ -4222,7 +4248,6 @@ hbm.voltage.transformerInput=Вход: %s, %s А (%s HE/тик)
 hbm.voltage.transformerOutput=Выход: %s, %s А (%s HE/тик)
 hbm.voltage.transformerPlacementHint=Разместите лицевой стороной к входному кабелю; выход находится на противоположной стороне.
 
-item.mortar.name=Ступка
 item.foil.name=Фольга (%s)
 item.c_rod.name=Стержень (%s)
 item.long_rod.name=Длинный стержень (%s)

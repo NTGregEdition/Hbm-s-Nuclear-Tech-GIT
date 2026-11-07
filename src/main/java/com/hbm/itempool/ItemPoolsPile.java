@@ -5,6 +5,7 @@ import static com.hbm.lib.HbmChestContents.weighted;
 import com.hbm.inventory.material.Mats;
 import com.hbm.items.ItemEnums;
 import com.hbm.items.ModItems;
+import com.hbm.items.tool.ToolMat;
 import com.hbm.items.weapon.grenade.ItemGrenadeExtra.EnumGrenadeExtra;
 import com.hbm.items.weapon.grenade.ItemGrenadeFilling.EnumGrenadeFilling;
 import com.hbm.items.weapon.grenade.ItemGrenadeFuze.EnumGrenadeFuze;
@@ -150,7 +151,7 @@ public class ItemPoolsPile {
 		new ItemPool(POOL_PILE_MECHANICAL) {{
 			this.pool = new WeightedRandomChestContent[] {
 				weighted(ModItems.defuser, 0, 1, 1, 30),
-				weighted(ModItems.screwdriver, 0, 1, 1, 30),
+				weighted(ModItems.screwdriver, ToolMat.STEEL.id, 1, 1, 30),
 				weighted(ModItems.wire_fine, Mats.MAT_COPPER.id, 8, 12, 120),
 				weighted(ModItems.plate_steel, 0, 3, 8, 40),
 				weighted(ModItems.plate_copper, 0, 2, 5, 40),
@@ -162,7 +163,7 @@ public class ItemPoolsPile {
 		new ItemPool(POOL_PILE_GEAR) {{
 			this.pool = new WeightedRandomChestContent[] {
 				weighted(ModItems.defuser, 0, 1, 1, 40),
-				weighted(ModItems.screwdriver, 0, 1, 1, 30),
+				weighted(ModItems.screwdriver, ToolMat.STEEL.id, 1, 1, 30),
 				weighted(ModItems.canteen_vodka,0, 1, 1, 40),
 				weighted(ModItems.casing, ItemEnums.EnumCasingType.SMALL_STEEL.ordinal(), 1, 4, 30),
 				weighted(ModItems.casing, ItemEnums.EnumCasingType.SMALL.ordinal(), 3, 8, 40),
