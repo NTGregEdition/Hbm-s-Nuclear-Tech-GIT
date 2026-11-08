@@ -18,9 +18,12 @@ import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
@@ -132,6 +135,15 @@ public class ItemMultitool extends ItemCraftingDegradation {
 	private void restoreRealItem(ItemStack realStack, Mode mode, EntityPlayer player, ItemStack fake, ItemStack backup) {
 		setEmulatedState(realStack, mode, fake.getTagCompound());
 		player.inventory.setInventorySlotContents(player.inventory.currentItem, backup);
+		resyncHeldSlot(player, backup);
+	}
+
+	// a GUI opened during the swap sends the emulated stack to the client, and vanilla suppresses the later correction
+	private void resyncHeldSlot(EntityPlayer player, ItemStack real) {
+		if (!(player instanceof EntityPlayerMP) || player.openContainer == player.inventoryContainer) return;
+		Slot slot = player.openContainer.getSlotFromInventory(player.inventory, player.inventory.currentItem);
+		if (slot == null) return;
+		((EntityPlayerMP) player).playerNetServerHandler.sendPacket(new S2FPacketSetSlot(player.openContainer.windowId, slot.slotNumber, real));
 	}
 
 // ---------------- rendering (icon only - durability bar comes from the base class, untouched) ----------------
