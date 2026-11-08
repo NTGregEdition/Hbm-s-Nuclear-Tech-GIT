@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.hbm.inventory.material.MaterialShapes;
+import com.hbm.inventory.material.Mats;
+import com.hbm.inventory.material.NTMMaterial;
 import com.hbm.items.ModItems;
 import com.hbm.lib.RefStrings;
 import com.hbm.main.CraftingManager;
@@ -151,9 +153,14 @@ public class ToolItems {
 	
 	private static Object plate(ToolMat mat) {
 		if(mat.mod != null) return mat.frame.ingot();
-		if(mat == ToolMat.DESH) return new ItemStack(ModItems.plate_c_desh);
-		Item compound = GameRegistry.findItem(RefStrings.MODID, "item.plate_c_" + mat.name);
-		return compound != null ? new ItemStack(compound) : mat.frame.plate();
+		for(NTMMaterial material : Mats.orderedList) {
+			for(String materialName : material.names) {
+				for(String toolMaterialName : mat.frame.mats) {
+					if(materialName.equals(toolMaterialName)) return MaterialShapes.PLATE.make(material);
+				}
+			}
+		}
+		return mat.frame.plate();
 	}
 
 	public static void registerRecipes() {
