@@ -15,9 +15,13 @@ import com.hbm.main.MainRegistry;
 
 import api.hbm.block.IToolable.ToolType;
 import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.IIcon;
 import net.minecraftforge.oredict.OreDictionary;
 
 /** Every crafting tool is one item, the material is its item damage. Recipes are taken from GTNH */
@@ -46,15 +50,15 @@ public class ToolItems {
 		//ItemMultitool reads the fields above when it is first loaded
 		ModItems.pocket_multitool = add(new ItemMultitool());
 
-		screwdriver_single = single("screwdriver_single", KEY_TOOL_SCREWDRIVER);
-		hand_drill_single = single("hand_drill_single", KEY_TOOL_HANDDRILL);
-		mallet_single = single("mallet_single", KEY_TOOL_MALLET);
-		saw_single = single("saw_single", KEY_TOOL_SAW);
-		hammer_single = single("hammer_single", KEY_TOOL_HAMMER);
-		file_single = single("file_single", KEY_TOOL_FILE);
-		c_wrench_single = single("c_wrench_single", KEY_TOOL_C_WRENCH);
-		wire_cutter_single = single("wire_cutter_single", KEY_TOOL_WIRE_CUTTER);
-		mortar_single = single("mortar_single", KEY_TOOL_MORTAR);
+		screwdriver_single = single("screwdriver", KEY_TOOL_SCREWDRIVER, true);
+		hand_drill_single = single("hand_drill", KEY_TOOL_HANDDRILL, true);
+		mallet_single = single("mallet", KEY_TOOL_MALLET, true);
+		saw_single = single("saw", KEY_TOOL_SAW, true);
+		hammer_single = single("hammer", KEY_TOOL_HAMMER, true);
+		file_single = single("file", KEY_TOOL_FILE, true);
+		c_wrench_single = single("c_wrench", KEY_TOOL_C_WRENCH, false);
+		wire_cutter_single = single("wire_cutter", KEY_TOOL_WIRE_CUTTER, true);
+		mortar_single = single("mortar", KEY_TOOL_MORTAR, true);
 
 		for(ToolMat mat : ToolMat.HARD) HARD.add(mat);
 		for(ToolMat mat : ToolMat.MODDED) if(mat.enabled()) HARD.add(mat);
@@ -65,10 +69,40 @@ public class ToolItems {
 		return tool;
 	}
 
-	private static Item single(String name, String oreKey) {
-		Item item = new Item().setUnlocalizedName(name).setTextureName(RefStrings.MODID + ":" + name).setCreativeTab(MainRegistry.controlTab);
+	private static Item single(String tool, String oreKey, boolean layered) {
+		Item item = new ItemSingleUse(tool, layered).setUnlocalizedName(tool + "_single").setTextureName(RefStrings.MODID + ":" + tool).setCreativeTab(MainRegistry.controlTab);
 		SINGLE.put(item, oreKey);
 		return item;
+	}
+
+	private static class ItemSingleUse extends Item {
+
+		private final String tool;
+		private final boolean layered;
+		@SideOnly(Side.CLIENT) private IIcon layerIcon;
+
+		private ItemSingleUse(String tool, boolean layered) {
+			this.tool = tool;
+			this.layered = layered;
+		}
+
+		@Override
+		public boolean requiresMultipleRenderPasses() {
+			return layered;
+		}
+
+		@Override
+		@SideOnly(Side.CLIENT)
+		public void registerIcons(IIconRegister reg) {
+			super.registerIcons(reg);
+			if(layered) layerIcon = reg.registerIcon(RefStrings.MODID + ":" + tool + "_layer");
+		}
+
+		@Override
+		@SideOnly(Side.CLIENT)
+		public IIcon getIconFromDamageForRenderPass(int damage, int pass) {
+			return pass == 1 && layerIcon != null ? layerIcon : itemIcon;
+		}
 	}
 
 	public static boolean isSingleUse(ItemStack stack) {

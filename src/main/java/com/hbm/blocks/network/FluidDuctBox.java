@@ -63,14 +63,19 @@ public class FluidDuctBox extends FluidDuctBase implements IBlockMulti, ILookOve
 		iconJunction = new IIcon[count][5];
 
 		for(int i = 0; i < count; i++) {
-			iconStraight[i] = iconRegister.registerIcon(RefStrings.MODID + ":boxduct_" + materials[i] + "_straight");
-			iconEnd[i] = iconRegister.registerIcon(RefStrings.MODID + ":boxduct_" + materials[i] + "_end");
-			iconCurveTL[i] = iconRegister.registerIcon(RefStrings.MODID + ":boxduct_" + materials[i] + "_curve_tl");
-			iconCurveTR[i] = iconRegister.registerIcon(RefStrings.MODID + ":boxduct_" + materials[i] + "_curve_tr");
-			iconCurveBL[i] = iconRegister.registerIcon(RefStrings.MODID + ":boxduct_" + materials[i] + "_curve_bl");
-			iconCurveBR[i] = iconRegister.registerIcon(RefStrings.MODID + ":boxduct_" + materials[i] + "_curve_br");
-			for(int j = 0; j < 5; j++) iconJunction[i][j] = iconRegister.registerIcon(RefStrings.MODID + ":boxduct_" + materials[i] + "_junction_" + j);
+			iconStraight[i] = registerDuctIcon(iconRegister, materials[i], "straight");
+			iconEnd[i] = registerDuctIcon(iconRegister, materials[i], "end");
+			iconCurveTL[i] = registerDuctIcon(iconRegister, materials[i], "curve_tl");
+			iconCurveTR[i] = registerDuctIcon(iconRegister, materials[i], "curve_tr");
+			iconCurveBL[i] = registerDuctIcon(iconRegister, materials[i], "curve_bl");
+			iconCurveBR[i] = registerDuctIcon(iconRegister, materials[i], "curve_br");
+			for(int j = 0; j < 5; j++) iconJunction[i][j] = registerDuctIcon(iconRegister, materials[i], "junction_" + j);
 		}
+	}
+
+	@SideOnly(Side.CLIENT)
+	protected IIcon registerDuctIcon(IIconRegister iconRegister, String material, String part) {
+		return iconRegister.registerIcon(RefStrings.MODID + ":boxduct_" + material + "_" + part);
 	}
 
 	@SideOnly(Side.CLIENT)

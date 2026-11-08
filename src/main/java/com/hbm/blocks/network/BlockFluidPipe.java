@@ -1,5 +1,6 @@
 package com.hbm.blocks.network;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,11 +10,15 @@ import com.hbm.blocks.ITooltipProvider;
 import com.hbm.inventory.fluid.FluidType;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.gui.GUIFluidPipeMulti;
+import com.hbm.inventory.material.Mats;
+import com.hbm.inventory.material.NTMMaterial;
 import com.hbm.items.tool.ItemMultitool;
 import com.hbm.items.tool.ItemTooling;
 import com.hbm.items.tool.ItemWrench;
 import com.hbm.lib.RefStrings;
 import com.hbm.main.MainRegistry;
+import com.hbm.render.icon.RGBMutatorInterpolatedComponentRemap;
+import com.hbm.render.icon.TextureAtlasSpriteMutatable;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.network.TileEntityFluidPipe;
 
@@ -28,6 +33,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -40,6 +46,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -101,6 +108,49 @@ public class BlockFluidPipe extends FluidDuctBox implements ITooltipProvider, IT
 	public void registerBlockIcons(IIconRegister iconRegister) {
 		super.registerBlockIcons(iconRegister);
 		iconRestrictor = iconRegister.registerIcon(RefStrings.MODID + ":pipe_restrictor");
+	}
+
+	/** A boxduct_pipe_<id>[_multi]_<part> texture wins, multi pipes fall back to the single one, otherwise the white duct is recolored with the material colors */
+	@Override
+	@SideOnly(Side.CLIENT)
+	protected IIcon registerDuctIcon(IIconRegister iconRegister, String material, String part) {
+		String custom = "boxduct_" + material + "_" + part;
+		if(textureExists(custom)) return iconRegister.registerIcon(RefStrings.MODID + ":" + custom);
+
+		String single = "boxduct_pipe_" + properties.id + "_" + part;
+		if(!material.equals("pipe_" + properties.id) && textureExists(single)) return iconRegister.registerIcon(RefStrings.MODID + ":" + single);
+
+		String base = RefStrings.MODID + ":boxduct_white_" + part;
+		NTMMaterial mat = tintMaterial(properties.id);
+		if(mat == null || !(iconRegister instanceof TextureMap)) return iconRegister.registerIcon(base);
+
+		String placeholder = base + "-" + material;
+		TextureAtlasSpriteMutatable icon = new TextureAtlasSpriteMutatable(placeholder, new RGBMutatorInterpolatedComponentRemap(0xFFFFFF, 0x505050, mat.solidColorLight, mat.solidColorDark)).setBlockAtlas();
+		((TextureMap) iconRegister).setTextureEntry(placeholder, icon);
+		return icon;
+	}
+
+	@SideOnly(Side.CLIENT)
+	private static NTMMaterial tintMaterial(String id) {
+		switch(id) {
+		case "copper": return Mats.MAT_COPPER;
+		case "bronze": return Mats.MAT_BRONZE;
+		case "steel": return Mats.MAT_STEEL;
+		case "stainless": return Mats.MAT_STAINLESS;
+		case "titanium": return Mats.MAT_TITANIUM;
+		case "tungsten": return Mats.MAT_TUNGSTEN;
+		default: return null;
+		}
+	}
+
+	@SideOnly(Side.CLIENT)
+	private static boolean textureExists(String name) {
+		try {
+			Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(RefStrings.MODID, "textures/blocks/" + name + ".png")).getInputStream().close();
+			return true;
+		} catch(IOException e) { //a missing file is the expected answer here
+			return false;
+		}
 	}
 
 	@Override
