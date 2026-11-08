@@ -711,6 +711,8 @@ public class OreDictManager {
 		OreDictionary.registerOre("briquetteLignite", fromOne(briquette, EnumBriquetteType.LIGNITE));
 		OreDictionary.registerOre("briquetteWood", fromOne(briquette, EnumBriquetteType.WOOD));
 
+		OreDictionary.registerOre("plankWood",plate_wood);
+		
 		OreDictionary.registerOre("logWood", pink_log);
 		OreDictionary.registerOre("logWoodPink", pink_log);
 		OreDictionary.registerOre("plankWood", pink_planks);

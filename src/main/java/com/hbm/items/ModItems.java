@@ -471,6 +471,7 @@ public class ModItems {
 	public static Item plate_desh;
 	public static Item plate_c_desh;
 	public static Item plate_bismuth;
+	public static Item plate_wood;
 	public static Item photo_panel;
 	public static Item beryllium_mirror;
 	public static Item thruster_nuclear;
@@ -2523,6 +2524,7 @@ public class ModItems {
 		plate_desh = new Item().setUnlocalizedName("plate_desh").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":plate_desh");
 		plate_c_desh = new Item().setUnlocalizedName("plate_c_desh").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":plate_c_desh");
 		plate_bismuth = new ItemCustomLore().setUnlocalizedName("plate_bismuth").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":plate_bismuth");
+		plate_wood = new Item().setUnlocalizedName("plate_wood").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":plate_wood");
 		ingot_solinium = new Item().setUnlocalizedName("ingot_solinium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":ingot_solinium");
 		nugget_solinium = new Item().setUnlocalizedName("nugget_solinium").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":nugget_solinium");
 		photo_panel = new Item().setUnlocalizedName("photo_panel").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":photo_panel");
@@ -5627,6 +5629,7 @@ public class ModItems {
 		GameRegistry.registerItem(plate_euphemium, plate_euphemium.getUnlocalizedName());
 		GameRegistry.registerItem(plate_dineutronium, plate_dineutronium.getUnlocalizedName());
 		GameRegistry.registerItem(plate_c_dineutronium, plate_c_dineutronium.getUnlocalizedName());
+		GameRegistry.registerItem(plate_wood, plate_wood.getUnlocalizedName());
 		GameRegistry.registerItem(plate_cn989, plate_cn989.getUnlocalizedName());
 
 		//Armor Plates
