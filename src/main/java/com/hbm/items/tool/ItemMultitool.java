@@ -55,12 +55,11 @@ public class ItemMultitool extends ItemCraftingDegradation {
 	static {
 		MODES.add(new Mode(ToolType.SCREWDRIVER, "screwdriver", ModItems.screwdriver));
 		MODES.add(new Mode(ToolType.HAND_DRILL,      "hand_drill", ModItems.hand_drill));
-		MODES.add(new Mode(ToolType.MALLET, "mallet"));
-		MODES.add(new Mode(ToolType.SAW,      "saw"));
-		MODES.add(new Mode(ToolType.HAMMER, "hammer"));
-		MODES.add(new Mode(ToolType.FILE,      "file"));
+		MODES.add(new Mode(ToolType.SAW,      "saw", ModItems.saw));
+		MODES.add(new Mode(ToolType.HAMMER, "hammer", ModItems.hammer));
+		MODES.add(new Mode(ToolType.FILE,      "file", ModItems.file));
 		MODES.add(new Mode(ToolType.WIRE_CUTTER, "wire_cutter", ModItems.wire_cutter));
-		MODES.add(new Mode(ToolType.WRENCH,      "wrench", ModItems.wrench));
+		MODES.add(new Mode(ToolType.WRENCH,      "wrench", ModItems.c_wrench));
 	}
 
 	private static final String NBT_MODE = "multitoolMode";
