@@ -93,6 +93,10 @@ public class ItemCraftingDegradation extends Item {
 		return toolOf(stack) != null && stack.getItemDamage() == ToolMat.LISTED.id;
 	}
 
+	public static ItemStack toListed(ItemStack stack) {
+		return toolOf(stack) == null || isListed(stack) ? stack : new ItemStack(stack.getItem(), 1, ToolMat.LISTED.id);
+	}
+
 	protected void registerStacks(ToolType type) {
 		for(ToolMat mat : ToolMat.ALL) if(mat.exists(tool)) type.register(new ItemStack(this, 1, mat.id));
 	}

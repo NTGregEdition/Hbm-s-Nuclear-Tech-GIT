@@ -14,4 +14,10 @@ public class ToolRecipeHandler extends ShapedRecipeHandler {
 		if(!ItemCraftingDegradation.isListed(result)) return;
 		for(ToolMat mat : ToolMat.ALL) super.loadCraftingRecipes(new ItemStack(result.getItem(), 1, mat.id));
 	}
+
+	/** Recipes only show the listed material, so a usage lookup of any material is redirected to it. The array is shared with the handlers after this one, so this has to be the first usage handler */
+	@Override
+	public void loadUsageRecipes(String inputId, Object... ingredients) {
+		if("item".equals(inputId) && ingredients.length > 0 && ingredients[0] instanceof ItemStack) ingredients[0] = ItemCraftingDegradation.toListed((ItemStack) ingredients[0]);
+	}
 }

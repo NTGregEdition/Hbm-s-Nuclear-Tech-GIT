@@ -2,12 +2,15 @@ package com.hbm.handler.nei;
 
 import codechicken.nei.api.API;
 import codechicken.nei.api.IConfigureNEI;
+import codechicken.nei.recipe.GuiUsageRecipe;
 
 public class NEIToolMatConfig implements IConfigureNEI {
 
 	@Override
 	public void loadConfig() {
-		API.registerRecipeHandler(new ToolRecipeHandler());
+		ToolRecipeHandler handler = new ToolRecipeHandler();
+		API.registerRecipeHandler(handler);
+		GuiUsageRecipe.usagehandlers.add(0, handler);
 	}
 
 	@Override
