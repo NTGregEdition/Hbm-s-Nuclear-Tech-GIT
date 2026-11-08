@@ -43,11 +43,16 @@ public class FluidDuctBox extends FluidDuctBase implements IBlockMulti, ILookOve
 		super(mat);
 	}
 
+	protected String[] getIconMaterials() {
+		return materials;
+	}
+
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void registerBlockIcons(IIconRegister iconRegister) {
 		super.registerBlockIcons(iconRegister);
 
+		String[] materials = getIconMaterials();
 		int count = materials.length;
 		iconStraight = new IIcon[count];
 		iconEnd = new IIcon[count];
@@ -82,15 +87,16 @@ public class FluidDuctBox extends FluidDuctBase implements IBlockMulti, ILookOve
 
 		int mask = 0 + (pX ? 32 : 0) + (nX ? 16 : 0) + (pY ? 8 : 0) + (nY ? 4 : 0) + (pZ ? 2 : 0) + (nZ ? 1 : 0);
 		int count = 0 + (pX ? 1 : 0) + (nX ? 1 : 0) + (pY ? 1 : 0) + (nY ? 1 : 0) + (pZ ? 1 : 0) + (nZ ? 1 : 0);
+		boolean stub = count == 1 && drawsStubs();
 
 		int meta = world.getBlockMetadata(x, y, z);
 		int m = rectify(meta);
 
-		if((mask & 0b001111) == 0 && mask > 0) {
+		if((mask & 0b001111) == 0 && mask > 0 && !stub) {
 			return (side == 4 || side == 5) ? iconEnd[m] : iconStraight[m];
-		} else if((mask & 0b111100) == 0 && mask > 0) {
+		} else if((mask & 0b111100) == 0 && mask > 0 && !stub) {
 			return (side == 2 || side == 3) ? iconEnd[m] : iconStraight[m];
-		} else if((mask & 0b110011) == 0 && mask > 0) {
+		} else if((mask & 0b110011) == 0 && mask > 0 && !stub) {
 			return (side == 0 || side == 1) ? iconEnd[m] : iconStraight[m];
 		} else if(count == 2) {
 
@@ -189,14 +195,15 @@ public class FluidDuctBox extends FluidDuctBase implements IBlockMulti, ILookOve
 		boolean pZ = canConnectTo(world, x, y, z, Library.POS_Z, te);
 		int mask = 0 + (pX ? 32 : 0) + (nX ? 16 : 0) + (pY ? 8 : 0) + (nY ? 4 : 0) + (pZ ? 2 : 0) + (nZ ? 1 : 0);
 		int count = 0 + (pX ? 1 : 0) + (nX ? 1 : 0) + (pY ? 1 : 0) + (nY ? 1 : 0) + (pZ ? 1 : 0) + (nZ ? 1 : 0);
+		boolean stub = count == 1 && drawsStubs();
 
 		if(mask == 0) {
 			bbs.add(AxisAlignedBB.getBoundingBox(x + jLower, y + jLower, z + jLower, x + jUpper, y + jUpper, z + jUpper));
-		} else if(mask == 0b100000 || mask == 0b010000 || mask == 0b110000) {
+		} else if(!stub && (mask == 0b100000 || mask == 0b010000 || mask == 0b110000)) {
 			bbs.add(AxisAlignedBB.getBoundingBox(x + 0.0D, y + lower, z + lower, x + 1.0D, y + upper, z + upper));
-		} else if(mask == 0b001000 || mask == 0b000100 || mask == 0b001100) {
+		} else if(!stub && (mask == 0b001000 || mask == 0b000100 || mask == 0b001100)) {
 			bbs.add(AxisAlignedBB.getBoundingBox(x + lower, y + 0.0D, z + lower, x + upper, y + 1.0D, z + upper));
-		} else if(mask == 0b000010 || mask == 0b000001 || mask == 0b000011) {
+		} else if(!stub && (mask == 0b000010 || mask == 0b000001 || mask == 0b000011)) {
 			bbs.add(AxisAlignedBB.getBoundingBox(x + lower, y + lower, z + 0.0D, x + upper, y + upper, z + 1.0D));
 		} else {
 
@@ -263,14 +270,15 @@ public class FluidDuctBox extends FluidDuctBase implements IBlockMulti, ILookOve
 		boolean pZ = canConnectTo(world, x, y, z, Library.POS_Z, te);
 		int mask = 0 + (pX ? 32 : 0) + (nX ? 16 : 0) + (pY ? 8 : 0) + (nY ? 4 : 0) + (pZ ? 2 : 0) + (nZ ? 1 : 0);
 		int count = 0 + (pX ? 1 : 0) + (nX ? 1 : 0) + (pY ? 1 : 0) + (nY ? 1 : 0) + (pZ ? 1 : 0) + (nZ ? 1 : 0);
+		boolean stub = count == 1 && drawsStubs();
 
 		if(mask == 0) {
 			this.setBlockBounds(jLower, jLower, jLower, jUpper, jUpper, jUpper);
-		} else if(mask == 0b100000 || mask == 0b010000 || mask == 0b110000) {
+		} else if(!stub && (mask == 0b100000 || mask == 0b010000 || mask == 0b110000)) {
 			this.setBlockBounds(0F, lower, lower, 1F, upper, upper);
-		} else if(mask == 0b001000 || mask == 0b000100 || mask == 0b001100) {
+		} else if(!stub && (mask == 0b001000 || mask == 0b000100 || mask == 0b001100)) {
 			this.setBlockBounds(lower, 0F, lower, upper, 1F, upper);
-		} else if(mask == 0b000010 || mask == 0b000001 || mask == 0b000011) {
+		} else if(!stub && (mask == 0b000010 || mask == 0b000001 || mask == 0b000011)) {
 			this.setBlockBounds(lower, lower, 0F, upper, upper, 1F);
 		} else {
 
@@ -292,6 +300,11 @@ public class FluidDuctBox extends FluidDuctBase implements IBlockMulti, ILookOve
 						pZ ? 1F : upper);
 			}
 		}
+	}
+
+	/** A single connection makes a stub with a core instead of a piece that runs through the block */
+	public boolean drawsStubs() {
+		return false;
 	}
 
 	public boolean canConnectTo(IBlockAccess world, int x, int y, int z, ForgeDirection dir, TileEntity tile) {

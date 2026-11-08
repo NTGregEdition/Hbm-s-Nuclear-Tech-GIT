@@ -3,12 +3,15 @@ package com.hbm.items.tool;
 import static com.hbm.inventory.OreDictManager.*;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.hbm.inventory.material.MaterialShapes;
 import com.hbm.items.ModItems;
 import com.hbm.lib.RefStrings;
 import com.hbm.main.CraftingManager;
+import com.hbm.main.MainRegistry;
 
 import api.hbm.block.IToolable.ToolType;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -26,6 +29,9 @@ public class ToolItems {
 	private static final ToolMat[] SOFT = {ToolMat.WOOD, ToolMat.RUBBER, ToolMat.DESH};
 	private static final ToolMat[] MORTAR = {ToolMat.FLINT, ToolMat.IRON, ToolMat.STEEL};
 
+	private static final Map<Item, String> SINGLE = new LinkedHashMap<Item, String>();
+	public static Item screwdriver_single, hand_drill_single, mallet_single, saw_single, hammer_single, file_single, c_wrench_single, wire_cutter_single, mortar_single;
+
 	public static void init() {
 
 		ModItems.screwdriver = add(new ItemTooling(ToolType.SCREWDRIVER, "screwdriver", true));
@@ -40,6 +46,16 @@ public class ToolItems {
 		//ItemMultitool reads the fields above when it is first loaded
 		ModItems.pocket_multitool = add(new ItemMultitool());
 
+		screwdriver_single = single("screwdriver_single", KEY_TOOL_SCREWDRIVER);
+		hand_drill_single = single("hand_drill_single", KEY_TOOL_HANDDRILL);
+		mallet_single = single("mallet_single", KEY_TOOL_MALLET);
+		saw_single = single("saw_single", KEY_TOOL_SAW);
+		hammer_single = single("hammer_single", KEY_TOOL_HAMMER);
+		file_single = single("file_single", KEY_TOOL_FILE);
+		c_wrench_single = single("c_wrench_single", KEY_TOOL_C_WRENCH);
+		wire_cutter_single = single("wire_cutter_single", KEY_TOOL_WIRE_CUTTER);
+		mortar_single = single("mortar_single", KEY_TOOL_MORTAR);
+
 		for(ToolMat mat : ToolMat.HARD) HARD.add(mat);
 		for(ToolMat mat : ToolMat.MODDED) if(mat.enabled()) HARD.add(mat);
 	}
@@ -49,8 +65,19 @@ public class ToolItems {
 		return tool;
 	}
 
+	private static Item single(String name, String oreKey) {
+		Item item = new Item().setUnlocalizedName(name).setTextureName(RefStrings.MODID + ":" + name).setCreativeTab(MainRegistry.controlTab);
+		SINGLE.put(item, oreKey);
+		return item;
+	}
+
+	public static boolean isSingleUse(ItemStack stack) {
+		return SINGLE.containsKey(stack.getItem());
+	}
+
 	public static void register() {
 		for(Item tool : TOOLS) GameRegistry.registerItem(tool, tool.getUnlocalizedName());
+		for(Item tool : SINGLE.keySet()) GameRegistry.registerItem(tool, tool.getUnlocalizedName());
 	}
 
 	public static void registerOreDict() {
@@ -63,6 +90,7 @@ public class ToolItems {
 				OreDictionary.registerOre(oreKey(((ItemTooling) tool).getToolType()), new ItemStack(tool, 1, OreDictionary.WILDCARD_VALUE));
 			}
 		}
+		for(Map.Entry<Item, String> entry : SINGLE.entrySet()) OreDictionary.registerOre(entry.getValue(), entry.getKey());
 	}
 
 	private static String oreKey(ToolType type) {

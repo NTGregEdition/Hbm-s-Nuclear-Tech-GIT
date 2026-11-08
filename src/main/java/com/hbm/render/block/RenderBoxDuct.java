@@ -2,12 +2,14 @@ package com.hbm.render.block;
 
 import org.lwjgl.opengl.GL11;
 
+import com.hbm.blocks.network.BlockFluidPipe;
 import com.hbm.blocks.network.FluidDuctBox;
 import com.hbm.blocks.network.PowerCableBox;
 import com.hbm.inventory.fluid.FluidType;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.lib.Library;
 import com.hbm.render.util.RenderBlocksNT;
+import com.hbm.tileentity.network.TileEntityFluidPipe;
 import com.hbm.tileentity.network.TileEntityPipeBaseNT;
 import com.hbm.util.ColorUtil;
 
@@ -16,9 +18,15 @@ import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public class RenderBoxDuct implements ISimpleBlockRenderingHandler {
+
+	private static final double ARROW_SIZE = 0.09D;
+	private static final double ARROW_BACK = 0.1D;
+	private static final double ARROW_LIFT = 0.001D;
 
 	@Override
 	public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
@@ -168,9 +176,10 @@ public class RenderBoxDuct implements ISimpleBlockRenderingHandler {
 
 		int mask = 0 + (pX ? 32 : 0) + (nX ? 16 : 0) + (pY ? 8 : 0) + (nY ? 4 : 0) + (pZ ? 2 : 0) + (nZ ? 1 : 0);
 		int count = 0 + (pX ? 1 : 0) + (nX ? 1 : 0) + (pY ? 1 : 0) + (nY ? 1 : 0) + (pZ ? 1 : 0) + (nZ ? 1 : 0);
+		boolean stub = count == 1 && block instanceof FluidDuctBox && ((FluidDuctBox) block).drawsStubs();
 
 		//Straight along X
-		if((mask & 0b001111) == 0 && mask > 0) {
+		if((mask & 0b001111) == 0 && mask > 0 && !stub) {
 			renderer.uvRotateTop = 1;
 			renderer.uvRotateBottom = 1;
 			renderer.uvRotateEast = 2;
@@ -179,14 +188,14 @@ public class RenderBoxDuct implements ISimpleBlockRenderingHandler {
 			renderer.renderStandardBlock(block, x, y, z);
 
 		//Straight along Z
-		} else if((mask & 0b111100) == 0 && mask > 0) {
+		} else if((mask & 0b111100) == 0 && mask > 0 && !stub) {
 			renderer.uvRotateNorth = 1;
 			renderer.uvRotateSouth = 2;
 			renderer.setRenderBounds(lower, lower, 0.0D, upper, upper, 1.0D);
 			renderer.renderStandardBlock(block, x, y, z);
 
 		//Straight along Y
-		} else if((mask & 0b110011) == 0 && mask > 0) {
+		} else if((mask & 0b110011) == 0 && mask > 0 && !stub) {
 			renderer.setRenderBounds(lower, 0.0D, lower, upper, 1.0D, upper);
 			renderer.renderStandardBlock(block, x, y, z);
 
@@ -276,7 +285,49 @@ public class RenderBoxDuct implements ISimpleBlockRenderingHandler {
 		renderer.uvRotateEast = 0;
 		renderer.uvRotateWest = 0;
 
+		if(block instanceof BlockFluidPipe && te instanceof TileEntityFluidPipe) renderRestrictors((BlockFluidPipe) block, (TileEntityFluidPipe) te, x, y, z, count == 2 ? lower : jLower, tessellator);
+
 		return true;
+	}
+
+	private void renderRestrictors(BlockFluidPipe block, TileEntityFluidPipe pipe, int x, int y, int z, double edge, Tessellator tessellator) {
+		IIcon icon = block.iconRestrictor;
+		double half = 0.5D - edge;
+		tessellator.setColorOpaque_F(1F, 1F, 1F);
+
+		for(ForgeDirection arm : ForgeDirection.VALID_DIRECTIONS) {
+			if(!pipe.isConnected(arm) || !pipe.isInputDisabled(arm)) continue;
+
+			for(ForgeDirection face : ForgeDirection.VALID_DIRECTIONS) {
+				if(face.offsetX * arm.offsetX + face.offsetY * arm.offsetY + face.offsetZ * arm.offsetZ != 0 || pipe.isConnected(face)) continue;
+
+				double sideX = (arm.offsetY * face.offsetZ - arm.offsetZ * face.offsetY) * ARROW_SIZE;
+				double sideY = (arm.offsetZ * face.offsetX - arm.offsetX * face.offsetZ) * ARROW_SIZE;
+				double sideZ = (arm.offsetX * face.offsetY - arm.offsetY * face.offsetX) * ARROW_SIZE;
+				double lengthX = arm.offsetX * ARROW_SIZE;
+				double lengthY = arm.offsetY * ARROW_SIZE;
+				double lengthZ = arm.offsetZ * ARROW_SIZE;
+				double cx = x + 0.5D + arm.offsetX * (half - ARROW_BACK) + face.offsetX * (half + ARROW_LIFT);
+				double cy = y + 0.5D + arm.offsetY * (half - ARROW_BACK) + face.offsetY * (half + ARROW_LIFT);
+				double cz = z + 0.5D + arm.offsetZ * (half - ARROW_BACK) + face.offsetZ * (half + ARROW_LIFT);
+
+				double u0 = icon.getMinU();
+				double u1 = icon.getMaxU();
+				double v0 = icon.getMinV();
+				double v1 = icon.getMaxV();
+
+				// both windings, so it does not matter which way the faces are culled
+				tessellator.addVertexWithUV(cx - sideX - lengthX, cy - sideY - lengthY, cz - sideZ - lengthZ, u0, v1);
+				tessellator.addVertexWithUV(cx + sideX - lengthX, cy + sideY - lengthY, cz + sideZ - lengthZ, u1, v1);
+				tessellator.addVertexWithUV(cx + sideX + lengthX, cy + sideY + lengthY, cz + sideZ + lengthZ, u1, v0);
+				tessellator.addVertexWithUV(cx - sideX + lengthX, cy - sideY + lengthY, cz - sideZ + lengthZ, u0, v0);
+
+				tessellator.addVertexWithUV(cx - sideX + lengthX, cy - sideY + lengthY, cz - sideZ + lengthZ, u0, v0);
+				tessellator.addVertexWithUV(cx + sideX + lengthX, cy + sideY + lengthY, cz + sideZ + lengthZ, u1, v0);
+				tessellator.addVertexWithUV(cx + sideX - lengthX, cy + sideY - lengthY, cz + sideZ - lengthZ, u1, v1);
+				tessellator.addVertexWithUV(cx - sideX - lengthX, cy - sideY - lengthY, cz - sideZ - lengthZ, u0, v1);
+			}
+		}
 	}
 
 	@Override

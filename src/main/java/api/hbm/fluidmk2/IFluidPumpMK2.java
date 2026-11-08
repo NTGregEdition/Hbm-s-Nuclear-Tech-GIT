@@ -7,4 +7,6 @@ public interface IFluidPumpMK2 {
 	public int getPumpStrength();
 
 	public boolean isPumpRunning();
+
+	public long getPumpFlow();
 }

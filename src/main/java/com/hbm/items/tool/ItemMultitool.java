@@ -90,6 +90,11 @@ public class ItemMultitool extends ItemCraftingDegradation {
 		return null;
 	}
 
+	public ToolType getModeType(ItemStack stack) {
+		Mode mode = getMode(stack);
+		return mode != null ? mode.type : null;
+	}
+
 	private void setMode(ItemStack stack, Mode mode) {
 		if (!stack.hasTagCompound()) stack.setTagCompound(new NBTTagCompound());
 		stack.getTagCompound().setString(NBT_MODE, mode.name);

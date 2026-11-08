@@ -43,7 +43,7 @@ public class ToolMat {
 	public static final ToolMat[] HARD = {IRON, STEEL, BRONZE, ALUMINIUM, TITANIUM, STAINLESS, LEAD, TUNGSTEN, DESH};
 	public static final ToolMat[] MODDED = {INFINITY, DRACONIUM};
 
-	public static final ToolMat LISTED = NEUTRONIUM;
+	public static final ToolMat LISTED = NULL;
 
 	public static final String MULTITOOL = "pocket_multitool";
 	public static final int DAMAGE_UNIT = 50;

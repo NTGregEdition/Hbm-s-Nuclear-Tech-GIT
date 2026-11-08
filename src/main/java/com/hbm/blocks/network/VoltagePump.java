@@ -183,6 +183,7 @@ public class VoltagePump extends BlockContainer implements INBTBlockTransformabl
 		}
 
 		@Override protected PumpUpgrades.Stats[] getUpgradeType() { return PumpUpgrades.ELECTRIC_PUMP; }
+		@Override protected long getFlowRate() { return this.getFlow(); }
 		@Override protected int getInstalledUpgrade() { return pump; }
 		@Override protected void destroyInstalledUpgrade() { pump = PumpUpgrades.NONE; }
 

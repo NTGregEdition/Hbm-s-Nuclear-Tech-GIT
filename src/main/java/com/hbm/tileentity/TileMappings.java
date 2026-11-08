@@ -516,6 +516,7 @@ public class TileMappings {
 		put(TileEntitySubstation.class, "tileentity_substation");
 
 		put(TileEntityPipeBaseNT.class, "tileentity_pipe_base");
+		put(TileEntityFluidPipe.class, "tileentity_fluid_pipe");
 		put(TileEntityPipePaintable.class, "tileentity_pipe_paintable");
 		put(TileEntityPipeGauge.class, "tileentity_pipe_gauge");
 		put(TileEntityPipeExhaust.class, "tileentity_pipe_exhaust");

@@ -8,7 +8,6 @@ import com.hbm.items.machine.IItemFluidIdentifier;
 import com.hbm.items.machine.ItemFluidIDMulti;
 import com.hbm.tileentity.network.TileEntityPipeBaseNT;
 import com.hbm.uninos.UniNodespace;
-import com.hbm.util.i18n.I18nUtil;
 
 import api.hbm.fluidmk2.FluidNetMK2;
 import api.hbm.fluidmk2.FluidNode;
@@ -150,8 +149,7 @@ public class FluidDuctBase extends BlockContainer implements IBlockFluidDuct, IA
 					debug.add("Subscribers: " + net.receiverEntries.size());
 					debug.add("Providers: " + net.providerEntries.size());
 					debug.add("Transfer: " + net.fluidTracker);
-					debug.add("Pumped: " + net.isPumped() + " (" + net.getPumpStrength() + " pipes served)");
-					if(!net.isPumped()) debug.add(I18nUtil.resolveKey("hbm.pump.pipeNotPumped"));
+					if(net.getBufferCapacity() > 0) debug.add("Buffer: " + net.getBuffered() + " / " + net.getBufferCapacity() + " mB, throughput " + net.getThroughput() + " mB/t");
 					return debug;
 				}
 			}

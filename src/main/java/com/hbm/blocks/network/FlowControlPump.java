@@ -251,6 +251,7 @@ public class FlowControlPump extends BlockDummyable implements ILookOverlay, IGU
 		}
 
 		@Override protected PumpUpgrades.Stats[] getUpgradeType() { return PumpUpgrades.FLUID_REGULATOR; }
+		@Override protected long getFlowRate() { return this.redstone ? 0L : this.bufferSize; }
 		@Override protected int getInstalledUpgrade() { return regulator; }
 		@Override protected void destroyInstalledUpgrade() { regulator = PumpUpgrades.NONE; }
 

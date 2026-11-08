@@ -8,11 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import api.hbm.fluidmk2.FluidPipeProperties;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonWriter;
 import com.hbm.blocks.ModBlocks;
+import com.hbm.blocks.network.BlockFluidPipe;
 import com.hbm.config.GeneralConfig;
 import com.hbm.inventory.OreDictManager.DictFrame;
 
@@ -221,6 +223,14 @@ public class AnvilRecipes extends SerializableRecipe {
 				new OreDictStack(key, 3),
 				new AnvilOutput(new ItemStack(ModItems.pipe, 1, mat.id))).setTier(1));
 		}
+
+		addFluidPipeRecipes(ModBlocks.fluid_pipe_wood, KEY_PLANKS, true, 1);
+		addFluidPipeRecipes(ModBlocks.fluid_pipe_copper, CU.plate(), false, 1);
+		addFluidPipeRecipes(ModBlocks.fluid_pipe_bronze, BRONZE.plate(), false, 1);
+		addFluidPipeRecipes(ModBlocks.fluid_pipe_steel, STEEL.plate(), false, 1);
+		addFluidPipeRecipes(ModBlocks.fluid_pipe_stainless, STAINLESS.plate(), false, 2);
+		addFluidPipeRecipes(ModBlocks.fluid_pipe_titanium, TI.plate(), false, 2);
+		addFluidPipeRecipes(ModBlocks.fluid_pipe_tungsten, W.plate(), false, 2);
 
 		constructionRecipes.add(new AnvilConstructionRecipe(
 			new ComparableStack(ModItems.coil_copper, 2),
@@ -1062,6 +1072,31 @@ public class AnvilRecipes extends SerializableRecipe {
 
 	public static List<AnvilConstructionRecipe> getConstruction() {
 		return constructionRecipes;
+	}
+
+	private static void addFluidPipeRecipes(Block pipe, String material, boolean wood, int tier) {
+		String hit = wood ? KEY_TOOL_MALLET : KEY_TOOL_HAMMER;
+		String cut = wood ? KEY_TOOL_SAW : KEY_TOOL_C_WRENCH;
+		int[] platesNeeded = {12, 6, 6, 6, 6}; // huge, large, normal, small, tiny
+		int[] amountMade = {1, 1, 2, 6, 8};
+
+		for(int size = 0; size < platesNeeded.length; size++) {
+			if(wood && (size == 0 || size == 4)) continue;
+			constructionRecipes.add(new AnvilConstructionRecipe(
+				new AStack[] {new OreDictStack(material, platesNeeded[size]), new OreDictStack(hit), new OreDictStack(cut)},
+				new AnvilOutput(new ItemStack(pipe, amountMade[size], size * BlockFluidPipe.META_STEP))).setTier(tier).keepInput(1, 1).keepInput(2, 1));
+		}
+
+		if(wood) return;
+
+		int normal = FluidPipeProperties.NORMAL * BlockFluidPipe.META_STEP;
+		int small = FluidPipeProperties.SMALL * BlockFluidPipe.META_STEP;
+		constructionRecipes.add(new AnvilConstructionRecipe(
+			new ComparableStack(pipe, 4, normal),
+			new AnvilOutput(new ItemStack(pipe, 1, BlockFluidPipe.QUADRUPLE_META))).setTier(tier));
+		constructionRecipes.add(new AnvilConstructionRecipe(
+			new ComparableStack(pipe, 9, small),
+			new AnvilOutput(new ItemStack(pipe, 1, BlockFluidPipe.NONUPLE_META))).setTier(tier));
 	}
 
 	public static class AnvilConstructionRecipe {

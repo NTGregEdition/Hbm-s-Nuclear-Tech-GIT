@@ -7,6 +7,10 @@ import com.hbm.util.fauxpointtwelve.DirPos;
 
 public class FluidNode extends GenNode<FluidNetMK2> {
 
+	public long throughput = Long.MAX_VALUE;
+	public long capacity;
+	public long[] stored;
+
 	public FluidNode(INetworkProvider<FluidNetMK2> provider, BlockPos... positions) {
 		super(provider, positions);
 	}

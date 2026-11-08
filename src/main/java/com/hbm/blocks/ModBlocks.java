@@ -18,6 +18,7 @@ import com.hbm.blocks.rail.*;
 import com.hbm.blocks.test.*;
 import com.hbm.blocks.turret.*;
 import api.hbm.energymk2.CableProperties;
+import api.hbm.fluidmk2.FluidPipeProperties;
 import api.hbm.energymk2.TransformerProperties;
 import api.hbm.energymk2.VoltageTier;
 import com.hbm.inventory.fluid.Fluids;
@@ -913,6 +914,13 @@ public class ModBlocks {
 	public static Block machine_detector;
 	public static Block fluid_duct_neo;
 	public static Block fluid_duct_box;
+	public static Block fluid_pipe_wood;
+	public static Block fluid_pipe_copper;
+	public static Block fluid_pipe_bronze;
+	public static Block fluid_pipe_steel;
+	public static Block fluid_pipe_stainless;
+	public static Block fluid_pipe_titanium;
+	public static Block fluid_pipe_tungsten;
 	public static Block fluid_duct_paintable;
 	public static Block fluid_duct_gauge;
 	public static Block fluid_duct_exhaust;
@@ -2317,6 +2325,13 @@ public class ModBlocks {
 		machine_detector = new PowerDetector(Material.iron).setBlockName("machine_detector").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":machine_detector_off");
 		fluid_duct_neo = new FluidDuctStandard(Material.iron).setBlockName("fluid_duct_neo").setStepSound(ModSoundTypes.pipe).setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":pipe_neo");
 		fluid_duct_box = new FluidDuctBox(Material.iron).setBlockName("fluid_duct_box").setStepSound(ModSoundTypes.pipe).setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":fluid_duct_box");
+		fluid_pipe_wood = createFluidPipe("wood", 30, 350, false, false);
+		fluid_pipe_copper = createFluidPipe("copper", 20, 1000, true, true);
+		fluid_pipe_bronze = createFluidPipe("bronze", 120, 2000, true, true);
+		fluid_pipe_steel = createFluidPipe("steel", 240, 2500, true, true);
+		fluid_pipe_stainless = createFluidPipe("stainless", 360, 3000, true, true);
+		fluid_pipe_titanium = createFluidPipe("titanium", 480, 5000, true, true);
+		fluid_pipe_tungsten = createFluidPipe("tungsten", 600, 7500, true, true);
 		fluid_duct_exhaust = new FluidDuctBoxExhaust(Material.iron).setBlockName("fluid_duct_exhaust").setStepSound(ModSoundTypes.pipe).setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":fluid_duct_box");
 		fluid_duct_paintable_block_exhaust = new FluidDuctPaintableBlockExhaust().setBlockName("fluid_duct_paintable_block_exhaust").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 		pipe_anchor = new FluidPipeAnchor().setBlockName("pipe_anchor").setStepSound(ModSoundTypes.pipe).setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":block_steel");
@@ -3849,6 +3864,13 @@ public class ModBlocks {
 
 		register(fluid_duct_neo);
 		register(fluid_duct_box);
+		register(fluid_pipe_wood);
+		register(fluid_pipe_copper);
+		register(fluid_pipe_bronze);
+		register(fluid_pipe_steel);
+		register(fluid_pipe_stainless);
+		register(fluid_pipe_titanium);
+		register(fluid_pipe_tungsten);
 		register(fluid_duct_exhaust);
 		register(fluid_duct_paintable_block_exhaust);
 		register(fluid_duct_paintable);
@@ -4268,6 +4290,12 @@ public class ModBlocks {
 		return new BlockVoltageCable(Material.iron, new CableProperties(tier, voltage, 4L, lossPerBlock))
 				.setBlockName("cable_" + tier).setHardness(5.0F).setResistance(10.0F)
 				.setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":cable_" + tier);
+	}
+
+	private static Block createFluidPipe(String id, int baseThroughput, int heatResistance, boolean gasProof, boolean allSizes) {
+		return new BlockFluidPipe(Material.iron, new FluidPipeProperties(id, baseThroughput, heatResistance, gasProof, allSizes))
+				.setBlockName("fluid_pipe_" + id).setStepSound(ModSoundTypes.pipe).setHardness(5.0F).setResistance(10.0F)
+				.setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":fluid_duct_box");
 	}
 
 	private static Block createVoltageTransformer(String id, long inputVoltage, long outputVoltage) {

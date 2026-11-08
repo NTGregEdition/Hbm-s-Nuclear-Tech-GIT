@@ -118,6 +118,7 @@ public class ModulePortManFluidAdaptive {
 				if(outEnabled[i]) port.enable(); else port.disable();
 				port.update(world);
 				port.checkProvide(world);
+				if(outTanks[i].getFill() > 0) port.offerFluid(world, outTanks[i]);
 			}
 		}
 	}

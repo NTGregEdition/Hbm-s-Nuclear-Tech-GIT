@@ -3,11 +3,16 @@ package com.hbm.tileentity;
 import api.hbm.energymk2.IEnergyProviderMK2;
 import api.hbm.energymk2.IEnergyReceiverMK2;
 import api.hbm.energymk2.PowerNetMK2;
+import api.hbm.fluidmk2.FluidNetMK2;
+import api.hbm.fluidmk2.IFluidProviderMK2;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.hbm.config.ServerConfig;
+import com.hbm.inventory.fluid.FluidType;
 import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.fluid.tank.FluidTank;
+import com.hbm.tileentity.network.TileEntityFluidPipe;
 import com.hbm.uninos.GenNode;
 import com.hbm.uninos.INetworkProvider;
 import com.hbm.uninos.NodeNet;
@@ -15,6 +20,7 @@ import com.hbm.uninos.UniNodespace;
 import com.hbm.util.fauxpointtwelve.BlockPos;
 import com.hbm.util.fauxpointtwelve.DirPos;
 
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -27,6 +33,8 @@ import net.minecraftforge.common.util.ForgeDirection;
  */
 public class TilePort {
 
+	private static final int OFFER_INTERVAL = 20;
+
 	// generic ports now work with literally anything that supports UNINOS
 	protected GenNode node;
 	// for checking if the network has changed and managing subscribes
@@ -38,6 +46,7 @@ public class TilePort {
 	public boolean needsRebuild = false;
 	protected boolean isEnabled = true;
 	protected int timeSinceNetworkChange = 0;
+	protected int offerCooldown = 0;
 	// usually a tile entity, can be a delegate/proxy type object too
 	protected Object owner;
 	
@@ -146,7 +155,7 @@ public class TilePort {
 				if(this.node.net instanceof PowerNetMK2 && owner instanceof IEnergyReceiverMK2) {
 					// the voltage layer needs to know which cable face the machine touches
 					for(DirPos pos : this.connections) ((PowerNetMK2) this.node.net).addReceiverAt((IEnergyReceiverMK2) owner, pos.getX(), pos.getY(), pos.getZ(), pos.getDir().getOpposite());
-				} else {
+				} else if(pipeSidesAllow(world, true)) {
 					this.node.net.addReceiver(owner);
 				}
 			}
@@ -163,7 +172,7 @@ public class TilePort {
 			if(this.node.net != null) {
 				if(this.node.net instanceof PowerNetMK2 && owner instanceof IEnergyProviderMK2) {
 					for(DirPos pos : this.connections) ((PowerNetMK2) this.node.net).addProviderAt((IEnergyProviderMK2) owner, pos.getX(), pos.getY(), pos.getZ(), pos.getDir().getOpposite());
-				} else {
+				} else if(pipeSidesAllow(world, false)) {
 					this.node.net.addProvider(owner);
 				}
 			}
@@ -173,6 +182,40 @@ public class TilePort {
 			for(DirPos pos : this.connections) this.type.spawnDebugParticles(world, pos, false);
 	}
 	
+	private boolean pipeSidesAllow(World world, boolean receiving) {
+		if(!(this.node.net instanceof FluidNetMK2) || this.connections == null) return true;
+
+		boolean touchesPipe = false;
+		for(DirPos pos : this.connections) {
+			if(!world.blockExists(pos.getX(), pos.getY(), pos.getZ())) continue;
+			TileEntity te = world.getTileEntity(pos.getX(), pos.getY(), pos.getZ());
+			if(!(te instanceof TileEntityFluidPipe)) continue;
+
+			TileEntityFluidPipe pipe = (TileEntityFluidPipe) te;
+			ForgeDirection side = pos.getDir().getOpposite();
+			if(receiving ? pipe.allowsOutput(side) : pipe.allowsInput(side)) return true;
+			touchesPipe = true;
+		}
+		return !touchesPipe;
+	}
+
+	public void offerFluid(World world, FluidTank tank) {
+		if(this.connections == null || world.isRemote || --this.offerCooldown > 0) return;
+		this.offerCooldown = OFFER_INTERVAL;
+
+		if(!isEnabled() || !(this.owner instanceof IFluidProviderMK2)) return;
+
+		FluidType fluid = tank.getTankType();
+		IFluidProviderMK2 provider = (IFluidProviderMK2) this.owner;
+		if(Math.min(provider.getFluidAvailable(fluid, tank.getPressure()), provider.getProviderSpeed(fluid, tank.getPressure())) <= 0) return;
+
+		for(DirPos pos : this.connections) {
+			if(!world.blockExists(pos.getX(), pos.getY(), pos.getZ())) continue;
+			TileEntity te = world.getTileEntity(pos.getX(), pos.getY(), pos.getZ());
+			if(te instanceof TileEntityFluidPipe) ((TileEntityFluidPipe) te).offerFluid(fluid, pos.getDir().getOpposite());
+		}
+	}
+
 	public void forceRebuild() {
 		this.needsRebuild = true;
 	}

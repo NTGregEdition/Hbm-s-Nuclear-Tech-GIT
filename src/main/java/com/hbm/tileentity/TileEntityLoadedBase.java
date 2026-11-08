@@ -108,7 +108,9 @@ public class TileEntityLoadedBase extends TileEntity implements ILoadedTile, IBu
 		
 		for(int i = 0; i < ports.length; i++) {
 			ports[i].setupType(tanks[i].getTankType().getNetworkProvider());
-			if(!ports[i].needsRebuild) ports[i].checkProvide(worldObj);
+			if(ports[i].needsRebuild) continue;
+			ports[i].checkProvide(worldObj);
+			if(tanks[i].getFill() > 0) ports[i].offerFluid(worldObj, tanks[i]);
 		}
 	}
 

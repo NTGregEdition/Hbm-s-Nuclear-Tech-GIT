@@ -95,12 +95,10 @@ public class ItemWrench extends ItemSword {
 			}
 		}
 
-		if(player.isSneaking()) {
-			Block block = world.getBlock(x, y, z);
+		Block block = world.getBlock(x, y, z);
 
-			if(block instanceof IToolable) {
-				return ((IToolable) block).onScrew(world, player, x, y, z, p_77648_7_, p_77648_8_, p_77648_9_, p_77648_10_, ToolType.WRENCH);
-			}
+		if(block instanceof IToolable) {
+			return ((IToolable) block).onScrew(world, player, x, y, z, p_77648_7_, p_77648_8_, p_77648_9_, p_77648_10_, ToolType.WRENCH);
 		}
 
 		return false;

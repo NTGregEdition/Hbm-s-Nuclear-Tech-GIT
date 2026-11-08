@@ -98,6 +98,9 @@ abstract class TileEntityVoltagePumpBase extends TileEntityLoadedBase implements
 	@Override public long getVoltage() { return getInstalledUpgrade() == PumpUpgrades.NONE ? VoltageTier.DEFAULT : PumpUpgrades.voltageOf(getInstalledUpgrade()); }
 	@Override public int getPipeBudget() { return getPipeLimit(); }
 	@Override public boolean isPumpRunning() { return running && getInstalledUpgrade() != PumpUpgrades.NONE; }
+	@Override public long getPumpFlow() { return isPumpRunning() && isWithinPipeLimit() ? getFlowRate() : 0L; }
+
+	protected abstract long getFlowRate();
 	@Override public int getPumpStrength() { return isPumpRunning() && isWithinPipeLimit() ? getPipeLimit() : 0; }
 
 	@Override

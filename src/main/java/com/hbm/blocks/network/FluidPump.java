@@ -104,6 +104,7 @@ public class FluidPump extends BlockContainer implements INBTBlockTransformable 
 		@Override public int getPipeBudget() { return 65_536; }
 		@Override public int getPumpStrength() { return 65_536; }
 		@Override public boolean isPumpRunning() { return true; }
+		@Override public long getPumpFlow() { return 1_000_000_000L; }
 
 		public boolean bufferMismatch() {
 			return this.bufferSize != this.tank[0].getMaxFill();

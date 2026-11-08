@@ -3,6 +3,7 @@ package com.hbm.util;
 import com.hbm.inventory.RecipesCommon.AStack;
 import com.hbm.inventory.recipes.anvil.AnvilRecipes.AnvilOutput;
 import com.hbm.items.tool.ItemCraftingDegradation;
+import com.hbm.items.tool.ToolItems;
 import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.machine.TileEntityFurnaceBrick;
 import net.minecraft.entity.player.EntityPlayer;
@@ -321,7 +322,7 @@ public class InventoryUtil {
 
 				int max = ItemCraftingDegradation.maxWear(stack);
 
-				if(max <= 0) {
+				if(max <= 0 && !ToolItems.isSingleUse(stack)) {
 					undamageable = true;
 					break;
 				}
@@ -345,7 +346,8 @@ public class InventoryUtil {
 
 				if(pending[i] <= 0) continue;
 
-				ItemCraftingDegradation.addWear(inventory[i], pending[i], player);
+				if(ToolItems.isSingleUse(inventory[i])) inventory[i].stackSize--;
+				else ItemCraftingDegradation.addWear(inventory[i], pending[i], player);
 
 				if(inventory[i].stackSize <= 0) {
 					inventory[i] = null;
