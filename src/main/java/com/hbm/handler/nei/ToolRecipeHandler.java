@@ -9,6 +9,11 @@ import net.minecraft.item.ItemStack;
 /** The item list only has one material of a tool, so its recipe page lists the recipes of every material like in GTNH */
 public class ToolRecipeHandler extends ShapedRecipeHandler {
 
+	/** Same id as the vanilla handler so NEI draws this as the real crafting table tab; no @Override as the compile-time NEI lacks it */
+	public String getHandlerId() {
+		return ShapedRecipeHandler.class.getName();
+	}
+
 	@Override
 	public void loadCraftingRecipes(ItemStack result) {
 		if(!ItemCraftingDegradation.isListed(result)) return;

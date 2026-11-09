@@ -1,7 +1,7 @@
 package com.hbm.handler.nei;
 
-import codechicken.nei.api.API;
 import codechicken.nei.api.IConfigureNEI;
+import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiUsageRecipe;
 
 public class NEIToolMatConfig implements IConfigureNEI {
@@ -9,7 +9,8 @@ public class NEIToolMatConfig implements IConfigureNEI {
 	@Override
 	public void loadConfig() {
 		ToolRecipeHandler handler = new ToolRecipeHandler();
-		API.registerRecipeHandler(handler);
+		// API.registerRecipeHandler would drop it, the vanilla shaped handler already owns this id
+		GuiCraftingRecipe.craftinghandlers.add(handler);
 		GuiUsageRecipe.usagehandlers.add(0, handler);
 	}
 
