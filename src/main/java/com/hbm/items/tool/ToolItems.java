@@ -14,17 +14,24 @@ import com.hbm.items.ModItems;
 import com.hbm.lib.RefStrings;
 import com.hbm.main.CraftingManager;
 import com.hbm.main.MainRegistry;
+import com.hbm.render.tileentity.IItemRendererProvider;
 
 import api.hbm.block.IToolable.ToolType;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ItemRenderer;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
+import net.minecraftforge.client.IItemRenderer;
 import net.minecraftforge.oredict.OreDictionary;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 
 /** Every crafting tool is one item, the material is its item damage. Recipes are taken from GTNH */
 public class ToolItems {
@@ -77,7 +84,9 @@ public class ToolItems {
 		return item;
 	}
 
-	private static class ItemSingleUse extends Item {
+	private static class ItemSingleUse extends Item implements IItemRendererProvider {
+
+		private static final float SHADE = 0.85F;
 
 		private final String tool;
 		private final boolean layered;
@@ -104,6 +113,73 @@ public class ToolItems {
 		@SideOnly(Side.CLIENT)
 		public IIcon getIconFromDamageForRenderPass(int damage, int pass) {
 			return pass == 1 && layerIcon != null ? layerIcon : itemIcon;
+		}
+
+		@Override public Item getItemForRenderer() { return this; }
+
+		@Override
+		public IItemRenderer getRenderer() {
+			return new IItemRenderer() {
+
+				@Override
+				public boolean handleRenderType(ItemStack stack, ItemRenderType type) {
+					return type == ItemRenderType.INVENTORY || type == ItemRenderType.EQUIPPED || type == ItemRenderType.EQUIPPED_FIRST_PERSON;
+				}
+
+				@Override
+				public boolean shouldUseRenderHelper(ItemRenderType type, ItemStack stack, ItemRendererHelper helper) {
+					return false;
+				}
+
+				@Override
+				public void renderItem(ItemRenderType type, ItemStack stack, Object... data) {
+					Minecraft mc = Minecraft.getMinecraft();
+					mc.getTextureManager().bindTexture(mc.getTextureManager().getResourceLocation(stack.getItemSpriteNumber()));
+
+					boolean gui = type == ItemRenderType.INVENTORY;
+					boolean blend = GL11.glIsEnabled(GL11.GL_BLEND);
+					if(gui) {
+						//slot rendering can leave alpha test/blend in any state, transparent texels must never be drawn
+						GL11.glEnable(GL11.GL_ALPHA_TEST);
+						GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
+						GL11.glEnable(GL11.GL_BLEND);
+						GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+					}
+
+					GL11.glColor4f(SHADE, SHADE, SHADE, 1F);
+					//rgb comes from the vertex color only, alpha is still the texture alpha
+					GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL13.GL_COMBINE);
+					GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_COMBINE_RGB, GL11.GL_REPLACE);
+					GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_RGB, GL13.GL_PRIMARY_COLOR);
+					GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
+					GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_COMBINE_ALPHA, GL11.GL_MODULATE);
+					GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_ALPHA, GL11.GL_TEXTURE);
+					GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
+					GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE1_ALPHA, GL13.GL_PRIMARY_COLOR);
+					GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND1_ALPHA, GL11.GL_SRC_ALPHA);
+
+					drawWhite(type, itemIcon);
+					if(layerIcon != null) drawWhite(type, layerIcon);
+
+					GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_MODULATE);
+					GL11.glColor4f(1F, 1F, 1F, 1F);
+					if(gui && !blend) GL11.glDisable(GL11.GL_BLEND);
+				}
+
+				private void drawWhite(ItemRenderType type, IIcon icon) {
+					Tessellator tess = Tessellator.instance;
+					if(type == ItemRenderType.INVENTORY) {
+						tess.startDrawingQuads();
+						tess.addVertexWithUV(0, 16, 0, icon.getMinU(), icon.getMaxV());
+						tess.addVertexWithUV(16, 16, 0, icon.getMaxU(), icon.getMaxV());
+						tess.addVertexWithUV(16, 0, 0, icon.getMaxU(), icon.getMinV());
+						tess.addVertexWithUV(0, 0, 0, icon.getMinU(), icon.getMinV());
+						tess.draw();
+					} else {
+						ItemRenderer.renderItemIn2D(tess, icon.getMaxU(), icon.getMinV(), icon.getMinU(), icon.getMaxV(), icon.getIconWidth(), icon.getIconHeight(), 0.0625F);
+					}
+				}
+			};
 		}
 	}
 

@@ -1237,7 +1237,6 @@ public class ModBlocks {
 	public static Block machine_storage_drum;
 
 	public static Block machine_autocrafter;
-	public static Block crafting_station;
 	public static Block machine_funnel;
 
 	public static Block anvil_iron;
@@ -2736,7 +2735,6 @@ public class ModBlocks {
 		machine_electrolyser = new MachineElectrolyser().setBlockName("machine_electrolyser").setHardness(10.0F).setResistance(20.0F).setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":block_steel_machine");
 
 		machine_autocrafter = new MachineAutocrafter().setBlockName("machine_autocrafter").setHardness(10.0F).setResistance(20.0F).setCreativeTab(MainRegistry.machineTab);
-		crafting_station = new CraftingStation().setBlockName("crafting_station").setHardness(2.5F).setCreativeTab(MainRegistry.machineTab);
 		machine_funnel = new MachineFunnel().setBlockName("machine_funnel").setHardness(10.0F).setResistance(20.0F).setCreativeTab(MainRegistry.machineTab);
 
 		anvil_iron = new NTMAnvil(Material.iron, NTMAnvil.TIER_IRON).setBlockName("anvil_iron").setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":anvil_iron");
@@ -3657,7 +3655,6 @@ public class ModBlocks {
 
 		//Machines
 		register(machine_autocrafter);
-		register(crafting_station);
 		register(machine_funnel);
 		register(war_controller);
 

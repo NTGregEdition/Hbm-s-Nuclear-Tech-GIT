@@ -357,7 +357,6 @@ public class TileMappings {
 		put(TileEntityMachineStrandCaster.class, "tileentity_strand_caster");
 
 		put(TileEntityMachineAutocrafter.class, "tileentity_autocrafter");
-		put(TileEntityCraftingStation.class, "tileentity_crafting_station");
 		put(TileEntityMachineFunnel.class, "tileentity_funnel");
 		put(TileEntityDiFurnaceRTG.class, "tileentity_rtg_difurnace");
 		put(TileEntityMachineRadiolysis.class, "tileentity_radiolysis");
