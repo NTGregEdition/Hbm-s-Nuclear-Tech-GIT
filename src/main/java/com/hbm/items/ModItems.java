@@ -707,6 +707,7 @@ public class ModItems {
 	public static Item powder_magic;
 	public static Item powder_balefire;
 	public static Item powder_sawdust;
+	public static Item wood_pulp;
 	public static Item powder_flux;
 	public static Item powder_fertilizer;
 	public static Item powder_clay;
@@ -2964,6 +2965,7 @@ public class ModItems {
 		powder_magic = new Item().setUnlocalizedName("powder_magic").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_magic");
 		powder_balefire = new Item().setUnlocalizedName("powder_balefire").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_balefire");
 		powder_sawdust = new Item().setUnlocalizedName("powder_sawdust").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_sawdust");
+		wood_pulp = new Item().setUnlocalizedName("wood_pulp").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":wood_pulp");
 		powder_flux = new Item().setUnlocalizedName("powder_flux").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_flux");
 		powder_fertilizer = new ItemFertilizer().setUnlocalizedName("powder_fertilizer").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_fertilizer");
 		powder_coltan_ore = new Item().setUnlocalizedName("powder_coltan_ore").setCreativeTab(MainRegistry.partsTab).setTextureName(RefStrings.MODID + ":powder_coltan_ore");
@@ -5393,6 +5395,7 @@ public class ModItems {
 		GameRegistry.registerItem(powder_asbestos, powder_asbestos.getUnlocalizedName());
 		GameRegistry.registerItem(powder_magic, powder_magic.getUnlocalizedName());
 		GameRegistry.registerItem(powder_sawdust, powder_sawdust.getUnlocalizedName());
+		GameRegistry.registerItem(wood_pulp, wood_pulp.getUnlocalizedName());
 		GameRegistry.registerItem(powder_flux, powder_flux.getUnlocalizedName());
 		GameRegistry.registerItem(powder_fertilizer, powder_fertilizer.getUnlocalizedName());
 		GameRegistry.registerItem(powder_balefire, powder_balefire.getUnlocalizedName());
